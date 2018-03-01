@@ -30,18 +30,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <dlfcn.h>
+#include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-#include "pmemobj_convert.h"
-#include "nvml-1.3/src/include/libpmemobj.h"
-
-const char *
-pmemobj_convert_13_to_14(const char *path)
+int
+main(int argc, char *argv[])
 {
-	PMEMobjpool *pop = pmemobj_open(path, NULL);
-	if (!pop)
-		return pmemobj_errormsg();
+	int ver;
+	void *lib;
+	char name[100];
+	const char *(*conv)(const char *);
+	const char *path;
 
-	pmemobj_close(pop);
-	return NULL;
+	if (argc < 3) {
+		fprintf(stderr, "not enough parameters\n");
+		exit(99);
+	}
+
+	path = argv[1];
+	ver = atoi(argv[2]);
+	sprintf(name, "libpmemobj_convert_1%d_to_1%d.so", ver, ver + 1);
+	lib = dlopen(name, RTLD_NOW);
+	if (!lib) {
+		fprintf(stderr, "dlopen failed: %s\n", dlerror());
+		exit(1);
+	}
+
+	sprintf(name, "pmemobj_convert_1%d_to_1%d", ver, ver + 1);
+	conv = dlsym(lib, name);
+	if (!conv) {
+		fprintf(stderr, "dlsym failed: %s\n", dlerror());
+		exit(2);
+	}
+
+	const char *msg = conv(path);
+	if (msg) {
+		fprintf(stderr, "%s failed: %s (%s)\n", name, msg,
+				strerror(errno));
+		exit(3);
+	}
+
+	dlclose(lib);
 }

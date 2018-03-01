@@ -35,13 +35,13 @@
 #include "pmemobj_convert.h"
 #include "nvml-1.2/src/include/libpmemobj.h"
 
-int
+const char *
 pmemobj_convert_12_to_13(const char *path)
 {
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
 	if (!pop)
-		return -1;
+		return pmemobj_errormsg();
 
 	pmemobj_close(pop);
-	return 0;
+	return NULL;
 }

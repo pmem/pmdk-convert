@@ -121,6 +121,14 @@ else()
 endif()
 link_directories(${PMEM_LIBRARY_DIRS})
 
+add_executable(pmdk-convert pmdk-convert.c)
+target_link_libraries(pmdk-convert PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(pmdk-convert PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+
+install(TARGETS pmdk-convert
+	DESTINATION ${CMAKE_INSTALL_BINDIR}
+	PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
 ###################################################### 1.3
 
 set(SOURCES_13

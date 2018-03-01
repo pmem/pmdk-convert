@@ -33,10 +33,9 @@
 #ifndef PMEMOBJ_CONVERT_H
 #define PMEMOBJ_CONVERT_H
 
-int pmemobj_convert_13_to_14(const char *path);
-int pmemobj_convert_12_to_13(const char *path);
-int pmemobj_convert_11_to_12(const char *path);
-int pmemobj_convert_10_to_11(const char *path);
+const char *pmemobj_convert_13_to_14(const char *path);
+const char *pmemobj_convert_12_to_13(const char *path);
+const char *pmemobj_convert_11_to_12(const char *path);
+const char *pmemobj_convert_10_to_11(const char *path);
 
 #endif
-
