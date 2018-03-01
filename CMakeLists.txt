@@ -181,7 +181,6 @@ if(WIN32)
 endif()
 
 add_library(pmemobj_convert_13_to_14_o OBJECT ${SOURCES_13})
-add_library(pmemobj_convert_13_to_14_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_13_to_14_o>)
 
 target_compile_definitions(pmemobj_convert_13_to_14_o PRIVATE SRCVERSION="1.3")
 target_compile_definitions(pmemobj_convert_13_to_14_o PRIVATE USE_LIBDL)
@@ -192,17 +191,24 @@ target_include_directories(pmemobj_convert_13_to_14_o PRIVATE nvml-1.3/src/libpm
 target_include_directories(pmemobj_convert_13_to_14_o PRIVATE nvml-1.3/src/common)
 target_include_directories(pmemobj_convert_13_to_14_o PRIVATE ${PMEM_INCLUDE_DIRS})
 
+add_library(pmemobj_convert_13_to_14_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_13_to_14_o>)
 target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.3_to_1.4.map)
 # strip unneeded symbols, requires -fdata-sections -ffunction-sections
 target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE -Wl,--gc-sections)
-
 set_target_properties(pmemobj_convert_13_to_14_shared PROPERTIES OUTPUT_NAME pmemobj_convert_13_to_14)
 
 install(TARGETS pmemobj_convert_13_to_14_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+add_library(pmemobj_13 STATIC $<TARGET_OBJECTS:pmemobj_convert_13_to_14_o>)
+target_link_libraries(pmemobj_13 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(pmemobj_13 PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(pmemobj_13 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(pmemobj_13 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.3/src/libpmemobj/libpmemobj.map)
+
 endif(BUILD_CONVERT_13_TO_14)
 
 ###################################################### 1.2
@@ -246,7 +252,6 @@ if(WIN32)
 endif()
 
 add_library(pmemobj_convert_12_to_13_o OBJECT ${SOURCES_12})
-add_library(pmemobj_convert_12_to_13_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_12_to_13_o>)
 
 target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE SRCVERSION="1.2")
 target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE USE_LIBDL)
@@ -256,6 +261,7 @@ target_include_directories(pmemobj_convert_12_to_13_o PRIVATE nvml-1.2/src/libpm
 target_include_directories(pmemobj_convert_12_to_13_o PRIVATE nvml-1.2/src/common)
 target_include_directories(pmemobj_convert_12_to_13_o PRIVATE ${PMEM_INCLUDE_DIRS})
 
+add_library(pmemobj_convert_12_to_13_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_12_to_13_o>)
 target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
@@ -267,6 +273,13 @@ set_target_properties(pmemobj_convert_12_to_13_shared PROPERTIES OUTPUT_NAME pme
 
 install(TARGETS pmemobj_convert_12_to_13_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+add_library(pmemobj_12 STATIC $<TARGET_OBJECTS:pmemobj_convert_12_to_13_o>)
+target_link_libraries(pmemobj_12 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(pmemobj_12 PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(pmemobj_12 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(pmemobj_12 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.2/src/libpmemobj/libpmemobj.map)
+
 endif(BUILD_CONVERT_12_TO_13)
 
 ###################################################### 1.1
@@ -302,7 +315,6 @@ if(WIN32)
 endif()
 
 add_library(pmemobj_convert_11_to_12_o OBJECT ${SOURCES_11})
-add_library(pmemobj_convert_11_to_12_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_11_to_12_o>)
 
 target_compile_definitions(pmemobj_convert_11_to_12_o PRIVATE SRCVERSION="1.1")
 
@@ -311,6 +323,7 @@ target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/libpm
 target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/common)
 target_include_directories(pmemobj_convert_11_to_12_o PRIVATE ${PMEM_INCLUDE_DIRS})
 
+add_library(pmemobj_convert_11_to_12_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_11_to_12_o>)
 target_link_libraries(pmemobj_convert_11_to_12_shared PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(pmemobj_convert_11_to_12_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pmemobj_convert_11_to_12_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.1_to_1.2.map)
@@ -321,6 +334,11 @@ set_target_properties(pmemobj_convert_11_to_12_shared PROPERTIES OUTPUT_NAME pme
 
 install(TARGETS pmemobj_convert_11_to_12_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+add_library(pmemobj_11 STATIC $<TARGET_OBJECTS:pmemobj_convert_11_to_12_o>)
+target_link_libraries(pmemobj_11 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(pmemobj_11 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(pmemobj_11 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.1/src/libpmemobj/libpmemobj.map)
 
 endif(BUILD_CONVERT_11_TO_12)
 
@@ -350,7 +368,6 @@ set(SOURCES_10
 )
 
 add_library(pmemobj_convert_10_to_11_o OBJECT ${SOURCES_10})
-add_library(pmemobj_convert_10_to_11_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_10_to_11_o>)
 
 target_compile_definitions(pmemobj_convert_10_to_11_o PRIVATE SRCVERSION="1.0")
 
@@ -359,6 +376,7 @@ target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/libpm
 target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/common)
 target_include_directories(pmemobj_convert_10_to_11_o PRIVATE ${PMEM_INCLUDE_DIRS})
 
+add_library(pmemobj_convert_10_to_11_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_10_to_11_o>)
 target_link_libraries(pmemobj_convert_10_to_11_shared PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(pmemobj_convert_10_to_11_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pmemobj_convert_10_to_11_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.0_to_1.1.map)
@@ -369,5 +387,10 @@ set_target_properties(pmemobj_convert_10_to_11_shared PROPERTIES OUTPUT_NAME pme
 
 install(TARGETS pmemobj_convert_10_to_11_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+add_library(pmemobj_10 STATIC $<TARGET_OBJECTS:pmemobj_convert_10_to_11_o>)
+target_link_libraries(pmemobj_10 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(pmemobj_10 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(pmemobj_10 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.0/src/libpmemobj/libpmemobj.map)
 
 endif(BUILD_CONVERT_10_TO_11)
