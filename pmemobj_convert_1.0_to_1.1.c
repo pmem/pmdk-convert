@@ -30,13 +30,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMEMOBJ_CONVERT_H
-#define PMEMOBJ_CONVERT_H
+#include <stdlib.h>
 
-int pmemobj_convert_13_to_14(const char *path);
-int pmemobj_convert_12_to_13(const char *path);
-int pmemobj_convert_11_to_12(const char *path);
-int pmemobj_convert_10_to_11(const char *path);
+#include "pmemobj_convert.h"
+#include "nvml-1.0/src/include/libpmemobj.h"
 
-#endif
+int
+pmemobj_convert_10_to_11(const char *path)
+{
+	PMEMobjpool *pop = pmemobj_open(path, NULL);
+	if (!pop)
+		return -1;
 
+	pmemobj_close(pop);
+	return 0;
+}
