@@ -38,6 +38,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(FindThreads)
 
 option(BUILD_CONVERT_13_TO_14 "build convert 1.3 to 1.4" ON)
+option(BUILD_CONVERT_12_TO_13 "build convert 1.2 to 1.3" ON)
+option(BUILD_CONVERT_11_TO_12 "build convert 1.1 to 1.2" ON)
+option(BUILD_CONVERT_10_TO_11 "build convert 1.0 to 1.1" ON)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -130,7 +133,7 @@ install(TARGETS pmdk-convert
 	PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 ###################################################### 1.3
-
+if(BUILD_CONVERT_13_TO_14)
 set(SOURCES_13
 	pmemobj_convert_1.3_to_1.4.c
 	nvml-1.3/src/libpmemobj/alloc_class.c
@@ -200,9 +203,11 @@ set_target_properties(pmemobj_convert_13_to_14_shared PROPERTIES OUTPUT_NAME pme
 
 install(TARGETS pmemobj_convert_13_to_14_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+endif(BUILD_CONVERT_13_TO_14)
 
 ###################################################### 1.2
 
+if(BUILD_CONVERT_12_TO_13)
 set(SOURCES_12
 	pmemobj_convert_1.2_to_1.3.c
 	nvml-1.2/src/libpmemobj/bucket.c
@@ -262,9 +267,11 @@ set_target_properties(pmemobj_convert_12_to_13_shared PROPERTIES OUTPUT_NAME pme
 
 install(TARGETS pmemobj_convert_12_to_13_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+endif(BUILD_CONVERT_12_TO_13)
 
 ###################################################### 1.1
 
+if(BUILD_CONVERT_11_TO_12)
 set(SOURCES_11
 	pmemobj_convert_1.1_to_1.2.c
 	nvml-1.1/src/libpmemobj/bucket.c
@@ -315,7 +322,11 @@ set_target_properties(pmemobj_convert_11_to_12_shared PROPERTIES OUTPUT_NAME pme
 install(TARGETS pmemobj_convert_11_to_12_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
+endif(BUILD_CONVERT_11_TO_12)
+
 ###################################################### 1.0
+
+if(BUILD_CONVERT_10_TO_11)
 
 set(SOURCES_10
 	pmemobj_convert_1.0_to_1.1.c
@@ -358,3 +369,5 @@ set_target_properties(pmemobj_convert_10_to_11_shared PROPERTIES OUTPUT_NAME pme
 
 install(TARGETS pmemobj_convert_10_to_11_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+endif(BUILD_CONVERT_10_TO_11)
