@@ -30,66 +30,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <dlfcn.h>
-#include <errno.h>
-#include <libgen.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
 
-static void *
-open_lib(const char *argv0, const char *name)
-{
-	char *argv0copy = strdup(argv0);
-	char *dir = dirname(argv0copy);
-	char path[strlen(dir) + 100];
-
-	sprintf(path, "%s/%s", dir, name);
-	void *lib = dlopen(path, RTLD_NOW);
-	if (!lib) {
-		sprintf(path, "%s/pmdk-convert/%s", LIBDIR, name);
-		lib = dlopen(path, RTLD_NOW);
-	}
-	if (!lib)
-		fprintf(stderr, "dlopen failed: %s\n", dlerror());
-	free(argv0copy);
-	return lib;
-}
+#include "libpmemobj.h"
 
 int
 main(int argc, char *argv[])
 {
-	int ver;
-	void *lib;
-	char name[100];
-	const char *(*conv)(const char *);
-	const char *path;
-
-	if (argc < 3) {
-		fprintf(stderr, "not enough parameters\n");
-		exit(99);
+	if (argc < 2) {
+		fprintf(stderr, "Usage: %s pool_file\n", argv[0]);
+		exit(1);
 	}
 
-	path = argv[1];
-	ver = atoi(argv[2]);
-	sprintf(name, "libpmemobj_convert_1%d_to_1%d.so", ver, ver + 1);
-	lib = open_lib(argv[0], name);
-	if (!lib)
-		exit(1);
-
-	sprintf(name, "pmemobj_convert_1%d_to_1%d", ver, ver + 1);
-	conv = dlsym(lib, name);
-	if (!conv) {
-		fprintf(stderr, "dlsym failed: %s\n", dlerror());
+	PMEMobjpool *pop = pmemobj_create(argv[1], "test", 0, 0755);
+	if (!pop) {
+		fprintf(stderr, "pmemobj_create failed: %s\n",
+				pmemobj_errormsg());
 		exit(2);
 	}
 
-	const char *msg = conv(path);
-	if (msg) {
-		fprintf(stderr, "%s failed: %s (%s)\n", name, msg,
-				strerror(errno));
-		exit(3);
-	}
-
-	dlclose(lib);
+	pmemobj_close(pop);
+	return 0;
 }
