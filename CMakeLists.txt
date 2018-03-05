@@ -127,7 +127,6 @@ link_directories(${PMEM_LIBRARY_DIRS})
 ###################################################### 1.3
 if(BUILD_CONVERT_13_TO_14)
 set(SOURCES_13
-	pmemobj_convert_1.3_to_1.4.c
 	nvml-1.3/src/libpmemobj/alloc_class.c
 	nvml-1.3/src/libpmemobj/bucket.c
 	nvml-1.3/src/libpmemobj/container_ctree.c
@@ -172,7 +171,8 @@ if(WIN32)
 	set(SOURCES_13 ${SOURCES_13} nvml-1.3/src/libpmemobj/libpmemobj_main.c)
 endif()
 
-add_library(pmemobj_convert_13_to_14_o OBJECT ${SOURCES_13})
+add_library(pmemobj_convert_13_to_14_o OBJECT ${SOURCES_13}
+	pmemobj_convert_1.3_to_1.4.c)
 
 target_compile_definitions(pmemobj_convert_13_to_14_o PRIVATE SRCVERSION="1.3")
 target_compile_definitions(pmemobj_convert_13_to_14_o PRIVATE USE_LIBDL)
@@ -195,7 +195,15 @@ set_target_properties(pmemobj_convert_13_to_14_shared PROPERTIES OUTPUT_NAME pme
 install(TARGETS pmemobj_convert_13_to_14_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
-add_library(pmemobj_13 SHARED $<TARGET_OBJECTS:pmemobj_convert_13_to_14_o>)
+add_library(pmemobj_13 SHARED ${SOURCES_13})
+target_compile_definitions(pmemobj_13 PRIVATE SRCVERSION="1.3")
+target_compile_definitions(pmemobj_13 PRIVATE USE_LIBDL)
+target_compile_definitions(pmemobj_13 PRIVATE _PMEMOBJ_INTRNL)
+
+target_include_directories(pmemobj_13 PRIVATE nvml-1.3/src/include)
+target_include_directories(pmemobj_13 PRIVATE nvml-1.3/src/libpmemobj)
+target_include_directories(pmemobj_13 PRIVATE nvml-1.3/src/common)
+target_include_directories(pmemobj_13 PRIVATE ${PMEM_INCLUDE_DIRS})
 target_link_libraries(pmemobj_13 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(pmemobj_13 PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pmemobj_13 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
@@ -207,7 +215,6 @@ endif(BUILD_CONVERT_13_TO_14)
 
 if(BUILD_CONVERT_12_TO_13)
 set(SOURCES_12
-	pmemobj_convert_1.2_to_1.3.c
 	nvml-1.2/src/libpmemobj/bucket.c
 	nvml-1.2/src/libpmemobj/ctree.c
 	nvml-1.2/src/libpmemobj/cuckoo.c
@@ -243,7 +250,8 @@ if(WIN32)
 	set(SOURCES_12 ${SOURCES_12} nvml-1.2/src/libpmemobj/libpmemobj_main.c)
 endif()
 
-add_library(pmemobj_convert_12_to_13_o OBJECT ${SOURCES_12})
+add_library(pmemobj_convert_12_to_13_o OBJECT ${SOURCES_12}
+	pmemobj_convert_1.2_to_1.3.c)
 
 target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE SRCVERSION="1.2")
 target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE USE_LIBDL)
@@ -266,7 +274,14 @@ set_target_properties(pmemobj_convert_12_to_13_shared PROPERTIES OUTPUT_NAME pme
 install(TARGETS pmemobj_convert_12_to_13_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
-add_library(pmemobj_12 SHARED $<TARGET_OBJECTS:pmemobj_convert_12_to_13_o>)
+add_library(pmemobj_12 SHARED ${SOURCES_12})
+target_compile_definitions(pmemobj_12 PRIVATE SRCVERSION="1.2")
+target_compile_definitions(pmemobj_12 PRIVATE USE_LIBDL)
+
+target_include_directories(pmemobj_12 PRIVATE nvml-1.2/src/include)
+target_include_directories(pmemobj_12 PRIVATE nvml-1.2/src/libpmemobj)
+target_include_directories(pmemobj_12 PRIVATE nvml-1.2/src/common)
+target_include_directories(pmemobj_12 PRIVATE ${PMEM_INCLUDE_DIRS})
 target_link_libraries(pmemobj_12 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(pmemobj_12 PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pmemobj_12 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
@@ -278,7 +293,6 @@ endif(BUILD_CONVERT_12_TO_13)
 
 if(BUILD_CONVERT_11_TO_12)
 set(SOURCES_11
-	pmemobj_convert_1.1_to_1.2.c
 	nvml-1.1/src/libpmemobj/bucket.c
 	nvml-1.1/src/libpmemobj/ctree.c
 	nvml-1.1/src/libpmemobj/cuckoo.c
@@ -306,7 +320,8 @@ if(WIN32)
 	set(SOURCES_11 ${SOURCES_11} nvml-1.1/src/libpmemobj/libpmemobj_main.c)
 endif()
 
-add_library(pmemobj_convert_11_to_12_o OBJECT ${SOURCES_11})
+add_library(pmemobj_convert_11_to_12_o OBJECT ${SOURCES_11}
+	pmemobj_convert_1.1_to_1.2.c)
 
 target_compile_definitions(pmemobj_convert_11_to_12_o PRIVATE SRCVERSION="1.1")
 
@@ -327,7 +342,14 @@ set_target_properties(pmemobj_convert_11_to_12_shared PROPERTIES OUTPUT_NAME pme
 install(TARGETS pmemobj_convert_11_to_12_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
-add_library(pmemobj_11 SHARED $<TARGET_OBJECTS:pmemobj_convert_11_to_12_o>)
+add_library(pmemobj_11 SHARED ${SOURCES_11})
+target_compile_definitions(pmemobj_11 PRIVATE SRCVERSION="1.1")
+
+target_include_directories(pmemobj_11 PRIVATE nvml-1.1/src/include)
+target_include_directories(pmemobj_11 PRIVATE nvml-1.1/src/libpmemobj)
+target_include_directories(pmemobj_11 PRIVATE nvml-1.1/src/common)
+target_include_directories(pmemobj_11 PRIVATE ${PMEM_INCLUDE_DIRS})
+
 target_link_libraries(pmemobj_11 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(pmemobj_11 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pmemobj_11 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.1/src/libpmemobj/libpmemobj.map)
@@ -339,7 +361,6 @@ endif(BUILD_CONVERT_11_TO_12)
 if(BUILD_CONVERT_10_TO_11)
 
 set(SOURCES_10
-	pmemobj_convert_1.0_to_1.1.c
 	nvml-1.0/src/libpmemobj/bucket.c
 	nvml-1.0/src/libpmemobj/ctree.c
 	nvml-1.0/src/libpmemobj/cuckoo.c
@@ -359,12 +380,16 @@ set(SOURCES_10
 	nvml-1.0/src/common/util.c
 )
 
-add_library(pmemobj_convert_10_to_11_o OBJECT ${SOURCES_10})
+add_library(pmemobj_convert_10_to_11_o OBJECT ${SOURCES_10}
+	pmemobj_convert_1.0_to_1.1.c
+	nvml-1.0/src/tools/pmempool/common.c)
 
 target_compile_definitions(pmemobj_convert_10_to_11_o PRIVATE SRCVERSION="1.0")
 
 target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/include)
 target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/libpmemobj)
+target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/libpmemlog)
+target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/libpmemblk)
 target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/common)
 target_include_directories(pmemobj_convert_10_to_11_o PRIVATE ${PMEM_INCLUDE_DIRS})
 
@@ -380,7 +405,13 @@ set_target_properties(pmemobj_convert_10_to_11_shared PROPERTIES OUTPUT_NAME pme
 install(TARGETS pmemobj_convert_10_to_11_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
-add_library(pmemobj_10 SHARED $<TARGET_OBJECTS:pmemobj_convert_10_to_11_o>)
+add_library(pmemobj_10 SHARED ${SOURCES_10})
+target_compile_definitions(pmemobj_10 PRIVATE SRCVERSION="1.0")
+
+target_include_directories(pmemobj_10 PRIVATE nvml-1.0/src/include)
+target_include_directories(pmemobj_10 PRIVATE nvml-1.0/src/libpmemobj)
+target_include_directories(pmemobj_10 PRIVATE nvml-1.0/src/common)
+target_include_directories(pmemobj_10 PRIVATE ${PMEM_INCLUDE_DIRS})
 target_link_libraries(pmemobj_10 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(pmemobj_10 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pmemobj_10 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.0/src/libpmemobj/libpmemobj.map)
