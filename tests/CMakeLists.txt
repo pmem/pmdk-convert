@@ -32,45 +32,61 @@
 set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/test
 	CACHE STRING "working directory for tests")
 
+if(BUILD_CONVERT_10_TO_11)
 add_executable(create_10 create.c)
 target_include_directories(create_10 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.0/src/include)
 target_link_libraries(create_10 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_10 PRIVATE pmemobj_10)
+endif()
 
+if(BUILD_CONVERT_11_TO_12)
 add_executable(create_11 create.c)
 target_include_directories(create_11 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.1/src/include)
 target_link_libraries(create_11 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_11 PRIVATE pmemobj_11)
+endif()
 
+if(BUILD_CONVERT_12_TO_13)
 add_executable(create_12 create.c)
 target_include_directories(create_12 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.2/src/include)
 target_link_libraries(create_12 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_12 PRIVATE pmemobj_12)
+endif()
 
+if(BUILD_CONVERT_13_TO_14)
 add_executable(create_13 create.c)
 target_include_directories(create_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
 target_link_libraries(create_13 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_13 PRIVATE pmemobj_13)
+endif()
 
+if(BUILD_CONVERT_10_TO_11)
 add_executable(open_10 open.c)
 target_include_directories(open_10 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.0/src/include)
 target_link_libraries(open_10 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(open_10 PRIVATE pmemobj_10)
+endif()
 
+if(BUILD_CONVERT_11_TO_12)
 add_executable(open_11 open.c)
 target_include_directories(open_11 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.1/src/include)
 target_link_libraries(open_11 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(open_11 PRIVATE pmemobj_11)
+endif()
 
+if(BUILD_CONVERT_12_TO_13)
 add_executable(open_12 open.c)
 target_include_directories(open_12 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.2/src/include)
 target_link_libraries(open_12 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(open_12 PRIVATE pmemobj_12)
+endif()
 
+if(BUILD_CONVERT_13_TO_14)
 add_executable(open_13 open.c)
 target_include_directories(open_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
 target_link_libraries(open_13 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(open_13 PRIVATE pmemobj_13)
+endif()
 
 option(TESTS_USE_FORCED_PMEM "let tests force enable or force disable use of optimized flush in libpmemobj (to speed them up)" OFF)
 

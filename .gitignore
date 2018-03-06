@@ -1,3 +1,7 @@
 /.project
 /.cproject
 /build
+/nvml-1.0*
+/nvml-1.1*
+/nvml-1.2*
+/nvml-1.3*
