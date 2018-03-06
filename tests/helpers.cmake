@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,41 +42,10 @@ function(cleanup)
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${DIR})
 endfunction()
 
-# Generic command executor which stops the test if the executed process
-# returns a non-zero value. Useful, as cmake ignores such failures
-# by default.
-function(execute cmd)
-	execute_process(COMMAND ${cmd} ${ARGN}
-			RESULT_VARIABLE res)
-	if(res)
-		message(FATAL_ERROR "${cmd} ${ARGN} failed: ${res}")
-	endif()
-endfunction()
-
-# Generic command executor which handles failures and returns command output.
-function(execute_with_output out cmd)
-	execute_process(COMMAND ${cmd} ${ARGN}
-			OUTPUT_FILE ${out}
-			RESULT_VARIABLE res)
-	if(res)
-		message(FATAL_ERROR "${cmd} ${ARGN} > ${out} failed: ${res}")
-	endif()
-endfunction()
-
-# Executes command expecting it to fail.
-function(execute_expect_failure cmd)
-	execute_process(COMMAND ${cmd} ${ARGN}
-			RESULT_VARIABLE res)
-	if(NOT res)
-		message(FATAL_ERROR "${cmd} ${ARGN} unexpectedly succeeded")
-	endif()
-endfunction()
-
-# Executes test command ${name} and verifies its status.
-# First argument of the command is test directory name.
+# Executes test command ${name} and verifies its status matches ${expectation}.
 # Optional function arguments are passed as consecutive arguments to
 # the command.
-function(execute name)
+function(execute expectation name)
 	if(TESTS_USE_FORCED_PMEM)
 		set(ENV{PMEM_IS_PMEM_FORCE} 1)
 	endif()
@@ -97,11 +66,13 @@ function(execute name)
 	file(READ ${BIN_DIR}/err ERR)
 	message(STATUS "Stderr:\n${ERR}")
 
-	if(HAD_ERROR)
-		message(FATAL_ERROR "Test ${name} failed: ${HAD_ERROR}")
-	endif()
-
-	if(EXISTS ${SRC_DIR}/err.match)
-		match(${BIN_DIR}/err ${SRC_DIR}/err.match)
+	if(expectation)
+		if(HAD_ERROR)
+			message(FATAL_ERROR "${cmd} ${ARGN} failed: ${HAD_ERROR}")
+		endif()
+	else()
+		if(NOT HAD_ERROR)
+			message(FATAL_ERROR "${cmd} ${ARGN} unexpectedly succeeded")
+		endif()
 	endif()
 endfunction()
