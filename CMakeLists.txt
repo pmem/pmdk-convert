@@ -251,13 +251,17 @@ if(WIN32)
 endif()
 
 add_library(pmemobj_convert_12_to_13_o OBJECT ${SOURCES_12}
-	pmemobj_convert_1.2_to_1.3.c)
+	pmemobj_convert_1.2_to_1.3.c
+	nvml-1.2/src/libpmemblk/btt.c
+	nvml-1.2/src/tools/pmempool/common.c)
 
 target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE SRCVERSION="1.2")
 target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE USE_LIBDL)
 
 target_include_directories(pmemobj_convert_12_to_13_o PRIVATE nvml-1.2/src/include)
 target_include_directories(pmemobj_convert_12_to_13_o PRIVATE nvml-1.2/src/libpmemobj)
+target_include_directories(pmemobj_convert_12_to_13_o PRIVATE nvml-1.2/src/libpmemlog)
+target_include_directories(pmemobj_convert_12_to_13_o PRIVATE nvml-1.2/src/libpmemblk)
 target_include_directories(pmemobj_convert_12_to_13_o PRIVATE nvml-1.2/src/common)
 target_include_directories(pmemobj_convert_12_to_13_o PRIVATE ${PMEM_INCLUDE_DIRS})
 

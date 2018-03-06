@@ -48,12 +48,14 @@ function(test)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool13)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool13)
 
+	# 1.0 -> 1.1
 	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.0 --to=1.1 ${DIR}/pool10 -X fail-safety)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool10)
 	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool10)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool10)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool10)
 
+	# 1.1 -> 1.2
 	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.1 --to=1.2 ${DIR}/pool10 -X fail-safety -X 1.2-pmemmutex)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool10)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool10)
@@ -65,6 +67,25 @@ function(test)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool11)
 	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool11)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool11)
+
+	# 1.2 -> 1.3
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.2 --to=1.3 ${DIR}/pool10 -X fail-safety)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool10)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool10)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool10)
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool10)
+
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.2 --to=1.3 ${DIR}/pool11 -X fail-safety)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool11)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool11)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool11)
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool11)
+
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.2 --to=1.3 ${DIR}/pool12 -X fail-safety)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool12)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool12)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool12)
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool12)
 endfunction(test)
 
 # argument parsing
