@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,18 +30,167 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <endian.h>
+#include <errno.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <sys/mman.h>
+
+#include "libpmem.h"
 
 #include "pmemobj_convert.h"
 #include "nvml-1.1/src/include/libpmemobj.h"
+#include "nvml-1.1/src/tools/pmempool/common.h"
+#include "nvml-1.1/src/tools/pmempool/output.h"
+
+/*
+ * outv_err_vargs -- print error message
+ */
+void
+outv_err_vargs(const char *fmt, va_list ap)
+{
+	fprintf(stderr, "error: ");
+	vfprintf(stderr, fmt, ap);
+	if (!strchr(fmt, '\n'))
+		fprintf(stderr, "\n");
+}
+
+/*
+ * outv_err -- print error message
+ */
+void
+outv_err(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	outv_err_vargs(fmt, ap);
+	va_end(ap);
+}
+
+/*
+ * pool_set_file_unmap_headers -- unmap headers of each pool set part file
+ */
+static void
+pool_set_file_unmap_headers(struct pool_set_file *file)
+{
+	if (!file->poolset)
+		return;
+	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
+		struct pool_replica *rep = file->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+			util_unmap_hdr(part);
+		}
+	}
+}
+
+/*
+ * pool_set_file_map_headers -- map headers of each pool set part file
+ */
+static int
+pool_set_file_map_headers(struct pool_set_file *file, int rdonly)
+{
+	if (!file->poolset)
+		return -1;
+
+	int flags = rdonly ? MAP_PRIVATE : MAP_SHARED;
+	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
+		struct pool_replica *rep = file->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+			if (util_map_hdr(part, flags)) {
+				part->hdr = NULL;
+				goto err;
+			}
+		}
+	}
+
+	return 0;
+err:
+	pool_set_file_unmap_headers(file);
+	return -1;
+}
 
 const char *
-pmemobj_convert_11_to_12(const char *path)
+pmemobj_convert_11_to_12(const char *path, unsigned force)
 {
+	/* open the pool and perform recovery */
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
 	if (!pop)
 		return pmemobj_errormsg();
 
 	pmemobj_close(pop);
-	return NULL;
+
+	printf("The conversion to 1.2 can only be made automatically if the PMEMmutex,\n"
+		"PMEMrwlock and PMEMcond types are not used in the pool or all of the variables\n"
+		"of those three types are aligned to 8 bytes. Proceed only if you are sure that\n"
+		"the above is true for this pool.\n");
+	if (force & QUEST_12_PMEMMUTEX) {
+		printf("Operation forced by user.\n");
+	} else {
+		char ans = ask_yN('?', "convert the pool?");
+		if (ans != 'y') {
+			errno = ECANCELED;
+			return "Operation canceled by user";
+		}
+	}
+
+	static char errstr[500];
+	const char *ret = NULL;
+	struct pmem_pool_params params;
+	if (pmem_pool_parse_params(path, &params, 1)) {
+		sprintf(errstr, "cannot open pool: %s", strerror(errno));
+		ret = errstr;
+		return ret;
+	}
+
+	struct pool_set_file *psf = pool_set_file_open(path, 0, 1);
+	if (psf == NULL) {
+		sprintf(errstr, "pool_set_file_open failed: %s",
+				strerror(errno));
+		ret = errstr;
+		return ret;
+	}
+
+	void *addr = pool_set_file_map(psf, 0);
+	if (addr == NULL) {
+		ret = "mapping file failed";
+		goto pool_set_close;
+	}
+
+	struct pool_hdr *phdr = addr;
+	uint32_t m = le32toh(phdr->major);
+	if (m != OBJ_FORMAT_MAJOR) {
+		/* shouldn't be possible, because pool open succeeded earlier */
+		sprintf(errstr, "invalid pool version: %d", m);
+		ret = errstr;
+		goto pool_set_close;
+	}
+
+	if (pool_set_file_map_headers(psf, 0)) {
+		sprintf(errstr, "mapping headers failed: %s", strerror(errno));
+		ret = errstr;
+		goto pool_set_close;
+	}
+
+	/* need to update every header of every part */
+	for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
+		struct pool_replica *rep = psf->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			struct pool_set_part *part = &rep->part[p];
+
+			struct pool_hdr *hdr = part->hdr;
+			hdr->major = htole32(OBJ_FORMAT_MAJOR + 1);
+			util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1);
+			pmem_msync(hdr, sizeof(struct pool_hdr));
+		}
+	}
+
+	pool_set_file_unmap_headers(psf);
+
+pool_set_close:
+	pool_set_file_close(psf);
+
+	return ret;
 }

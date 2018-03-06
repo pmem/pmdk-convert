@@ -321,12 +321,17 @@ if(WIN32)
 endif()
 
 add_library(pmemobj_convert_11_to_12_o OBJECT ${SOURCES_11}
-	pmemobj_convert_1.1_to_1.2.c)
+	pmemobj_convert_1.1_to_1.2.c
+	nvml-1.1/src/libpmemblk/btt.c
+	nvml-1.1/src/tools/pmempool/common.c
+)
 
 target_compile_definitions(pmemobj_convert_11_to_12_o PRIVATE SRCVERSION="1.1")
 
 target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/include)
 target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/libpmemobj)
+target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/libpmemlog)
+target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/libpmemblk)
 target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/common)
 target_include_directories(pmemobj_convert_11_to_12_o PRIVATE ${PMEM_INCLUDE_DIRS})
 

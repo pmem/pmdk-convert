@@ -36,7 +36,7 @@
 #include "nvml-1.3/src/include/libpmemobj.h"
 
 const char *
-pmemobj_convert_13_to_14(const char *path)
+pmemobj_convert_13_to_14(const char *path, unsigned force)
 {
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
 	if (!pop)

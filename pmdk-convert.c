@@ -39,6 +39,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "pmemobj_convert.h"
+
 /*
  * open_lib -- opens conversion plugin
  */
@@ -93,11 +95,14 @@ print_help()
 	print_version();
 	printf("\n");
 	printf("Options:\n");
-	printf("  -V, --version        display version\n");
-	printf("  -h, --help           display this help and exit\n");
-	printf("  -f, --from=version   convert from specified version\n");
-	printf("  -t, --to=version     convert to specified version\n");
-	printf("  -X, --no-confirm     do not ask for confirmation\n");
+	printf("  -V, --version              display version\n");
+	printf("  -h, --help                 display this help and exit\n");
+	printf("  -f, --from=version         convert from specified version\n");
+	printf("  -t, --to=version           convert to specified version\n");
+	printf("  -X, --force-yes=[question] reply positively to specified question\n");
+	printf("                             possible questions:\n");
+	printf("                             - fail-safety\n");
+	printf("                             - 1.2-pmemmutex\n");
 	printf("\n");
 }
 
@@ -124,11 +129,11 @@ main(int argc, char *argv[])
 {
 	void *lib;
 	char name[100];
-	const char *(*conv)(const char *);
+	const char *(*conv)(const char *, unsigned);
 	const char *path;
 	int from = -2;
 	int to = -2;
-	int confirm = 1;
+	unsigned force = 0;
 
 	if (argc < 2) {
 		print_usage();
@@ -143,13 +148,13 @@ main(int argc, char *argv[])
 		{"help",	no_argument,		NULL, 'h'},
 		{"from",	required_argument,	NULL, 'f'},
 		{"to",		required_argument,	NULL, 't'},
-		{"no-confirm",	no_argument,		NULL, 'X'},
+		{"force-yes",	required_argument,	NULL, 'X'},
 		{NULL,		0,			NULL, 0 },
 	};
 
 	int opt;
 	int option_index;
-	while ((opt = getopt_long(argc, argv, "Vhf:t:X",
+	while ((opt = getopt_long(argc, argv, "Vhf:t:X:",
 			long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'V':
@@ -165,7 +170,16 @@ main(int argc, char *argv[])
 			to = conv_version(optarg);
 			break;
 		case 'X':
-			confirm = 0;
+			if (strcmp(optarg, "fail-safety") == 0)
+				force |= QUEST_FAIL_SAFETY;
+			else if (strcmp(optarg, "1.2-pmemmutex") == 0)
+				force |= QUEST_12_PMEMMUTEX;
+			else {
+				fprintf(stderr, "unknown parameter %s\n",
+						optarg);
+				exit(11);
+			}
+
 			break;
 		default:
 			print_usage();
@@ -211,7 +225,7 @@ main(int argc, char *argv[])
 		"Proceed only if the pool has been backed up or\n"
 		"the risks are fully understood and acceptable.\n");
 
-	if (confirm) {
+	if (!(force & QUEST_FAIL_SAFETY)) {
 		printf("Hit Ctrl-C now if you want to stop or Enter to continue.\n");
 		getchar();
 	}
@@ -229,7 +243,7 @@ main(int argc, char *argv[])
 			exit(9);
 		}
 
-		const char *msg = conv(path);
+		const char *msg = conv(path, force);
 		if (msg) {
 			fprintf(stderr, "%s failed: %s (%s)\n", name, msg,
 					strerror(errno));

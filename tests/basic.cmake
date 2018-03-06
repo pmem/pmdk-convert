@@ -48,11 +48,23 @@ function(test)
 	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool13)
 	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool13)
 
-	execute(${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert -X --from=1.0 --to=1.1 ${DIR}/pool10)
+	execute(${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.0 --to=1.1 ${DIR}/pool10 -X fail-safety)
 	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool10)
 	execute(${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool10)
 	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool10)
 	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool10)
+
+	execute(${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.1 --to=1.2 ${DIR}/pool10 -X fail-safety -X 1.2-pmemmutex)
+	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool10)
+	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool10)
+	execute(${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool10)
+	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool10)
+
+	execute(${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.1 --to=1.2 ${DIR}/pool11 -X fail-safety -X 1.2-pmemmutex)
+	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool11)
+	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool11)
+	execute(${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool11)
+	execute_expect_failure(${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool11)
 endfunction(test)
 
 # argument parsing
