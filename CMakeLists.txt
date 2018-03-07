@@ -37,10 +37,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(FindThreads)
 
-option(BUILD_CONVERT_13_TO_14 "build convert 1.3 to 1.4" ON)
-option(BUILD_CONVERT_12_TO_13 "build convert 1.2 to 1.3" ON)
-option(BUILD_CONVERT_11_TO_12 "build convert 1.1 to 1.2" ON)
-option(BUILD_CONVERT_10_TO_11 "build convert 1.0 to 1.1" ON)
+set(MIN_VERSION 1.0 CACHE STRING "First supported version")
+set(MAX_VERSION 1.4 CACHE STRING "Last supported version")
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -123,6 +121,24 @@ else()
 	find_package(PMEM REQUIRED)
 endif()
 link_directories(${PMEM_LIBRARY_DIRS})
+
+function(version_supported ver RESULT)
+	if (${MIN_VERSION} VERSION_GREATER ${ver})
+		set(${RESULT} 0 PARENT_SCOPE)
+		return()
+	endif()
+	if (${MAX_VERSION} VERSION_GREATER ${ver})
+		set(${RESULT} 1 PARENT_SCOPE)
+		return()
+	endif()
+	set(${RESULT} 0 PARENT_SCOPE)
+	return()
+endfunction(version_supported)
+
+version_supported(1.3 BUILD_CONVERT_13_TO_14)
+version_supported(1.2 BUILD_CONVERT_12_TO_13)
+version_supported(1.1 BUILD_CONVERT_11_TO_12)
+version_supported(1.0 BUILD_CONVERT_10_TO_11)
 
 ###################################################### 1.3
 if(BUILD_CONVERT_13_TO_14)
