@@ -11,8 +11,6 @@ Requirements:
 ```sh
 $ git clone https://github.com/marcinslusarz/pmdk-convert.git
 $ cd pmdk-convert
-$ git submodule init
-$ git submodule update
 $ mkdir build
 $ cd build
 $ cmake .. -DCMAKE_INSTALL_PREFIX=/home/user/pmdk-convert-bin
