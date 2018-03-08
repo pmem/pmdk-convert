@@ -147,7 +147,7 @@ set(NVML13 1.3.1)
 
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML13}.zip)
 	message(STATUS "Downloading NVML ${NVML13}")
-	file(DOWNLOAD https://github.com/pmem/pmdk/archive/1.3.1.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML13}.zip
+	file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML13}.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML13}.zip
 		EXPECTED_HASH SHA256=4b020df4af1a92e3d0baca8194e6877c9811f3d0c4c10e70595a109ebc794818)
 	message(STATUS "Downloading NVML ${NVML13} done")
 endif()
@@ -206,7 +206,7 @@ endif()
 add_library(pmemobj_convert_13_to_14_o OBJECT ${SOURCES_13}
 	pmemobj_convert_1.3_to_1.4.c)
 
-target_compile_definitions(pmemobj_convert_13_to_14_o PRIVATE SRCVERSION="1.3")
+target_compile_definitions(pmemobj_convert_13_to_14_o PRIVATE SRCVERSION="${NVML13}")
 target_compile_definitions(pmemobj_convert_13_to_14_o PRIVATE USE_LIBDL)
 target_compile_definitions(pmemobj_convert_13_to_14_o PRIVATE _PMEMOBJ_INTRNL)
 
@@ -228,7 +228,7 @@ install(TARGETS pmemobj_convert_13_to_14_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 add_library(pmemobj_13 SHARED ${SOURCES_13})
-target_compile_definitions(pmemobj_13 PRIVATE SRCVERSION="1.3")
+target_compile_definitions(pmemobj_13 PRIVATE SRCVERSION="${NVML13}")
 target_compile_definitions(pmemobj_13 PRIVATE USE_LIBDL)
 target_compile_definitions(pmemobj_13 PRIVATE _PMEMOBJ_INTRNL)
 
@@ -303,7 +303,7 @@ add_library(pmemobj_convert_12_to_13_o OBJECT ${SOURCES_12}
 	nvml-1.2/src/libpmemblk/btt.c
 	nvml-1.2/src/tools/pmempool/common.c)
 
-target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE SRCVERSION="1.2")
+target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE SRCVERSION="${NVML12}")
 target_compile_definitions(pmemobj_convert_12_to_13_o PRIVATE USE_LIBDL)
 
 target_include_directories(pmemobj_convert_12_to_13_o PRIVATE nvml-1.2/src/include)
@@ -327,7 +327,7 @@ install(TARGETS pmemobj_convert_12_to_13_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 add_library(pmemobj_12 SHARED ${SOURCES_12})
-target_compile_definitions(pmemobj_12 PRIVATE SRCVERSION="1.2")
+target_compile_definitions(pmemobj_12 PRIVATE SRCVERSION="${NVML12}")
 target_compile_definitions(pmemobj_12 PRIVATE USE_LIBDL)
 
 target_include_directories(pmemobj_12 PRIVATE nvml-1.2/src/include)
@@ -394,7 +394,7 @@ add_library(pmemobj_convert_11_to_12_o OBJECT ${SOURCES_11}
 	nvml-1.1/src/tools/pmempool/common.c
 )
 
-target_compile_definitions(pmemobj_convert_11_to_12_o PRIVATE SRCVERSION="1.1")
+target_compile_definitions(pmemobj_convert_11_to_12_o PRIVATE SRCVERSION="${NVML11}")
 
 target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/include)
 target_include_directories(pmemobj_convert_11_to_12_o PRIVATE nvml-1.1/src/libpmemobj)
@@ -416,7 +416,7 @@ install(TARGETS pmemobj_convert_11_to_12_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 add_library(pmemobj_11 SHARED ${SOURCES_11})
-target_compile_definitions(pmemobj_11 PRIVATE SRCVERSION="1.1")
+target_compile_definitions(pmemobj_11 PRIVATE SRCVERSION="${NVML11}")
 
 target_include_directories(pmemobj_11 PRIVATE nvml-1.1/src/include)
 target_include_directories(pmemobj_11 PRIVATE nvml-1.1/src/libpmemobj)
@@ -472,7 +472,7 @@ add_library(pmemobj_convert_10_to_11_o OBJECT ${SOURCES_10}
 	pmemobj_convert_1.0_to_1.1.c
 	nvml-1.0/src/tools/pmempool/common.c)
 
-target_compile_definitions(pmemobj_convert_10_to_11_o PRIVATE SRCVERSION="1.0")
+target_compile_definitions(pmemobj_convert_10_to_11_o PRIVATE SRCVERSION="${NVML10}")
 
 target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/include)
 target_include_directories(pmemobj_convert_10_to_11_o PRIVATE nvml-1.0/src/libpmemobj)
@@ -494,7 +494,7 @@ install(TARGETS pmemobj_convert_10_to_11_shared
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 add_library(pmemobj_10 SHARED ${SOURCES_10})
-target_compile_definitions(pmemobj_10 PRIVATE SRCVERSION="1.0")
+target_compile_definitions(pmemobj_10 PRIVATE SRCVERSION="${NVML10}")
 
 target_include_directories(pmemobj_10 PRIVATE nvml-1.0/src/include)
 target_include_directories(pmemobj_10 PRIVATE nvml-1.0/src/libpmemobj)
