@@ -86,6 +86,27 @@ function(test)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool12)
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool12)
 	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/open_13 ${DIR}/pool12)
+
+	# 1.3 -> 1.4
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.3 --to=1.4 ${DIR}/pool10 -X fail-safety)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool10)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool10)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool10)
+
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.3 --to=1.4 ${DIR}/pool11 -X fail-safety)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool11)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool11)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool11)
+
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.3 --to=1.4 ${DIR}/pool12 -X fail-safety)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool12)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool12)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool12)
+
+	execute(1 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from=1.3 --to=1.4 ${DIR}/pool13 -X fail-safety)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_10 ${DIR}/pool13)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_11 ${DIR}/pool13)
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_12 ${DIR}/pool13)
 endfunction(test)
 
 # argument parsing
