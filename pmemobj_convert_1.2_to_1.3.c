@@ -236,7 +236,9 @@ pmemobj_convert_12_to_13(const char *path, unsigned force)
 	for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
 		struct pool_replica *rep = psf->poolset->replica[r];
 		struct pool_set_part *part0 = &rep->part[0];
-		struct pmemobjpool_13 *pop13 = (struct pmemobjpool_13 *)part0;
+		struct pmemobjpool_13 *pop13 =
+				(struct pmemobjpool_13 *)part0->addr;
+		assert (memcmp(pop13->hdr.signature, "PMEMOBJ\0", 8) == 0);
 
 		/*
 		 * We don't have to rely on 1.3 recovery, because we already
