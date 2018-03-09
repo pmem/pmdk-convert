@@ -143,10 +143,125 @@ function(version_supported ver RESULT)
 	return()
 endfunction(version_supported)
 
+version_supported(1.4 BUILD_CONVERT_14_TO_15)
 version_supported(1.3 BUILD_CONVERT_13_TO_14)
 version_supported(1.2 BUILD_CONVERT_12_TO_13)
 version_supported(1.1 BUILD_CONVERT_11_TO_12)
 version_supported(1.0 BUILD_CONVERT_10_TO_11)
+
+###################################################### 1.4
+if(BUILD_CONVERT_14_TO_15)
+
+require_libpmem(1.4-rc1)
+
+set(NVML14 1.4-rc1)
+
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip)
+	message(STATUS "Downloading NVML ${NVML14}")
+	file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML14}.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip
+		EXPECTED_HASH SHA256=4600c3e930b793ed90aa43d87616ad2bee4d8c755fd8312d67047c81a4ce2a78)
+	message(STATUS "Downloading NVML ${NVML14} done")
+endif()
+
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.4)
+	execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip
+			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+	file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML14} ${CMAKE_SOURCE_DIR}/nvml-1.4)
+endif()
+
+set(SOURCES_14
+	nvml-1.4/src/libpmemobj/alloc_class.c
+	nvml-1.4/src/libpmemobj/bucket.c
+	nvml-1.4/src/libpmemobj/container_ravl.c
+	nvml-1.4/src/libpmemobj/container_seglists.c
+	nvml-1.4/src/libpmemobj/ctl.c
+	nvml-1.4/src/libpmemobj/ctl_global.c
+	nvml-1.4/src/libpmemobj/cuckoo.c
+	nvml-1.4/src/libpmemobj/heap.c
+	nvml-1.4/src/libpmemobj/lane.c
+	nvml-1.4/src/libpmemobj/libpmemobj.c
+	nvml-1.4/src/libpmemobj/list.c
+	nvml-1.4/src/libpmemobj/memblock.c
+	nvml-1.4/src/libpmemobj/memops.c
+	nvml-1.4/src/libpmemobj/obj.c
+	nvml-1.4/src/libpmemobj/palloc.c
+	nvml-1.4/src/libpmemobj/pmalloc.c
+	nvml-1.4/src/libpmemobj/pvector.c
+	nvml-1.4/src/libpmemobj/ravl.c
+	nvml-1.4/src/libpmemobj/recycler.c
+	nvml-1.4/src/libpmemobj/redo.c
+	nvml-1.4/src/libpmemobj/ringbuf.c
+	nvml-1.4/src/libpmemobj/stats.c
+	nvml-1.4/src/libpmemobj/sync.c
+	nvml-1.4/src/libpmemobj/tx.c
+
+	nvml-1.4/src/common/file.c
+	nvml-1.4/src/common/file_posix.c
+	nvml-1.4/src/common/fs_posix.c
+	nvml-1.4/src/common/mmap.c
+	nvml-1.4/src/common/mmap_posix.c
+	nvml-1.4/src/common/os_deep_linux.c
+	nvml-1.4/src/common/os_dimm_none.c
+	nvml-1.4/src/common/os_posix.c
+	nvml-1.4/src/common/os_thread_posix.c
+	nvml-1.4/src/common/out.c
+	nvml-1.4/src/common/pool_hdr.c
+	nvml-1.4/src/common/set.c
+	nvml-1.4/src/common/shutdown_state.c
+	nvml-1.4/src/common/util.c
+	nvml-1.4/src/common/util_posix.c
+	nvml-1.4/src/common/uuid.c
+	nvml-1.4/src/common/uuid_linux.c
+)
+
+if(WIN32)
+	set(SOURCES_14 ${SOURCES_14} nvml-1.4/src/libpmemobj/libpmemobj_main.c)
+endif()
+
+add_library(pmemobj_convert_14_to_15_o OBJECT ${SOURCES_14}
+	pmemobj_convert_1.4_to_1.5.c
+	nvml-1.4/src/libpmemblk/btt.c
+	nvml-1.4/src/tools/pmempool/common.c)
+
+target_compile_definitions(pmemobj_convert_14_to_15_o PRIVATE SRCVERSION="${NVML14}")
+target_compile_definitions(pmemobj_convert_14_to_15_o PRIVATE USE_LIBDL)
+target_compile_definitions(pmemobj_convert_14_to_15_o PRIVATE _PMEMOBJ_INTRNL)
+
+target_include_directories(pmemobj_convert_14_to_15_o PRIVATE nvml-1.4/src/include)
+target_include_directories(pmemobj_convert_14_to_15_o PRIVATE nvml-1.4/src/libpmemobj)
+target_include_directories(pmemobj_convert_14_to_15_o PRIVATE nvml-1.4/src/libpmemlog)
+target_include_directories(pmemobj_convert_14_to_15_o PRIVATE nvml-1.4/src/libpmemblk)
+target_include_directories(pmemobj_convert_14_to_15_o PRIVATE nvml-1.4/src/libpmemcto)
+target_include_directories(pmemobj_convert_14_to_15_o PRIVATE nvml-1.4/src/common)
+target_include_directories(pmemobj_convert_14_to_15_o PRIVATE ${PMEM_INCLUDE_DIRS})
+
+add_library(pmemobj_convert_14_to_15_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_14_to_15_o>)
+target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.4_to_1.5.map)
+# strip unneeded symbols, requires -fdata-sections -ffunction-sections
+target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE -Wl,--gc-sections)
+set_target_properties(pmemobj_convert_14_to_15_shared PROPERTIES OUTPUT_NAME pmemobj_convert_14_to_15)
+
+install(TARGETS pmemobj_convert_14_to_15_shared
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+add_library(pmemobj_14 SHARED ${SOURCES_14})
+target_compile_definitions(pmemobj_14 PRIVATE SRCVERSION="${NVML14}")
+target_compile_definitions(pmemobj_14 PRIVATE USE_LIBDL)
+target_compile_definitions(pmemobj_14 PRIVATE _PMEMOBJ_INTRNL)
+
+target_include_directories(pmemobj_14 PRIVATE nvml-1.4/src/include)
+target_include_directories(pmemobj_14 PRIVATE nvml-1.4/src/libpmemobj)
+target_include_directories(pmemobj_14 PRIVATE nvml-1.4/src/common)
+target_include_directories(pmemobj_14 PRIVATE ${PMEM_INCLUDE_DIRS})
+target_link_libraries(pmemobj_14 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(pmemobj_14 PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(pmemobj_14 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(pmemobj_14 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.4/src/libpmemobj/libpmemobj.map)
+
+endif(BUILD_CONVERT_14_TO_15)
 
 ###################################################### 1.3
 if(BUILD_CONVERT_13_TO_14)
