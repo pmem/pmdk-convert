@@ -38,6 +38,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#define MINVERSION ((MIN_VERSION_MAJOR) * 10 + (MIN_VERSION_MINOR))
+#define MAXVERSION ((MAX_VERSION_MAJOR) * 10 + (MAX_VERSION_MINOR))
 
 #include "pmemobj_convert.h"
 
@@ -201,8 +203,10 @@ main(int argc, char *argv[])
 		exit(4);
 	}
 
-	if (from < 10 || to > 13) {
-		fprintf(stderr, "Conversion is possible only in <1.0, 1.3> range.\n");
+	if (from < MINVERSION || to > MAXVERSION) {
+		fprintf(stderr, "Conversion is possible only in <%d.%d, %d.%d> range.\n",
+				MIN_VERSION_MAJOR, MIN_VERSION_MINOR,
+				MAX_VERSION_MAJOR, MAX_VERSION_MINOR);
 		print_usage();
 		exit(5);
 	}

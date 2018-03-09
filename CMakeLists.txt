@@ -37,8 +37,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(FindThreads)
 
-set(MIN_VERSION 1.0 CACHE STRING "First supported version")
-set(MAX_VERSION 1.4 CACHE STRING "Last supported version")
+set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
+set(MAX_VERSION 1.4 CACHE STRING "Last supported version (major.minor)")
+
+STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" MIN_VERSION_MAJOR "${MIN_VERSION}")
+STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" MIN_VERSION_MINOR "${MIN_VERSION}")
+
+STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" MAX_VERSION_MAJOR "${MAX_VERSION}")
+STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" MAX_VERSION_MINOR "${MAX_VERSION}")
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -510,6 +516,10 @@ endif(BUILD_CONVERT_10_TO_11)
 
 add_executable(pmdk-convert pmdk-convert.c)
 target_compile_definitions(pmdk-convert PRIVATE LIBDIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+target_compile_definitions(pmdk-convert PRIVATE MIN_VERSION_MAJOR=${MIN_VERSION_MAJOR})
+target_compile_definitions(pmdk-convert PRIVATE MIN_VERSION_MINOR=${MIN_VERSION_MINOR})
+target_compile_definitions(pmdk-convert PRIVATE MAX_VERSION_MAJOR=${MAX_VERSION_MAJOR})
+target_compile_definitions(pmdk-convert PRIVATE MAX_VERSION_MINOR=${MAX_VERSION_MINOR})
 target_link_libraries(pmdk-convert PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pmdk-convert PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
