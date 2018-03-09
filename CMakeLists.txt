@@ -121,12 +121,14 @@ configure_file(
 add_custom_target(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
-if(PKG_CONFIG_FOUND)
-	pkg_check_modules(PMEM REQUIRED libpmem>=1.3)
-else()
-	find_package(PMEM REQUIRED)
-endif()
-link_directories(${PMEM_LIBRARY_DIRS})
+macro(require_libpmem ver)
+	if(PKG_CONFIG_FOUND)
+		pkg_check_modules(PMEM REQUIRED libpmem>=${ver})
+	else()
+		find_package(PMEM REQUIRED)
+	endif()
+	link_directories(${PMEM_LIBRARY_DIRS})
+endmacro()
 
 function(version_supported ver RESULT)
 	if (${MIN_VERSION} VERSION_GREATER ${ver})
@@ -148,6 +150,8 @@ version_supported(1.0 BUILD_CONVERT_10_TO_11)
 
 ###################################################### 1.3
 if(BUILD_CONVERT_13_TO_14)
+
+require_libpmem(1.3)
 
 set(NVML13 1.3.1)
 
@@ -253,6 +257,8 @@ endif(BUILD_CONVERT_13_TO_14)
 
 if(BUILD_CONVERT_12_TO_13)
 
+require_libpmem(1.2)
+
 set(NVML12 1.2.3)
 
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML12}.zip)
@@ -351,6 +357,8 @@ endif(BUILD_CONVERT_12_TO_13)
 
 if(BUILD_CONVERT_11_TO_12)
 
+require_libpmem(1.1)
+
 set(NVML11 1.1)
 
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML11}.zip)
@@ -438,6 +446,8 @@ endif(BUILD_CONVERT_11_TO_12)
 ###################################################### 1.0
 
 if(BUILD_CONVERT_10_TO_11)
+
+require_libpmem(1.0)
 
 set(NVML10 1.0)
 
