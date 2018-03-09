@@ -30,6 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <assert.h>
 #include <endian.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -181,6 +182,7 @@ pmemobj_convert_11_to_12(const char *path, unsigned force)
 			struct pool_set_part *part = &rep->part[p];
 
 			struct pool_hdr *hdr = part->hdr;
+			assert(hdr->major == OBJ_FORMAT_MAJOR);
 			hdr->major = htole32(OBJ_FORMAT_MAJOR + 1);
 			util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1);
 			pmem_msync(hdr, sizeof(struct pool_hdr));
