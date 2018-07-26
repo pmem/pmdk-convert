@@ -53,7 +53,7 @@ function(execute expectation name)
 	message(STATUS "Executing: ${name} ${ARGN}")
 
 	execute_process(COMMAND ${name} ${ARGN}
-			RESULT_VARIABLE HAD_ERROR
+			RESULT_VARIABLE RET
 			OUTPUT_FILE ${BIN_DIR}/out
 			ERROR_FILE ${BIN_DIR}/err)
 	if(TESTS_USE_FORCED_PMEM)
@@ -66,13 +66,7 @@ function(execute expectation name)
 	file(READ ${BIN_DIR}/err ERR)
 	message(STATUS "Stderr:\n${ERR}")
 
-	if(expectation)
-		if(HAD_ERROR)
-			message(FATAL_ERROR "${name} ${ARGN} failed: ${HAD_ERROR}")
-		endif()
-	else()
-		if(NOT HAD_ERROR)
-			message(FATAL_ERROR "${name} ${ARGN} unexpectedly succeeded")
-		endif()
+	if(NOT RET EQUAL expectation)
+		message(FATAL_ERROR "${name} ${ARGN} exit code ${RET} doesn't match expectation ${expectation}")
 	endif()
 endfunction()
