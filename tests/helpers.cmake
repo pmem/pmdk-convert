@@ -53,9 +53,9 @@ function(execute expectation name)
 	message(STATUS "Executing: ${name} ${ARGN}")
 
 	execute_process(COMMAND ${name} ${ARGN}
-			RESULT_VARIABLE RET
-			OUTPUT_FILE ${BIN_DIR}/out
-			ERROR_FILE ${BIN_DIR}/err)
+		RESULT_VARIABLE RET
+		OUTPUT_FILE ${BIN_DIR}/out
+		ERROR_FILE ${BIN_DIR}/err)
 	if(TESTS_USE_FORCED_PMEM)
 		unset(ENV{PMEM_IS_PMEM_FORCE})
 	endif()
