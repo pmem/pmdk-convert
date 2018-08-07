@@ -36,13 +36,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/mman.h>
 
 #include "libpmem.h"
 
 #include "pmemobj_convert.h"
-#include "nvml-1.0/src/include/libpmemobj.h"
-#include "nvml-1.0/src/tools/pmempool/common.h"
-#include "nvml-1.0/src/tools/pmempool/output.h"
+#include "nvml-1.1/src/include/libpmemobj.h"
+#include "nvml-1.1/src/tools/pmempool/common.h"
+#include "nvml-1.1/src/tools/pmempool/output.h"
 
 /*
  * outv_err_vargs -- print error message
@@ -68,21 +69,77 @@ outv_err(const char *fmt, ...)
 	va_end(ap);
 }
 
+/*
+ * pool_set_file_unmap_headers -- unmap headers of each pool set part file
+ */
+static void
+pool_set_file_unmap_headers(struct pool_set_file *file)
+{
+	if (!file->poolset)
+		return;
+	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
+		struct pool_replica *rep = file->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+			util_unmap_hdr(part);
+		}
+	}
+}
+
+/*
+ * pool_set_file_map_headers -- map headers of each pool set part file
+ */
+static int
+pool_set_file_map_headers(struct pool_set_file *file, int rdonly)
+{
+	if (!file->poolset)
+		return -1;
+
+	int flags = rdonly ? MAP_PRIVATE : MAP_SHARED;
+	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
+		struct pool_replica *rep = file->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+			if (util_map_hdr(part, flags)) {
+				part->hdr = NULL;
+				goto err;
+			}
+		}
+	}
+
+	return 0;
+err:
+	pool_set_file_unmap_headers(file);
+	return -1;
+}
+
+/*
+ * pmemobj_convert - convert a pool to the next layout version
+ */
 const char *
-pmemobj_convert_10_to_11(const char *path, unsigned force)
+pmemobj_convert(const char *path, unsigned force)
 {
 	/* open the pool and perform recovery */
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
 	if (!pop)
 		return pmemobj_errormsg();
 
-	/* now recovery state is clean, so we can zero it out */
-	struct lane_layout *lanes =
-			(struct lane_layout *)((char *)pop + pop->lanes_offset);
-	memset(lanes, 0, pop->nlanes * sizeof(struct lane_layout));
-	pmemobj_persist(pop, lanes, pop->nlanes * sizeof(struct lane_layout));
-
 	pmemobj_close(pop);
+
+	printf(
+		"\nThe conversion to 1.2 can only be made automatically if the PMEMmutex,\n"
+		"PMEMrwlock and PMEMcond types are not used in the pool or all of the variables\n"
+		"of those three types are aligned to 8 bytes. Proceed only if you are sure that\n"
+		"the above is true for this pool.\n");
+	if (force & QUEST_12_PMEMMUTEX) {
+		printf("Operation forced by user.\n");
+	} else {
+		char ans = ask_yN('?', "convert the pool?");
+		if (ans != 'y') {
+			errno = ECANCELED;
+			return "Operation canceled by user";
+		}
+	}
 
 	static char errstr[500];
 	const char *ret = NULL;
@@ -116,7 +173,7 @@ pmemobj_convert_10_to_11(const char *path, unsigned force)
 		goto pool_set_close;
 	}
 
-	if (pool_set_file_map_headers(psf, 0, POOL_HDR_SIZE)) {
+	if (pool_set_file_map_headers(psf, 0)) {
 		sprintf(errstr, "mapping headers failed: %s", strerror(errno));
 		ret = errstr;
 		goto pool_set_close;
@@ -142,4 +199,19 @@ pool_set_close:
 	pool_set_file_close(psf);
 
 	return ret;
+}
+
+/*
+ * pmemobj_convert_try_open - return if a pool is openable by this pmdk verison
+ */
+int
+pmemobj_convert_try_open(char *path)
+{
+	PMEMobjpool *pop = pmemobj_open(path, NULL);
+
+	if (!pop)
+		return 1;
+
+	pmemobj_close(pop);
+	return 0;
 }

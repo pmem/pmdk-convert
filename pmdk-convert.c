@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <libgen.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -42,6 +43,57 @@
 #define MAXVERSION ((MAX_VERSION_MAJOR) * 10 + (MAX_VERSION_MINOR))
 
 #include "pmemobj_convert.h"
+
+typedef const char *(*conv)(const char *, unsigned);
+typedef int (*try_op)(const char *);
+static char *AppName;
+
+enum {
+	NOT_ENOUGH_ARGS = 1,
+	UNKNOWN_FLAG = 2,
+	UNKNOWN_ARG = 3,
+	FROM_EXCLUSIVE = 4,
+	TO_EXCLUSIVE = 5,
+	FROM_INVALID = 6,
+	TO_INVALID = 7,
+	FROM_LAYOUT_INVALID = 8,
+	TO_LAYOUT_INVALID = 9,
+	NO_POOL = 10,
+	POOL_DETECTION = 11,
+	UNSUPPORTED_FROM = 12,
+	UNSUPPORTED_TO = 13,
+	BACKWARD_CONVERSION = 14,
+	CONVERT_FAILED = 15,
+	CREATE_VERSION_STR_FAILED = 16,
+	OPEN_LIB_FAILED = 17,
+	DLSYM_FAILED = 18,
+};
+
+#define ARRAY_LENGTH(array) (sizeof((array)) / sizeof((array)[0]))
+#define CHECK_VERSION(x) (MINVERSION <= (x)) && ((x) <= MAXVERSION)
+static const struct {
+	int pmdk_version;
+	int layout;
+} Layouts[] = {
+#if CHECK_VERSION(10)
+	{10, 1},
+#endif
+#if CHECK_VERSION(11)
+	{11, 2},
+#endif
+#if CHECK_VERSION(12)
+	{12, 3},
+#endif
+#if CHECK_VERSION(13)
+	{13, 4},
+#endif
+#if CHECK_VERSION(14)
+	{14, 4},
+#endif
+#if CHECK_VERSION(15)
+	{15, 5},
+#endif
+};
 
 /*
  * open_lib -- opens conversion plugin
@@ -61,53 +113,13 @@ open_lib(const char *argv0, const char *name)
 		sprintf(path[1], "%s/pmdk-convert/%s", LIBDIR, name);
 		lib = dlopen(path[1], RTLD_NOW);
 	}
+
 	if (!lib)
 		fprintf(stderr, "dlopen failed:\n%s: %s\n%s: %s\n", path[0],
 				reason0, path[1], dlerror());
 	free(argv0copy);
 	free(reason0);
 	return lib;
-}
-
-/*
- * print_usage -- prints usage message
- */
-static void
-print_usage()
-{
-	printf(
-		"Usage: pmdk-covert [--version] [--help] [--no-warning] --from=<version> --to=<version> <pool>\n");
-}
-
-/*
- * print_version -- print version message
- */
-static void
-print_version()
-{
-	printf("pmdk-convert 1.4\n");
-}
-
-/*
- * print_help -- prints help message
- */
-static void
-print_help()
-{
-	print_usage();
-	print_version();
-	printf("\n");
-	printf("Options:\n");
-	printf("  -V, --version              display version\n");
-	printf("  -h, --help                 display this help and exit\n");
-	printf("  -f, --from=version         convert from specified version\n");
-	printf("  -t, --to=version           convert to specified version\n");
-	printf(
-		"  -X, --force-yes=[question] reply positively to specified question\n");
-	printf("                             possible questions:\n");
-	printf("                             - fail-safety\n");
-	printf("                             - 1.2-pmemmutex\n");
-	printf("\n");
 }
 
 /*
@@ -128,20 +140,222 @@ conv_version(const char *strver)
 	return (strver[0] - '0') * 10 + strver[2] - '0';
 }
 
+/*
+ * conv_layout_version -- converts layout version string to number
+ */
+static int
+conv_layout_version(const char *strver)
+{
+	char *end;
+	errno = 0;
+	unsigned long long retval = strtoull(strver, &end, 10);
+	if (*end != '\0')
+		return -1;
+
+	if (errno != 0)
+		return -1;
+
+	if (retval > INT_MAX)
+		return -1;
+
+	return (int)retval;
+}
+
+/*
+ * RUN_FUNCTION -- runs function from a given library
+ */
+#define RUN_FUNCTION(library, function, type, ret, ...)			\
+	do {								\
+		void *_lib = open_lib(AppName, library);		\
+		if (!_lib)						\
+			exit(OPEN_LIB_FAILED);				\
+									\
+		type _fun = dlsym(_lib, function);			\
+		if (!_fun) {						\
+			fprintf(stderr, "dlsym failed: %s\n",		\
+				dlerror());				\
+			exit(DLSYM_FAILED);				\
+		}							\
+									\
+		ret = _fun(__VA_ARGS__);				\
+									\
+		dlclose(_lib);						\
+	} while (0)
+
+/*
+ * find_layout_version -- returns a layout version for a given pmdk version
+ */
+static int
+find_layout_version(int version)
+{
+	for (unsigned i = 0; i < ARRAY_LENGTH(Layouts); i++) {
+		if (Layouts[i].pmdk_version == version)
+			return Layouts[i].layout;
+	}
+
+	return -1;
+}
+
+/*
+ * verify_layout_version -- checks if a given layout version is supported by
+ *     pmdk convert
+ */
+static int
+verify_layout_version(int layout_version)
+{
+	for (unsigned i = 0; i < ARRAY_LENGTH(Layouts); i++) {
+		if (Layouts[i].layout == layout_version)
+			return 0;
+	}
+
+	return -1;
+}
+/*
+ * create_pmdk_version_str -- returns string in format:
+ *      "v<layout_version> (PMDK <MAJOR1>.<MINOR1>, PMDK <MAJOR2>.<MINOR2>)"
+ *      for a given layout version.
+ */
+static int
+create_pmdk_version_str(int layout_version, char *str, size_t len)
+{
+	*str = '\0';
+	int ret = snprintf(str, len, "v%d (", layout_version);
+
+	if (ret <= 0)
+		return -1;
+
+	str += ret;
+	len -= (unsigned)ret;
+
+	for (unsigned i = 0; i < ARRAY_LENGTH(Layouts); i++) {
+		if (Layouts[i].layout == layout_version) {
+			int major = Layouts[i].pmdk_version / 10;
+			int minor = Layouts[i].pmdk_version % 10;
+			int ret = snprintf(str, len, "PMDK %d.%d, ",
+				major, minor);
+
+			if (ret <= 0)
+				return -1;
+
+			str += ret;
+			len -= (unsigned)ret;
+		}
+	}
+
+	if (*(str - 2) != ',' && *(str - 1) != ' ')
+		return -1; /* should never happen */
+
+	/* s/ ,/)/ */
+	*(str - 2) = ')';
+	*(str - 1) = '\0';
+
+	return 0;
+}
+
+/*
+ * detect_layout_version -- detects a layout version for a given pool
+ */
+static int
+detect_layout_version(const char *path)
+{
+	int from = find_layout_version(MINVERSION);
+	int to = find_layout_version(MAXVERSION);
+
+	for (int ver = from; ver < to; ver++) {
+		char lib[100];
+		int ret;
+		sprintf(lib, "libpmemobj_convert_v%d.so", ver);
+		RUN_FUNCTION(lib, "pmemobj_convert_try_open",
+			try_op, ret, path);
+		if (!ret)
+			return ver;
+	}
+
+	return -1;
+}
+
+/*
+ * list_supported_pools -- prints supported layouts(and pmdk versions) by
+ *     pmdk convert
+ */
+static void
+list_supported_pools()
+{
+	char line[256];
+	int prev = 0;
+	printf("Supported pools layouts (corresponding PMDK versions)\n");
+	for (unsigned i = 0; i < ARRAY_LENGTH(Layouts); i++) {
+		if (prev == Layouts[i].layout)
+			continue;
+		prev = Layouts[i].layout;
+		if (create_pmdk_version_str(Layouts[i].layout, line, 256))
+			exit(CREATE_VERSION_STR_FAILED);
+		printf("    %s\n", line);
+	}
+}
+
+/*
+ * print_usage -- prints usage message
+ */
+static void
+print_usage()
+{
+	printf(
+		"Usage: pmdk-covert [--version] [--help] [--no-warning] --from=<version> --to=<version> <pool>\n");
+}
+
+/*
+ * print_version -- prints version message
+ */
+static void
+print_version()
+{
+	printf("pmdk-convert 1.4\n");
+}
+
+/*
+ * print_help -- prints help message
+ */
+static void
+print_help()
+{
+	print_usage();
+	print_version();
+	printf("\n");
+	printf("Options:\n");
+	printf("  -V, --version              display version\n");
+	printf("  -h, --help                 display this help and exit\n");
+	printf(
+		"  -f, --from=version         convert from specified pmdk version\n");
+	printf(
+		"  -t, --to=version           convert to specified pmdk version\n");
+	printf(
+		"  -F, --from-layout=version  convert from specified layout version\n");
+	printf(
+		"  -T, --to-layout=version    convert to specified layout version\n");
+	printf(
+		"  -X, --force-yes=[question] reply positively to specified question\n");
+	printf("                             possible questions:\n");
+	printf("                             - fail-safety\n");
+	printf("                             - 1.2-pmemmutex\n");
+	printf("\n");
+	list_supported_pools();
+}
+
 int
 main(int argc, char *argv[])
 {
-	void *lib;
-	char name[100];
-	const char *(*conv)(const char *, unsigned);
 	const char *path;
-	int from = -2;
-	int to = -2;
+	int from = 0;
+	int to = 0;
+	int from_layout = 0;
+	int to_layout = 0;
 	unsigned force = 0;
+	AppName = argv[0];
 
 	if (argc < 2) {
 		print_usage();
-		exit(1);
+		exit(NOT_ENOUGH_ARGS);
 	}
 
 	/*
@@ -152,13 +366,15 @@ main(int argc, char *argv[])
 		{"help",	no_argument,		NULL, 'h'},
 		{"from",	required_argument,	NULL, 'f'},
 		{"to",		required_argument,	NULL, 't'},
+		{"from-layout",	required_argument,	NULL, 'F'},
+		{"to-layout",	required_argument,	NULL, 'T'},
 		{"force-yes",	required_argument,	NULL, 'X'},
 		{NULL,		0,			NULL, 0 },
 	};
 
 	int opt;
 	int option_index;
-	while ((opt = getopt_long(argc, argv, "Vhf:t:X:",
+	while ((opt = getopt_long(argc, argv, "Vhf:F:t:T:X:",
 			long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'V':
@@ -173,6 +389,12 @@ main(int argc, char *argv[])
 		case 't':
 			to = conv_version(optarg);
 			break;
+		case 'F':
+			from_layout = conv_layout_version(optarg);
+			break;
+		case 'T':
+			to_layout = conv_layout_version(optarg);
+			break;
 		case 'X':
 			if (strcmp(optarg, "fail-safety") == 0)
 				force |= QUEST_FAIL_SAFETY;
@@ -181,53 +403,108 @@ main(int argc, char *argv[])
 			else {
 				fprintf(stderr, "unknown parameter %s\n",
 						optarg);
-				exit(11);
+				exit(UNKNOWN_FLAG);
 			}
-
 			break;
 		default:
 			print_usage();
-			exit(2);
+			exit(UNKNOWN_ARG);
 		}
 	}
 
-	if (from < 0) {
-		if (from == -1)
-			fprintf(stderr,
-				"Invalid \"from\" version format [major.minor].\n");
+	if (from != 0 && from_layout != 0) {
+		fprintf(stderr,
+			"\"from\" and \"from-layout\" parameters are exclusive.\n");
 		print_usage();
-		exit(3);
+		exit(FROM_EXCLUSIVE);
+	}
+
+	if (to != 0 && to_layout != 0) {
+		fprintf(stderr,
+			"\"to\" and \"to-layout\" parameters are exclusive.\n");
+		print_usage();
+		exit(TO_EXCLUSIVE);
+	}
+
+	if (from < 0) {
+		fprintf(stderr,
+			"Invalid \"from\" version format [major.minor].\n");
+		print_usage();
+		exit(FROM_INVALID);
 	}
 
 	if (to < 0) {
-		if (to == -1)
-			fprintf(stderr,
-				"Invalid \"to\" version format [major.minor].\n");
-		print_usage();
-		exit(4);
-	}
-
-	if (from < MINVERSION || to > MAXVERSION) {
 		fprintf(stderr,
-			"Conversion is possible only in <%d.%d, %d.%d> range.\n",
-			MIN_VERSION_MAJOR, MIN_VERSION_MINOR,
-			MAX_VERSION_MAJOR, MAX_VERSION_MINOR);
+			"Invalid \"to\" version format [major.minor].\n");
 		print_usage();
-		exit(5);
+		exit(TO_INVALID);
 	}
 
-	if (from > to) {
-		fprintf(stderr, "Backward conversion is not implemented.\n");
+	if (from_layout < 0) {
+		fprintf(stderr, "Invalid \"from-layout\" version.\n");
 		print_usage();
-		exit(6);
+		exit(FROM_LAYOUT_INVALID);
+	}
+
+	if (to_layout < 0) {
+		fprintf(stderr, "Invalid \"to-layout\" version.\n");
+		print_usage();
+		exit(TO_LAYOUT_INVALID);
 	}
 
 	if (optind >= argc) {
 		fprintf(stderr, "Missing pool argument.\n");
-		exit(7);
+		exit(NO_POOL);
 	}
 
 	path = argv[optind];
+
+	if (from == 0 && from_layout == 0) {
+		if ((from_layout = detect_layout_version(path)) < 0) {
+			fprintf(stderr, "Cannot detect pool version.\n");
+			exit(POOL_DETECTION);
+		}
+	} else if (from != 0) {
+		from_layout = find_layout_version(from);
+		if (from_layout == -1) {
+			fprintf(stderr, "Unsupported pool 'from' version\n");
+			exit(UNSUPPORTED_FROM);
+		}
+	} else {
+		if (verify_layout_version(from_layout)) {
+			fprintf(stderr,
+				"Unsupported pool 'from-layout' version\n");
+			exit(UNSUPPORTED_FROM);
+		}
+	}
+
+	if (to == 0 && to_layout == 0)
+		to_layout = find_layout_version(MAXVERSION);
+	else if (to != 0) {
+		to_layout = find_layout_version(to);
+		if (to_layout == -1) {
+			fprintf(stderr, "Unsupported pool 'to' version\n");
+			exit(UNSUPPORTED_TO);
+		}
+	} else {
+		if (verify_layout_version(to_layout)) {
+			fprintf(stderr,
+				"Unsupported pool 'to-layout' version\n");
+			exit(UNSUPPORTED_TO);
+		}
+	}
+
+	if (to_layout == from_layout) {
+		printf(
+			"The pool is in the requsted layout verison, conversion is not needed");
+		exit(0);
+	}
+
+	if (from_layout > to_layout) {
+		fprintf(stderr, "Backward conversion is not implemented.\n");
+		print_usage();
+		exit(BACKWARD_CONVERSION);
+	}
 
 	printf(
 		"This tool will update the pool to the specified layout version.\n"
@@ -241,30 +518,36 @@ main(int argc, char *argv[])
 		getchar();
 	}
 
-	for (int ver = from; ver < to; ++ver) {
-		sprintf(name, "libpmemobj_convert_%d_to_%d.so", ver, ver + 1);
-		lib = open_lib(argv[0], name);
-		if (!lib)
-			exit(8);
+	char to_str[255];
+	char from_str[255];
 
-		sprintf(name, "pmemobj_convert_%d_to_%d", ver, ver + 1);
-		conv = dlsym(lib, name);
-		if (!conv) {
-			fprintf(stderr, "dlsym failed: %s\n", dlerror());
-			exit(9);
-		}
+	if (create_pmdk_version_str(from_layout, from_str, 255))
+		exit(CREATE_VERSION_STR_FAILED);
 
-		const char *msg = conv(path, force);
+	if (create_pmdk_version_str(to_layout, to_str, 255))
+		exit(CREATE_VERSION_STR_FAILED);
+
+	printf("Starting conversion from %s to %s\n", from_str, to_str);
+
+	for (int ver = from_layout; ver < to_layout; ++ver) {
+		if (create_pmdk_version_str(ver, from_str, 255))
+			exit(CREATE_VERSION_STR_FAILED);
+
+		if (create_pmdk_version_str(ver + 1, to_str, 255))
+			exit(CREATE_VERSION_STR_FAILED);
+
+		printf("Converting from %s to %s... ", from_str, to_str);
+		fflush(stdout);
+		char lib[100];
+		const char *msg;
+		sprintf(lib, "libpmemobj_convert_v%d.so", ver);
+		RUN_FUNCTION(lib, "pmemobj_convert", conv, msg, path, force);
 		if (msg) {
-			fprintf(stderr, "%s failed: %s (%s)\n", name, msg,
-					strerror(errno));
-			exit(10);
+			fprintf(stderr, "failed: %s (%s)\n",
+				msg, strerror(errno));
+			exit(CONVERT_FAILED);
 		}
-
-		dlclose(lib);
-		printf(
-			"Conversion from %d.%d to %d.%d has been completed successfully.\n",
-				ver / 10, ver % 10, ver / 10, ver % 10 + 1);
+		printf("Done\n");
 	}
 
 	return 0;
