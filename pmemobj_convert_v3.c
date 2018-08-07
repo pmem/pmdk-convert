@@ -169,8 +169,11 @@ pmemobj_convert_persist(const void *addr, size_t size)
 	pmem_msync(addr, size);
 }
 
+/*
+ * pmemobj_convert - convert a pool to the next layout version
+ */
 const char *
-pmemobj_convert_12_to_13(const char *path, unsigned force)
+pmemobj_convert(const char *path, unsigned force)
 {
 	/* open the pool and perform recovery */
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
@@ -274,4 +277,19 @@ pool_set_close:
 	pool_set_file_close(psf);
 
 	return ret;
+}
+
+/*
+ * pmemobj_convert_try_open - return if a pool is openable by this pmdk verison
+ */
+int
+pmemobj_convert_try_open(char *path)
+{
+	PMEMobjpool *pop = pmemobj_open(path, NULL);
+
+	if (!pop)
+		return 1;
+
+	pmemobj_close(pop);
+	return 0;
 }
