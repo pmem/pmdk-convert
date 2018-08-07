@@ -36,15 +36,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/mman.h>
 
 #include "libpmem.h"
 
 #include "pmemobj_convert.h"
-#include "nvml-1.4/src/include/libpmemobj.h"
-#include "nvml-1.4/src/common/set.h"
-#include "nvml-1.4/src/tools/pmempool/common.h"
-#include "nvml-1.4/src/tools/pmempool/output.h"
+#include "nvml-1.0/src/include/libpmemobj.h"
+#include "nvml-1.0/src/tools/pmempool/common.h"
+#include "nvml-1.0/src/tools/pmempool/output.h"
 
 /*
  * outv_err_vargs -- print error message
@@ -71,63 +69,10 @@ outv_err(const char *fmt, ...)
 }
 
 /*
- * pool_set_file_unmap_headers -- unmap headers of each pool set part file
+ * pmemobj_convert - convert a pool to the next layout version
  */
-static void
-pool_set_file_unmap_headers(struct pool_set_file *file)
-{
-	if (!file->poolset)
-		return;
-	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
-		struct pool_replica *rep = file->poolset->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			struct pool_set_part *part = &rep->part[p];
-			util_unmap_hdr(part);
-		}
-	}
-}
-
-/*
- * pool_set_file_map_headers -- map headers of each pool set part file
- */
-static int
-pool_set_file_map_headers(struct pool_set_file *file, int rdonly)
-{
-	if (!file->poolset)
-		return -1;
-
-	int flags = rdonly ? MAP_PRIVATE : MAP_SHARED;
-	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
-		struct pool_replica *rep = file->poolset->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			struct pool_set_part *part = &rep->part[p];
-			if (util_map_hdr(part, flags, 0)) {
-				part->hdr = NULL;
-				goto err;
-			}
-		}
-	}
-
-	return 0;
-err:
-	pool_set_file_unmap_headers(file);
-	return -1;
-}
-
-static void
-pmemobj_convert_persist(const void *addr, size_t size)
-{
-	/* device dax */
-	pmem_persist(addr, size);
-	/*
-	 * fs dax / nonpmem, will fail for ddax, but it doesn't
-	 * matter
-	 */
-	pmem_msync(addr, size);
-}
-
 const char *
-pmemobj_convert_14_to_15(const char *path, unsigned force)
+pmemobj_convert(const char *path, unsigned force)
 {
 	/* open the pool and perform recovery */
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
@@ -159,13 +104,6 @@ pmemobj_convert_14_to_15(const char *path, unsigned force)
 		return ret;
 	}
 
-	if (psf->poolset->remote) {
-		sprintf(errstr, "Conversion of remotely replicated pools is "
-			"currently not supported. Remove the replica first\n");
-		ret = errstr;
-		return ret;
-	}
-
 	void *addr = pool_set_file_map(psf, 0);
 	if (addr == NULL) {
 		ret = "mapping file failed";
@@ -181,7 +119,7 @@ pmemobj_convert_14_to_15(const char *path, unsigned force)
 		goto pool_set_close;
 	}
 
-	if (pool_set_file_map_headers(psf, 0)) {
+	if (pool_set_file_map_headers(psf, 0, POOL_HDR_SIZE)) {
 		sprintf(errstr, "mapping headers failed: %s", strerror(errno));
 		ret = errstr;
 		goto pool_set_close;
@@ -196,13 +134,8 @@ pmemobj_convert_14_to_15(const char *path, unsigned force)
 			struct pool_hdr *hdr = part->hdr;
 			assert(hdr->major == OBJ_FORMAT_MAJOR);
 			hdr->major = htole32(OBJ_FORMAT_MAJOR + 1);
-			util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1,
-					POOL_HDR_CSUM_END_OFF);
-			pmemobj_convert_persist(hdr, sizeof(struct pool_hdr));
-
-			if (le32toh(hdr->incompat_features) &
-					POOL_FEAT_SINGLEHDR)
-				break;
+			util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1);
+			pmem_msync(hdr, sizeof(struct pool_hdr));
 		}
 	}
 
@@ -212,4 +145,19 @@ pool_set_close:
 	pool_set_file_close(psf);
 
 	return ret;
+}
+
+/*
+ * pmemobj_convert_try_open - return if a pool is openable by this pmdk verison
+ */
+int
+pmemobj_convert_try_open(char *path)
+{
+	PMEMobjpool *pop = pmemobj_open(path, NULL);
+
+	if (!pop)
+		return 1;
+
+	pmemobj_close(pop);
+	return 0;
 }

@@ -41,9 +41,10 @@
 #include "libpmem.h"
 
 #include "pmemobj_convert.h"
-#include "nvml-1.1/src/include/libpmemobj.h"
-#include "nvml-1.1/src/tools/pmempool/common.h"
-#include "nvml-1.1/src/tools/pmempool/output.h"
+#include "nvml-1.4/src/include/libpmemobj.h"
+#include "nvml-1.4/src/common/set.h"
+#include "nvml-1.4/src/tools/pmempool/common.h"
+#include "nvml-1.4/src/tools/pmempool/output.h"
 
 /*
  * outv_err_vargs -- print error message
@@ -100,7 +101,7 @@ pool_set_file_map_headers(struct pool_set_file *file, int rdonly)
 		struct pool_replica *rep = file->poolset->replica[r];
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
-			if (util_map_hdr(part, flags)) {
+			if (util_map_hdr(part, flags, 0)) {
 				part->hdr = NULL;
 				goto err;
 			}
@@ -113,30 +114,36 @@ err:
 	return -1;
 }
 
+static void
+pmemobj_convert_persist(const void *addr, size_t size)
+{
+	/* device dax */
+	pmem_persist(addr, size);
+	/*
+	 * fs dax / nonpmem, will fail for ddax, but it doesn't
+	 * matter
+	 */
+	pmem_msync(addr, size);
+}
+
+/*
+ * pmemobj_convert - convert a pool to the next layout version
+ */
 const char *
-pmemobj_convert_11_to_12(const char *path, unsigned force)
+pmemobj_convert(const char *path, unsigned force)
 {
 	/* open the pool and perform recovery */
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
 	if (!pop)
 		return pmemobj_errormsg();
 
-	pmemobj_close(pop);
+	/* now recovery state is clean, so we can zero it out */
+	struct lane_layout *lanes =
+			(struct lane_layout *)((char *)pop + pop->lanes_offset);
+	memset(lanes, 0, pop->nlanes * sizeof(struct lane_layout));
+	pmemobj_persist(pop, lanes, pop->nlanes * sizeof(struct lane_layout));
 
-	printf(
-		"The conversion to 1.2 can only be made automatically if the PMEMmutex,\n"
-		"PMEMrwlock and PMEMcond types are not used in the pool or all of the variables\n"
-		"of those three types are aligned to 8 bytes. Proceed only if you are sure that\n"
-		"the above is true for this pool.\n");
-	if (force & QUEST_12_PMEMMUTEX) {
-		printf("Operation forced by user.\n");
-	} else {
-		char ans = ask_yN('?', "convert the pool?");
-		if (ans != 'y') {
-			errno = ECANCELED;
-			return "Operation canceled by user";
-		}
-	}
+	pmemobj_close(pop);
 
 	static char errstr[500];
 	const char *ret = NULL;
@@ -151,6 +158,13 @@ pmemobj_convert_11_to_12(const char *path, unsigned force)
 	if (psf == NULL) {
 		sprintf(errstr, "pool_set_file_open failed: %s",
 				strerror(errno));
+		ret = errstr;
+		return ret;
+	}
+
+	if (psf->poolset->remote) {
+		sprintf(errstr, "Conversion of remotely replicated pools is "
+			"currently not supported. Remove the replica first\n");
 		ret = errstr;
 		return ret;
 	}
@@ -185,8 +199,13 @@ pmemobj_convert_11_to_12(const char *path, unsigned force)
 			struct pool_hdr *hdr = part->hdr;
 			assert(hdr->major == OBJ_FORMAT_MAJOR);
 			hdr->major = htole32(OBJ_FORMAT_MAJOR + 1);
-			util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1);
-			pmem_msync(hdr, sizeof(struct pool_hdr));
+			util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1,
+					POOL_HDR_CSUM_END_OFF);
+			pmemobj_convert_persist(hdr, sizeof(struct pool_hdr));
+
+			if (le32toh(hdr->incompat_features) &
+					POOL_FEAT_SINGLEHDR)
+				break;
 		}
 	}
 
@@ -196,4 +215,19 @@ pool_set_close:
 	pool_set_file_close(psf);
 
 	return ret;
+}
+
+/*
+ * pmemobj_convert_try_open - return if a pool is openable by this pmdk verison
+ */
+int
+pmemobj_convert_try_open(char *path)
+{
+	PMEMobjpool *pop = pmemobj_open(path, NULL);
+
+	if (!pop)
+		return 1;
+
+	pmemobj_close(pop);
+	return 0;
 }
