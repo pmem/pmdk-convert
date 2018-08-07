@@ -69,7 +69,7 @@ outv_err(const char *fmt, ...)
 }
 
 const char *
-pmemobj_convert_10_to_11(const char *path, unsigned force)
+pmemobj_convert(const char *path, unsigned force)
 {
 	/* open the pool and perform recovery */
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
@@ -142,4 +142,17 @@ pool_set_close:
 	pool_set_file_close(psf);
 
 	return ret;
+}
+
+
+int
+try_open(char *path) {
+	PMEMobjpool *pop = pmemobj_open(path, NULL);
+
+	if (!pop)
+		return 1;
+
+	pmemobj_close(pop);
+	return 0;
+
 }

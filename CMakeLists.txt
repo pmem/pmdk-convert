@@ -38,7 +38,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(FindThreads)
 
 set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
-set(MAX_VERSION 1.4 CACHE STRING "Last supported version (major.minor)")
+set(MAX_VERSION 1.5 CACHE STRING "Last supported version (major.minor)")
 
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" MIN_VERSION_MAJOR "${MIN_VERSION}")
 STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" MIN_VERSION_MINOR "${MIN_VERSION}")
@@ -239,7 +239,7 @@ if(BUILD_CONVERT_14_TO_15)
 	target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE ${PMEM_LIBRARIES})
 	target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE ${CMAKE_DL_LIBS})
 	target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-	target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.4_to_1.5.map)
+	target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
 	# strip unneeded symbols, requires -fdata-sections -ffunction-sections
 	target_link_libraries(pmemobj_convert_14_to_15_shared PRIVATE -Wl,--gc-sections)
 	set_target_properties(pmemobj_convert_14_to_15_shared PROPERTIES OUTPUT_NAME pmemobj_convert_14_to_15)
@@ -344,7 +344,7 @@ if(BUILD_CONVERT_13_TO_14)
 	target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE ${PMEM_LIBRARIES})
 	target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE ${CMAKE_DL_LIBS})
 	target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-	target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.3_to_1.4.map)
+	target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
 	# strip unneeded symbols, requires -fdata-sections -ffunction-sections
 	target_link_libraries(pmemobj_convert_13_to_14_shared PRIVATE -Wl,--gc-sections)
 	set_target_properties(pmemobj_convert_13_to_14_shared PROPERTIES OUTPUT_NAME pmemobj_convert_13_to_14)
@@ -444,7 +444,7 @@ if(BUILD_CONVERT_12_TO_13)
 	target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE ${PMEM_LIBRARIES})
 	target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE ${CMAKE_DL_LIBS})
 	target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-	target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.2_to_1.3.map)
+	target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
 	# strip unneeded symbols, requires -fdata-sections -ffunction-sections
 	target_link_libraries(pmemobj_convert_12_to_13_shared PRIVATE -Wl,--gc-sections)
 
@@ -535,7 +535,7 @@ if(BUILD_CONVERT_11_TO_12)
 	add_library(pmemobj_convert_11_to_12_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_11_to_12_o>)
 	target_link_libraries(pmemobj_convert_11_to_12_shared PRIVATE ${PMEM_LIBRARIES})
 	target_link_libraries(pmemobj_convert_11_to_12_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-	target_link_libraries(pmemobj_convert_11_to_12_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.1_to_1.2.map)
+	target_link_libraries(pmemobj_convert_11_to_12_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
 	# strip unneeded symbols, requires -fdata-sections -ffunction-sections
 	target_link_libraries(pmemobj_convert_11_to_12_shared PRIVATE -Wl,--gc-sections)
 
@@ -615,7 +615,7 @@ if(BUILD_CONVERT_10_TO_11)
 	add_library(pmemobj_convert_10_to_11_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_10_to_11_o>)
 	target_link_libraries(pmemobj_convert_10_to_11_shared PRIVATE ${PMEM_LIBRARIES})
 	target_link_libraries(pmemobj_convert_10_to_11_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-	target_link_libraries(pmemobj_convert_10_to_11_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_1.0_to_1.1.map)
+	target_link_libraries(pmemobj_convert_10_to_11_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
 	# strip unneeded symbols, requires -fdata-sections -ffunction-sections
 	target_link_libraries(pmemobj_convert_10_to_11_shared PRIVATE -Wl,--gc-sections)
 

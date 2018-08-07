@@ -36,10 +36,7 @@
 #define QUEST_FAIL_SAFETY  (1U << 0)
 #define QUEST_12_PMEMMUTEX (1U << 1)
 
-const char *pmemobj_convert_14_to_15(const char *path, unsigned force);
-const char *pmemobj_convert_13_to_14(const char *path, unsigned force);
-const char *pmemobj_convert_12_to_13(const char *path, unsigned force);
-const char *pmemobj_convert_11_to_12(const char *path, unsigned force);
-const char *pmemobj_convert_10_to_11(const char *path, unsigned force);
+const char *pmemobj_convert(const char *path, unsigned force);
+int try_open(char *path);
 
 #endif

@@ -43,6 +43,10 @@
 
 #include "pmemobj_convert.h"
 
+typedef const char *(*conv)(const char *, unsigned);
+typedef int (*try_op)(const char *);
+static char *AppName;
+
 /*
  * open_lib -- opens conversion plugin
  */
@@ -126,16 +130,50 @@ conv_version(const char *strver)
 	return (strver[0] - '0') * 10 + strver[2] - '0';
 }
 
+
+#define RUN_FUNCTION(library, function, type, ret, ...)			\
+	do {								\
+		void *_lib = open_lib(AppName, library);		\
+		if (!_lib)						\
+			exit(8);					\
+									\
+		type _fun = dlsym(_lib, function);			\
+		if (!_fun) {						\
+			fprintf(stderr, "dlsym failed: %s\n",		\
+				dlerror());				\
+			exit(9);					\
+		}							\
+									\
+		ret = _fun(__VA_ARGS__);				\
+									\
+		dlclose(_lib);						\
+	} while(0);							\
+
+static int
+detect_version(const char *path) {
+	for (int ver = MINVERSION; ver < MAXVERSION; ver++) {
+		char lib[100];
+		char *fun = "try_open";
+		int ret;
+		sprintf(lib, "libpmemobj_convert_%d_to_%d.so", ver, ver + 1);
+		RUN_FUNCTION(lib, fun, try_op, ret, path);
+		if (!ret) {
+			return ver;
+		}
+	}
+
+	return 0;
+}
+
+
 int
 main(int argc, char *argv[])
 {
-	void *lib;
-	char name[100];
-	const char *(*conv)(const char *, unsigned);
 	const char *path;
-	int from = -2;
-	int to = -2;
+	int from = 0;
+	int to = MAXVERSION;
 	unsigned force = 0;
+	AppName = argv[0];
 
 	if (argc < 2) {
 		print_usage();
@@ -192,6 +230,7 @@ main(int argc, char *argv[])
 	if (from < 0) {
 		if (from == -1)
 			fprintf(stderr, "Invalid \"from\" version format [major.minor].\n");
+
 		print_usage();
 		exit(3);
 	}
@@ -203,26 +242,30 @@ main(int argc, char *argv[])
 		exit(4);
 	}
 
-	if (from < MINVERSION || to > MAXVERSION) {
-		fprintf(stderr, "Conversion is possible only in <%d.%d, %d.%d> range.\n",
-				MIN_VERSION_MAJOR, MIN_VERSION_MINOR,
-				MAX_VERSION_MAJOR, MAX_VERSION_MINOR);
-		print_usage();
-		exit(5);
+	if (optind >= argc) {
+		fprintf(stderr, "Missing pool argument.\n");
+		exit(4);
+	}
+
+	path = argv[optind];
+
+	if (from == 0) {
+		from = detect_version(path);
 	}
 
 	if (from > to) {
 		fprintf(stderr, "Backward conversion is not implemented.\n");
 		print_usage();
+		exit(5);
+	}
+
+	if (from < MINVERSION || to > MAXVERSION) {
+		fprintf(stderr, "Conversion is possible only in <%d.%d, %d.%d> range.\n",
+			MIN_VERSION_MAJOR, MIN_VERSION_MINOR,
+			MAX_VERSION_MAJOR, MAX_VERSION_MINOR);
+		print_usage();
 		exit(6);
 	}
-
-	if (optind >= argc) {
-		fprintf(stderr, "Missing pool argument.\n");
-		exit(7);
-	}
-
-	path = argv[optind];
 
 	printf("This tool will update the pool to the specified layout version.\n"
 		"This process is NOT fail-safe.\n"
@@ -235,28 +278,16 @@ main(int argc, char *argv[])
 	}
 
 	for (int ver = from; ver < to; ++ver) {
-		sprintf(name, "libpmemobj_convert_%d_to_%d.so", ver, ver + 1);
-		lib = open_lib(argv[0], name);
-		if (!lib)
-			exit(8);
-
-		sprintf(name, "pmemobj_convert_%d_to_%d", ver, ver + 1);
-		conv = dlsym(lib, name);
-		if (!conv) {
-			fprintf(stderr, "dlsym failed: %s\n", dlerror());
-			exit(9);
-		}
-
-		const char *msg = conv(path, force);
+		char lib[100];
+		char *fun = "pmemobj_convert";
+		const char *msg;
+		sprintf(lib, "libpmemobj_convert_%d_to_%d.so", ver, ver + 1);
+		RUN_FUNCTION(lib, fun, conv, msg, path, force);
 		if (msg) {
-			fprintf(stderr, "%s failed: %s (%s)\n", name, msg,
-					strerror(errno));
+			fprintf(stderr, "%s failed: %s (%s)\n",
+				fun, msg, strerror(errno));
 			exit(10);
 		}
-
-		dlclose(lib);
-		printf("Conversion from %d.%d to %d.%d has been completed successfully.\n",
-				ver / 10, ver % 10, ver / 10, ver % 10 + 1);
 	}
 
 	return 0;
