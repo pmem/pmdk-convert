@@ -1,6 +1,8 @@
 pmdk-convert: PMDK pool conversion tool
 =======================================
 
+THIS PROJECT IS IN PRE-ALPHA STAGE. USE PMEMPOOL CONVERT FOR NOW.
+
 ### Building The Source ###
 
 Requirements:
@@ -9,7 +11,7 @@ Requirements:
 - git
 
 ```sh
-$ git clone https://github.com/marcinslusarz/pmdk-convert.git
+$ git clone https://github.com/pmem/pmdk-convert.git
 $ cd pmdk-convert
 $ mkdir build
 $ cd build
