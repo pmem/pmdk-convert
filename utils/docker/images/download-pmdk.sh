@@ -38,11 +38,11 @@ set -e
 
 mkdir /opt/pmdk
 
-wget https://github.com/pmem/pmdk/archive/1.4.2.zip -O /opt/pmdk/nvml-1.4.2.zip
-wget https://github.com/pmem/pmdk/archive/1.3.1.zip -O /opt/pmdk/nvml-1.3.1.zip
-wget https://github.com/pmem/pmdk/archive/1.2.3.zip -O /opt/pmdk/nvml-1.2.3.zip
-wget https://github.com/pmem/pmdk/archive/1.1.zip -O /opt/pmdk/nvml-1.1.zip
-wget https://github.com/pmem/pmdk/archive/1.0.zip -O /opt/pmdk/nvml-1.0.zip
+wget https://github.com/pmem/pmdk/archive/1.4.2.tar.gz -O /opt/pmdk/nvml-1.4.2.tar.gz
+wget https://github.com/pmem/pmdk/archive/1.3.1.tar.gz -O /opt/pmdk/nvml-1.3.1.tar.gz
+wget https://github.com/pmem/pmdk/archive/1.2.3.tar.gz -O /opt/pmdk/nvml-1.2.3.tar.gz
+wget https://github.com/pmem/pmdk/archive/1.1.tar.gz -O /opt/pmdk/nvml-1.1.tar.gz
+wget https://github.com/pmem/pmdk/archive/1.0.tar.gz -O /opt/pmdk/nvml-1.0.tar.gz
 
 # Download and install libpmem-1.4 packages
 if [ "$1" = "deb" ]; then
