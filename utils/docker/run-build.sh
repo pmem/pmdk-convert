@@ -42,7 +42,7 @@ INSTALL_DIR=/tmp/pmdk-convert
 
 mkdir $INSTALL_DIR
 
-cp /opt/pmdk/*.zip .
+cp /opt/pmdk/*.tar.gz .
 
 # -----------------------------------------
 # gcc & Debug
