@@ -238,7 +238,7 @@ pmemobj_convert_12_to_13(const char *path, unsigned force)
 		struct pool_set_part *part0 = &rep->part[0];
 		struct pmemobjpool_13 *pop13 =
 				(struct pmemobjpool_13 *)part0->addr;
-		assert (memcmp(pop13->hdr.signature, "PMEMOBJ\0", 8) == 0);
+		assert(memcmp(pop13->hdr.signature, "PMEMOBJ\0", 8) == 0);
 
 		/*
 		 * We don't have to rely on 1.3 recovery, because we already

@@ -123,7 +123,8 @@ pmemobj_convert_11_to_12(const char *path, unsigned force)
 
 	pmemobj_close(pop);
 
-	printf("The conversion to 1.2 can only be made automatically if the PMEMmutex,\n"
+	printf(
+		"The conversion to 1.2 can only be made automatically if the PMEMmutex,\n"
 		"PMEMrwlock and PMEMcond types are not used in the pool or all of the variables\n"
 		"of those three types are aligned to 8 bytes. Proceed only if you are sure that\n"
 		"the above is true for this pool.\n");
