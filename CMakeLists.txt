@@ -225,6 +225,15 @@ if(DEVELOPER_MODE)
 	add_dependencies(checkers check-license)
 endif(DEVELOPER_MODE)
 
+function(uncompress file)
+	execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/${file}
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		RESULT_VARIABLE RET)
+	if(RET)
+		message(FATAL_ERROR "Couldn't uncompress ${file}")
+	endif()
+endfunction()
+
 ###################################################### 1.4
 if(BUILD_CONVERT_14_TO_15)
 
@@ -240,8 +249,8 @@ if(BUILD_CONVERT_14_TO_15)
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.4)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(nvml-${NVML14}.zip)
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML14} ${CMAKE_SOURCE_DIR}/nvml-1.4)
 	endif()
 
@@ -354,8 +363,8 @@ if(BUILD_CONVERT_13_TO_14)
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.3)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML13}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(nvml-${NVML13}.zip)
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML13} ${CMAKE_SOURCE_DIR}/nvml-1.3)
 	endif()
 
@@ -460,8 +469,8 @@ if(BUILD_CONVERT_12_TO_13)
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.2)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML12}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(nvml-${NVML12}.zip)
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML12} ${CMAKE_SOURCE_DIR}/nvml-1.2)
 	endif()
 
@@ -560,8 +569,8 @@ if(BUILD_CONVERT_11_TO_12)
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.1)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML11}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(nvml-${NVML11}.zip)
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML11} ${CMAKE_SOURCE_DIR}/nvml-1.1)
 	endif()
 
@@ -650,8 +659,8 @@ if(BUILD_CONVERT_10_TO_11)
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.0)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML10}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(nvml-${NVML10}.zip)
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML10} ${CMAKE_SOURCE_DIR}/nvml-1.0)
 	endif()
 
