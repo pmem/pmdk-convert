@@ -228,14 +228,14 @@ endif(DEVELOPER_MODE)
 ###################################################### 1.4
 if(BUILD_CONVERT_14_TO_15)
 
-	require_libpmem(1.4-rc1)
+	require_libpmem(1.4)
 
-	set(NVML14 1.4-rc1)
+	set(NVML14 1.4.2)
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip)
 		message(STATUS "Downloading NVML ${NVML14}")
 		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML14}.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip
-			EXPECTED_HASH SHA256=4600c3e930b793ed90aa43d87616ad2bee4d8c755fd8312d67047c81a4ce2a78)
+			EXPECTED_HASH SHA256=2f447cf5028a0ffb69cbea411a6cf0652f944b9a6b5280760e59c580c2da9803)
 		message(STATUS "Downloading NVML ${NVML14} done")
 	endif()
 
