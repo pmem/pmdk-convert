@@ -226,11 +226,11 @@ test()
 # multi file poolset
 setup()
 
-file(WRITE ${DIR}/pool10 "PMEMPOOLSET\n16M ${DIR}/part10_1 ${DIR}/part10_2\n")
-file(WRITE ${DIR}/pool11 "PMEMPOOLSET\n16M ${DIR}/part11_1 ${DIR}/part11_2\n")
-file(WRITE ${DIR}/pool12 "PMEMPOOLSET\n16M ${DIR}/part12_1 ${DIR}/part12_2\n")
-file(WRITE ${DIR}/pool13 "PMEMPOOLSET\n16M ${DIR}/part13_1 ${DIR}/part13_2\n")
-file(WRITE ${DIR}/pool14 "PMEMPOOLSET\n16M ${DIR}/part14_1 ${DIR}/part14_2\n")
+file(WRITE ${DIR}/pool10 "PMEMPOOLSET\n16M ${DIR}/part10_1\n16M ${DIR}/part10_2\n")
+file(WRITE ${DIR}/pool11 "PMEMPOOLSET\n16M ${DIR}/part11_1\n16M ${DIR}/part11_2\n")
+file(WRITE ${DIR}/pool12 "PMEMPOOLSET\n16M ${DIR}/part12_1\n16M ${DIR}/part12_2\n")
+file(WRITE ${DIR}/pool13 "PMEMPOOLSET\n16M ${DIR}/part13_1\n16M ${DIR}/part13_2\n")
+file(WRITE ${DIR}/pool14 "PMEMPOOLSET\n16M ${DIR}/part14_1\n16M ${DIR}/part14_2\n")
 
 execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_10 ${DIR}/pool10)
 execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_11 ${DIR}/pool11)
