@@ -75,7 +75,8 @@ open_lib(const char *argv0, const char *name)
 static void
 print_usage()
 {
-	printf("Usage: pmdk-covert [--version] [--help] [--no-warning] --from=<version> --to=<version> <pool>\n");
+	printf(
+		"Usage: pmdk-covert [--version] [--help] [--no-warning] --from=<version> --to=<version> <pool>\n");
 }
 
 /*
@@ -101,7 +102,8 @@ print_help()
 	printf("  -h, --help                 display this help and exit\n");
 	printf("  -f, --from=version         convert from specified version\n");
 	printf("  -t, --to=version           convert to specified version\n");
-	printf("  -X, --force-yes=[question] reply positively to specified question\n");
+	printf(
+		"  -X, --force-yes=[question] reply positively to specified question\n");
 	printf("                             possible questions:\n");
 	printf("                             - fail-safety\n");
 	printf("                             - 1.2-pmemmutex\n");
@@ -191,22 +193,25 @@ main(int argc, char *argv[])
 
 	if (from < 0) {
 		if (from == -1)
-			fprintf(stderr, "Invalid \"from\" version format [major.minor].\n");
+			fprintf(stderr,
+				"Invalid \"from\" version format [major.minor].\n");
 		print_usage();
 		exit(3);
 	}
 
 	if (to < 0) {
 		if (to == -1)
-			fprintf(stderr, "Invalid \"to\" version format [major.minor].\n");
+			fprintf(stderr,
+				"Invalid \"to\" version format [major.minor].\n");
 		print_usage();
 		exit(4);
 	}
 
 	if (from < MINVERSION || to > MAXVERSION) {
-		fprintf(stderr, "Conversion is possible only in <%d.%d, %d.%d> range.\n",
-				MIN_VERSION_MAJOR, MIN_VERSION_MINOR,
-				MAX_VERSION_MAJOR, MAX_VERSION_MINOR);
+		fprintf(stderr,
+			"Conversion is possible only in <%d.%d, %d.%d> range.\n",
+			MIN_VERSION_MAJOR, MIN_VERSION_MINOR,
+			MAX_VERSION_MAJOR, MAX_VERSION_MINOR);
 		print_usage();
 		exit(5);
 	}
@@ -224,13 +229,15 @@ main(int argc, char *argv[])
 
 	path = argv[optind];
 
-	printf("This tool will update the pool to the specified layout version.\n"
+	printf(
+		"This tool will update the pool to the specified layout version.\n"
 		"This process is NOT fail-safe.\n"
 		"Proceed only if the pool has been backed up or\n"
 		"the risks are fully understood and acceptable.\n");
 
 	if (!(force & QUEST_FAIL_SAFETY)) {
-		printf("Hit Ctrl-C now if you want to stop or Enter to continue.\n");
+		printf(
+			"Hit Ctrl-C now if you want to stop or Enter to continue.\n");
 		getchar();
 	}
 
@@ -255,7 +262,8 @@ main(int argc, char *argv[])
 		}
 
 		dlclose(lib);
-		printf("Conversion from %d.%d to %d.%d has been completed successfully.\n",
+		printf(
+			"Conversion from %d.%d to %d.%d has been completed successfully.\n",
 				ver / 10, ver % 10, ver / 10, ver % 10 + 1);
 	}
 

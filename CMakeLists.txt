@@ -149,23 +149,109 @@ version_supported(1.2 BUILD_CONVERT_12_TO_13)
 version_supported(1.1 BUILD_CONVERT_11_TO_12)
 version_supported(1.0 BUILD_CONVERT_10_TO_11)
 
+add_executable(check_license EXCLUDE_FROM_ALL utils/check_license/check-license.c)
+
+# Generates cstyle-$name target and attaches it as a dependency of global
+# "cstyle" target. This target verifies C style of files in current source dir.
+# If more arguments are used, then they are used as files to be checked
+# instead.
+# ${name} must be unique.
+function(add_cstyle name)
+	if(${ARGC} EQUAL 1)
+		add_custom_target(cstyle-${name}
+			COMMAND ${PERL_EXECUTABLE}
+				${CMAKE_SOURCE_DIR}/utils/cstyle
+				${CMAKE_CURRENT_SOURCE_DIR}/*.c
+				${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+	else()
+		add_custom_target(cstyle-${name}
+			COMMAND ${PERL_EXECUTABLE}
+				${CMAKE_SOURCE_DIR}/utils/cstyle ${ARGN})
+	endif()
+	add_dependencies(cstyle cstyle-${name})
+endfunction()
+
+# Generates check-whitespace-$name target and attaches it as a dependency
+# of global "check-whitespace" target. This target verifies C files in current
+# source dir do not have any whitespace errors.
+# If more arguments are used, then they are used as files to be checked
+# instead.
+# ${name} must be unique.
+function(add_check_whitespace name)
+	if(${ARGC} EQUAL 1)
+		add_custom_target(check-whitespace-${name}
+			COMMAND ${PERL_EXECUTABLE}
+				${CMAKE_SOURCE_DIR}/utils/check_whitespace
+				${CMAKE_CURRENT_SOURCE_DIR}/*.c
+				${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+	else()
+		add_custom_target(check-whitespace-${name}
+			COMMAND ${PERL_EXECUTABLE}
+				${CMAKE_SOURCE_DIR}/utils/check_whitespace ${ARGN})
+	endif()
+	add_dependencies(check-whitespace check-whitespace-${name})
+endfunction()
+
+add_custom_target(checkers ALL)
+add_custom_target(cstyle)
+add_custom_target(check-whitespace)
+add_custom_target(check-license
+	COMMAND ${CMAKE_SOURCE_DIR}/utils/check_license/check-headers.sh
+		${CMAKE_SOURCE_DIR}
+		${CMAKE_BINARY_DIR}/check_license
+		${CMAKE_SOURCE_DIR}/LICENSE
+		-a)
+add_dependencies(check-license check_license)
+
+add_cstyle(main)
+add_cstyle(check_license ${CMAKE_SOURCE_DIR}/utils/check_license/*.c)
+
+add_check_whitespace(check_license ${CMAKE_SOURCE_DIR}/utils/check_license/*.c)
+add_check_whitespace(src)
+add_check_whitespace(other
+			${CMAKE_SOURCE_DIR}/utils/check_license/*.sh
+			${CMAKE_SOURCE_DIR}/README.md
+#			${CMAKE_SOURCE_DIR}/utils/*.sh
+#			${CMAKE_SOURCE_DIR}/*.spec
+#			${CMAKE_SOURCE_DIR}/debian/*
+#			${CMAKE_SOURCE_DIR}/debian/*/*
+#			${CMAKE_SOURCE_DIR}/doc/*.md
+)
+
+option(DEVELOPER_MODE "enable developer checks" OFF)
+if(DEVELOPER_MODE)
+	add_dependencies(checkers cstyle)
+	add_dependencies(checkers check-whitespace)
+	add_dependencies(checkers check-license)
+endif(DEVELOPER_MODE)
+
+function(uncompress file)
+	execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/${file}
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		RESULT_VARIABLE RET)
+	if(RET)
+		message(FATAL_ERROR "Couldn't uncompress ${file}")
+	endif()
+endfunction()
+
 ###################################################### 1.4
 if(BUILD_CONVERT_14_TO_15)
 
-	require_libpmem(1.4-rc1)
+	require_libpmem(1.4)
 
-	set(NVML14 1.4-rc1)
+	set(NVML14 1.4.2)
 
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip)
+	set(pkg nvml-${NVML14}.tar.gz)
+	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML14}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML14}.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip
-			EXPECTED_HASH SHA256=4600c3e930b793ed90aa43d87616ad2bee4d8c755fd8312d67047c81a4ce2a78)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML14}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=df7e658e75d28cd80f6d2ff7b9fc9ae2885d52f8923fdbacecfd46215115fb4c)
 		message(STATUS "Downloading NVML ${NVML14} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.4)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML14}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(${pkg})
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML14} ${CMAKE_SOURCE_DIR}/nvml-1.4)
 	endif()
 
@@ -270,16 +356,17 @@ if(BUILD_CONVERT_13_TO_14)
 
 	set(NVML13 1.3.1)
 
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML13}.zip)
+	set(pkg nvml-${NVML13}.tar.gz)
+	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML13}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML13}.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML13}.zip
-			EXPECTED_HASH SHA256=4b020df4af1a92e3d0baca8194e6877c9811f3d0c4c10e70595a109ebc794818)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML13}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=0e2a3edbd72e56074c07455f20db4dd981c915c46932efa7902e2d4cbff072c9)
 		message(STATUS "Downloading NVML ${NVML13} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.3)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML13}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(${pkg})
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML13} ${CMAKE_SOURCE_DIR}/nvml-1.3)
 	endif()
 
@@ -376,16 +463,17 @@ if(BUILD_CONVERT_12_TO_13)
 
 	set(NVML12 1.2.3)
 
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML12}.zip)
+	set(pkg nvml-${NVML12}.tar.gz)
+	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML12}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML12}.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML12}.zip
-			EXPECTED_HASH SHA256=a6491d2cea750370ed534bdbc2f4d90a7eec61171da18f7034db97852fa8e3fc)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML12}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=7a2c03661a122079906f700d053f9260f9814d18d49218c1b5a8332b17023fc7)
 		message(STATUS "Downloading NVML ${NVML12} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.2)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML12}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(${pkg})
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML12} ${CMAKE_SOURCE_DIR}/nvml-1.2)
 	endif()
 
@@ -476,16 +564,17 @@ if(BUILD_CONVERT_11_TO_12)
 
 	set(NVML11 1.1)
 
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML11}.zip)
+	set(pkg nvml-${NVML11}.tar.gz)
+	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML11}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML11}.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML11}.zip
-			EXPECTED_HASH SHA256=7ec5d967653de86ac502793ed58d951ecd5643e06d84568d659cf4bdee946bd7)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML11}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=2d51a356bf0bd61b0259844894223305d5d825af68d51a07aa1d2bc926b65c43)
 		message(STATUS "Downloading NVML ${NVML11} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.1)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML11}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(${pkg})
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML11} ${CMAKE_SOURCE_DIR}/nvml-1.1)
 	endif()
 
@@ -566,16 +655,17 @@ if(BUILD_CONVERT_10_TO_11)
 
 	set(NVML10 1.0)
 
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-${NVML10}.zip)
+	set(pkg nvml-${NVML10}.tar.gz)
+	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML10}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML10}.zip ${CMAKE_SOURCE_DIR}/nvml-${NVML10}.zip
-			EXPECTED_HASH SHA256=944eef87b18a409cb953cf81b07e2f9d49ef9db621e0d5f27acbb2628c0bc4d3)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML10}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=e9c9ed72168047f65fae72808933bfeafd965ed3237ab3fbfb199c362bf5b773)
 		message(STATUS "Downloading NVML ${NVML10} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.0)
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_SOURCE_DIR}/nvml-${NVML10}.zip
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+		uncompress(${pkg})
+
 		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML10} ${CMAKE_SOURCE_DIR}/nvml-1.0)
 	endif()
 
