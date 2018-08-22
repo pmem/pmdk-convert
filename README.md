@@ -3,6 +3,8 @@ pmdk-convert: PMDK pool conversion tool
 
 THIS PROJECT IS IN PRE-ALPHA STAGE. USE PMEMPOOL CONVERT FOR NOW.
 
+[![Build Status](https://travis-ci.org/pmem/pmdk-convert.svg?branch=master)](https://travis-ci.org/pmem/pmdk-convert)
+
 ### Building The Source ###
 
 Requirements:
