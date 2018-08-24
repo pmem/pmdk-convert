@@ -1,0 +1,7 @@
+ignore:
+  - tests/
+
+comment:
+  layout: "diff"
+  behavior: default
+  require_changes: yes

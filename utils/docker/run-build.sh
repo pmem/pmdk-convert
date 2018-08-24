@@ -124,6 +124,26 @@ cd ..
 rm -r build
 
 # -----------------------------------------
+# Coverage
+if [[ $COVERAGE -eq 1 ]] ; then
+	mkdir build
+	cd build
+
+	CC=gcc \
+	cmake .. -DCMAKE_BUILD_TYPE=Debug \
+		-DTRACE_TESTS=1 \
+		-DMAX_VERSION=1.5 \
+		-DCMAKE_C_FLAGS=-coverage
+
+	make -j2
+	ctest --output-on-failure
+	bash <(curl -s https://codecov.io/bash) -c
+
+	cd ..
+
+	rm -r build
+fi
+# -----------------------------------------
 # deb & rpm
 
 #mkdir build
