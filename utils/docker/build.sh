@@ -71,6 +71,7 @@ SCRIPTSDIR=$WORKDIR/utils/docker
 
 echo Building ${OS}-${OS_VER}
 
+ci_env=`bash <(curl -s https://codecov.io/env)`
 # Run a container with
 #  - environment variables set (--env)
 #  - host directory containing source mounted (-v)
@@ -78,11 +79,13 @@ echo Building ${OS}-${OS_VER}
 docker run --privileged=true --name=$containerName -ti \
 	$DNS_SETTING \
 	${docker_opts} \
+	$ci_env \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
 	--env GITHUB_TOKEN=$GITHUB_TOKEN \
 	--env WORKDIR=$WORKDIR \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
+	--env COVERAGE=$COVERAGE \
 	--env TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG \
 	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
