@@ -32,7 +32,8 @@
 
 {
 	global:
-		pmemobj_convert_10_to_11;
+		pmemobj_convert;
+		pmemobj_convert_try_open;
 	local:
 		*;
 };
