@@ -89,3 +89,11 @@ function(add_debug_flags target)
 		target_compile_options(${target} PRIVATE "-O0")
 	endif()
 endfunction()
+
+# Computes operations on real numbers
+function(calculate expr output)
+	execute_process(COMMAND bash
+		"-c" "awk \"BEGIN {print ${expr}}\" | tr -d \"\n\""
+		OUTPUT_VARIABLE __output)
+    set(${output} ${__output} PARENT_SCOPE)
+endfunction()
