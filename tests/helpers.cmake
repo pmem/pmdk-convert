@@ -45,17 +45,24 @@ endfunction()
 # Executes test command ${name} and verifies its status matches ${expectation}.
 # Optional function arguments are passed as consecutive arguments to
 # the command.
-function(execute expectation name)
+function(execute_arg input expectation name)
 	if(TESTS_USE_FORCED_PMEM)
 		set(ENV{PMEM_IS_PMEM_FORCE} 1)
 	endif()
 
 	message(STATUS "Executing: ${name} ${ARGN}")
-
-	execute_process(COMMAND ${name} ${ARGN}
-		RESULT_VARIABLE RET
-		OUTPUT_FILE ${BIN_DIR}/out
-		ERROR_FILE ${BIN_DIR}/err)
+	if("${input}" STREQUAL "")
+		execute_process(COMMAND ${name} ${ARGN}
+			RESULT_VARIABLE RET
+			OUTPUT_FILE ${BIN_DIR}/out
+			ERROR_FILE ${BIN_DIR}/err)
+	else()
+		execute_process(COMMAND ${name} ${ARGN}
+			RESULT_VARIABLE RET
+			INPUT_FILE ${input}
+			OUTPUT_FILE ${BIN_DIR}/out
+			ERROR_FILE ${BIN_DIR}/err)
+	endif()
 	if(TESTS_USE_FORCED_PMEM)
 		unset(ENV{PMEM_IS_PMEM_FORCE})
 	endif()
@@ -69,4 +76,8 @@ function(execute expectation name)
 	if(NOT RET EQUAL expectation)
 		message(FATAL_ERROR "${name} ${ARGN} exit code ${RET} doesn't match expectation ${expectation}")
 	endif()
+endfunction()
+
+function(execute expectation name)
+	execute_arg("" ${expectation} ${name} ${ARGN})
 endfunction()

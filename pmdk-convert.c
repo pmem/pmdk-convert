@@ -99,9 +99,9 @@ static const struct {
  * open_lib -- opens conversion plugin
  */
 static void *
-open_lib(const char *argv0, const char *name)
+open_lib(const char *name)
 {
-	char *argv0copy = strdup(argv0);
+	char *argv0copy = strdup(AppName);
 	char *dir = dirname(argv0copy);
 	char path[2][strlen(dir) + 100];
 	char *reason0 = NULL;
@@ -119,6 +119,8 @@ open_lib(const char *argv0, const char *name)
 				reason0, path[1], dlerror());
 	free(argv0copy);
 	free(reason0);
+	if (!lib)
+		exit(OPEN_LIB_FAILED);
 	return lib;
 }
 
@@ -166,11 +168,7 @@ conv_layout_version(const char *strver)
  */
 #define RUN_FUNCTION(library, function, type, ret, ...)			\
 	do {								\
-		void *_lib = open_lib(AppName, library);		\
-		if (!_lib)						\
-			exit(OPEN_LIB_FAILED);				\
-									\
-		type _fun = dlsym(_lib, function);			\
+		type _fun = dlsym(library, function);			\
 		if (!_fun) {						\
 			fprintf(stderr, "dlsym failed: %s\n",		\
 				dlerror());				\
@@ -178,8 +176,6 @@ conv_layout_version(const char *strver)
 		}							\
 									\
 		ret = _fun(__VA_ARGS__);				\
-									\
-		dlclose(_lib);						\
 	} while (0)
 
 /*
@@ -262,11 +258,13 @@ detect_layout_version(const char *path)
 	int to = find_layout_version(MAXVERSION);
 
 	for (int ver = from; ver < to; ver++) {
-		char lib[100];
+		char lib_name[100];
 		int ret;
-		sprintf(lib, "libpmemobj_convert_v%d.so", ver);
+		sprintf(lib_name, "libpmemobj_convert_v%d.so", ver);
+		void *lib = open_lib(lib_name);
 		RUN_FUNCTION(lib, "pmemobj_convert_try_open",
 			try_op, ret, path);
+		dlclose(lib);
 		if (!ret)
 			return ver;
 	}
@@ -543,15 +541,18 @@ main(int argc, char *argv[])
 
 		printf("Converting from %s to %s... ", from_str, to_str);
 		fflush(stdout);
-		char lib[100];
+		char lib_name[100];
 		const char *msg;
-		sprintf(lib, "libpmemobj_convert_v%d.so", ver);
+		sprintf(lib_name, "libpmemobj_convert_v%d.so", ver);
+		void *lib = open_lib(lib_name);
 		RUN_FUNCTION(lib, "pmemobj_convert", conv, msg, path, force);
 		if (msg) {
 			fprintf(stderr, "failed: %s (%s)\n",
 				msg, strerror(errno));
+			dlclose(lib);
 			exit(CONVERT_FAILED);
 		}
+		dlclose(lib);
 		printf("Done\n");
 	}
 
