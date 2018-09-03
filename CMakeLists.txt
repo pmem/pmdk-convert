@@ -38,7 +38,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(FindThreads)
 
 set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
-set(MAX_VERSION 1.5 CACHE STRING "Last supported version (major.minor)")
+set(MAX_VERSION 1.5)
 
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" MIN_VERSION_MAJOR "${MIN_VERSION}")
 STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" MIN_VERSION_MINOR "${MIN_VERSION}")

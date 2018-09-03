@@ -29,7 +29,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+cmake_minimum_required(VERSION 3.3)
 set(DIR ${PARENT_DIR}/${TEST_NAME})
+
+# convert the version list to the array
+string(REPLACE " " ";" VERSIONS ${VERSIONS})
+
+# tries to open the ${pool} with all PMDK ${VERSIONS}
+# expect a success when a pmdk version is on the ${correct} list
+function(check_open pool correct)
+	string(REPLACE " " ";" correct ${correct})
+	foreach(it ${VERSIONS})
+		string(REPLACE "." "" app ${it})
+		if (${it} IN_LIST correct)
+			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_${app} ${pool})
+		else()
+			execute(2 ${CMAKE_CURRENT_BINARY_DIR}/open_${app} ${pool})
+		endif()
+	endforeach(it)
+endfunction(check_open)
 
 function(setup)
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${DIR})
