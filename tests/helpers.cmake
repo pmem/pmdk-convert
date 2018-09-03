@@ -30,6 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 set(DIR ${PARENT_DIR}/${TEST_NAME})
+cmake_minimum_required(VERSION 3.3)
 
 function(setup)
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${DIR})
