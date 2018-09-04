@@ -29,6 +29,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+include(${CMAKE_SOURCE_DIR}/tests/helpers.cmake)
+
 cmake_minimum_required(VERSION 3.3)
 project(pmdk-convert C)
 
@@ -333,6 +335,7 @@ if(BUILD_CONVERT_V4)
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 	add_library(pmemobj_14 SHARED ${SOURCES_14})
+	add_debug_flags(pmemobj_14)
 	target_compile_definitions(pmemobj_14 PRIVATE SRCVERSION="${NVML14}")
 	target_compile_definitions(pmemobj_14 PRIVATE USE_LIBDL)
 	target_compile_definitions(pmemobj_14 PRIVATE _PMEMOBJ_INTRNL)
@@ -415,6 +418,7 @@ if(BUILD_CONVERT_V4)
 	endif()
 
 	add_library(pmemobj_13 SHARED ${SOURCES_13})
+	add_debug_flags(pmemobj_13)
 	target_compile_definitions(pmemobj_13 PRIVATE SRCVERSION="${NVML13}")
 	target_compile_definitions(pmemobj_13 PRIVATE USE_LIBDL)
 	target_compile_definitions(pmemobj_13 PRIVATE _PMEMOBJ_INTRNL)
@@ -517,6 +521,7 @@ if(BUILD_CONVERT_V3)
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 	add_library(pmemobj_12 SHARED ${SOURCES_12})
+	add_debug_flags(pmemobj_12)
 	target_compile_definitions(pmemobj_12 PRIVATE SRCVERSION="${NVML12}")
 	target_compile_definitions(pmemobj_12 PRIVATE USE_LIBDL)
 
@@ -609,6 +614,7 @@ if(BUILD_CONVERT_V2)
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 	add_library(pmemobj_11 SHARED ${SOURCES_11})
+	add_debug_flags(pmemobj_11)
 	target_compile_definitions(pmemobj_11 PRIVATE SRCVERSION="${NVML11}")
 
 	target_include_directories(pmemobj_11 PRIVATE nvml-1.1/src/include)
@@ -690,6 +696,7 @@ if(BUILD_CONVERT_V1)
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 	add_library(pmemobj_10 SHARED ${SOURCES_10})
+	add_debug_flags(pmemobj_10)
 	target_compile_definitions(pmemobj_10 PRIVATE SRCVERSION="${NVML10}")
 
 	target_include_directories(pmemobj_10 PRIVATE nvml-1.0/src/include)

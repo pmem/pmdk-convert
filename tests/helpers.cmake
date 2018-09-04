@@ -81,3 +81,11 @@ endfunction()
 function(execute expectation name)
 	execute_arg("" ${expectation} ${name} ${ARGN})
 endfunction()
+
+# Disables optimization for compilation time and sets it on 0
+function(add_debug_flags target)
+	if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug"
+		OR NOT CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+		target_compile_options(${target} PRIVATE "-O0")
+	endif()
+endfunction()
