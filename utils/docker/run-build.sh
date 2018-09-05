@@ -55,7 +55,8 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 	-DTRACE_TESTS=1 \
-	-DMAX_VERSION=1.5
+	-DMAX_VERSION=1.5\
+	-DTESTS_USE_FORCED_PMEM=ON
 
 make -j2
 ctest --output-on-failure
@@ -77,7 +78,8 @@ cmake .. -DCMAKE_BUILD_TYPE=Release \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 	-DTRACE_TESTS=1 \
-	-DMAX_VERSION=1.5
+	-DMAX_VERSION=1.5\
+	-DTESTS_USE_FORCED_PMEM=ON
 
 make -j2
 ctest --output-on-failure
@@ -96,7 +98,8 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 	-DTRACE_TESTS=1 \
-	-DMAX_VERSION=1.5
+	-DMAX_VERSION=1.5\
+	-DTESTS_USE_FORCED_PMEM=ON
 
 make -j2
 ctest --output-on-failure
@@ -115,7 +118,8 @@ cmake .. -DCMAKE_BUILD_TYPE=Release \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 	-DTRACE_TESTS=1 \
-	-DMAX_VERSION=1.5
+	-DMAX_VERSION=1.5\
+	-DTESTS_USE_FORCED_PMEM=ON
 
 make -j2
 ctest --output-on-failure
@@ -133,7 +137,8 @@ if [[ $COVERAGE -eq 1 ]] ; then
 	cmake .. -DCMAKE_BUILD_TYPE=Debug \
 		-DTRACE_TESTS=1 \
 		-DMAX_VERSION=1.5 \
-		-DCMAKE_C_FLAGS=-coverage
+		-DCMAKE_C_FLAGS=-coverage\
+		-DTESTS_USE_FORCED_PMEM=ON
 
 	make -j2
 	ctest --output-on-failure
