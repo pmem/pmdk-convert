@@ -31,6 +31,9 @@
 
 include(${SRC_DIR}/helpers.cmake)
 
+list(GET VERSIONS 1 VER)
+string(REPLACE "." "" VER ${VER})
+
 # argument parsing
 setup()
 
@@ -43,6 +46,9 @@ execute(3 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --unknown) # UNKNOWN_ARG
 execute(4 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from 1.0 --from-layout 1) # FROM_EXCLUSIVE
 execute(5 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --to 1.1 --to-layout 2) # TO_EXCLUSIVE
 execute(6 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from 1.10) # FROM_INVALID
+execute(6 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from 110) # FROM_INVALID
+execute(6 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from 1.a) # FROM_INVALID
+execute(6 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from a.0) # FROM_INVALID
 execute(7 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --to 1.10) # TO_INVALID
 execute(8 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from-layout v10) # FROM_LAYOUT_INVALID
 execute(9 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --to-layout v10) # TO_LAYOUT_INVALID
@@ -51,24 +57,18 @@ execute(10 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --from 1.0 --to 1.1) # NO
 file(WRITE ${DIR}/not_a_pool "This is not a pool\n")
 execute(11 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert not_a_pool) # POOL_DETECTION
 
-file(WRITE ${DIR}/pool10 "PMEMPOOLSET\n16M ${DIR}/part10\n")
-execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_10 ${DIR}/pool10)
-execute(12 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool10 --from 1.7) # UNSUPPORTED_FROM
-execute(12 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool10 --from-layout 7) # UNSUPPORTED_FROM
+file(WRITE ${DIR}/pool "PMEMPOOLSET\n16M ${DIR}/part\n")
+execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${VER} ${DIR}/pool)
+execute(12 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool --from 1.7) # UNSUPPORTED_FROM
+execute(12 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool --from-layout 7) # UNSUPPORTED_FROM
 
-execute(13 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool10 --to 1.7) # UNSUPPORTED_TO
-execute(13 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool10 --to-layout 7) # UNSUPPORTED_TO
+execute(13 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool --to 1.7) # UNSUPPORTED_TO
+execute(13 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool --to-layout 7) # UNSUPPORTED_TO
 
-execute(14 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool10 --to 1.2 --from 1.3) # BACKWARD_CONVERSION
-execute(14 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool10 --to-layout 2 --from-layout 3) # BACKWARD_CONVERSION
-
-execute(15 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/not_a_pool -X fail-safety --from 1.0 --to 1.5) # CONVERT_FAILED
-execute(15 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/not_a_pool -X fail-safety --from 1.1 --to 1.5) # CONVERT_FAILED
-execute(15 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/not_a_pool -X fail-safety --from 1.2 --to 1.5) # CONVERT_FAILED
-execute(15 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/not_a_pool -X fail-safety --from 1.3 --to 1.5) # CONVERT_FAILED
-execute(15 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/not_a_pool -X fail-safety --from 1.4 --to 1.5) # CONVERT_FAILED
+execute(14 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool --from 1.5 --to 1.4) # BACKWARD_CONVERSION
+execute(14 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool --from-layout 5 --to-layout 4) # BACKWARD_CONVERSION
 
 file(WRITE ${DIR}/yes "Yy\n")
-execute_arg(${DIR}/yes 0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool10)
+execute_arg(${DIR}/yes 0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool)
 
 cleanup()

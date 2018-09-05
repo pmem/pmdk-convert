@@ -54,8 +54,7 @@ CC=gcc \
 cmake .. -DCMAKE_BUILD_TYPE=Debug \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-	-DTRACE_TESTS=1 \
-	-DMAX_VERSION=1.5
+	-DTRACE_TESTS=1
 
 make -j2
 ctest --output-on-failure
@@ -76,8 +75,26 @@ CC=gcc \
 cmake .. -DCMAKE_BUILD_TYPE=Release \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-	-DTRACE_TESTS=1 \
-	-DMAX_VERSION=1.5
+	-DTRACE_TESTS=1
+
+make -j2
+ctest --output-on-failure
+
+cd ..
+rm -r build
+
+# -----------------------------------------
+# gcc & Release (different MINVERSION)
+
+mkdir build
+cd build
+
+CC=gcc \
+  cmake .. -DCMAKE_BUILD_TYPE=Release \
+  -DDEVELOPER_MODE=1 \
+  -DMIN_VERSION=1.3 \
+  -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+  -DTRACE_TESTS=1
 
 make -j2
 ctest --output-on-failure
@@ -95,8 +112,7 @@ CC=clang \
 cmake .. -DCMAKE_BUILD_TYPE=Debug \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-	-DTRACE_TESTS=1 \
-	-DMAX_VERSION=1.5
+	-DTRACE_TESTS=1
 
 make -j2
 ctest --output-on-failure
@@ -114,8 +130,7 @@ CC=clang \
 cmake .. -DCMAKE_BUILD_TYPE=Release \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-	-DTRACE_TESTS=1 \
-	-DMAX_VERSION=1.5
+	-DTRACE_TESTS=1
 
 make -j2
 ctest --output-on-failure
@@ -132,7 +147,6 @@ if [[ $COVERAGE -eq 1 ]] ; then
 	CC=gcc \
 	cmake .. -DCMAKE_BUILD_TYPE=Debug \
 		-DTRACE_TESTS=1 \
-		-DMAX_VERSION=1.5 \
 		-DCMAKE_C_FLAGS=-coverage
 
 	make -j2
