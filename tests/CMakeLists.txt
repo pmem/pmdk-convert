@@ -29,6 +29,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
+
 set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/test
 	CACHE STRING "working directory for tests")
 
@@ -137,4 +139,45 @@ target_link_libraries(open_14 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(open_14 PRIVATE pmemobj_14)
 endif()
 
+if(BUILD_CONVERT_V1)
+add_executable(transaction_10 transaction.c)
+disable_optimization(transaction_10)
+target_include_directories(transaction_10 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.0/src/include)
+target_link_libraries(transaction_10 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(transaction_10 PRIVATE pmemobj_10)
+endif()
+
+if(BUILD_CONVERT_V2)
+add_executable(transaction_11 transaction.c)
+disable_optimization(transaction_11)
+target_include_directories(transaction_11 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.1/src/include)
+target_link_libraries(transaction_11 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(transaction_11 PRIVATE pmemobj_11)
+endif()
+
+if(BUILD_CONVERT_V3)
+add_executable(transaction_12 transaction.c)
+disable_optimization(transaction_12)
+target_include_directories(transaction_12 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.2/src/include)
+target_link_libraries(transaction_12 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(transaction_12 PRIVATE pmemobj_12)
+endif()
+
+if(BUILD_CONVERT_V4)
+add_executable(transaction_13 transaction.c)
+disable_optimization(transaction_13)
+target_include_directories(transaction_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
+target_link_libraries(transaction_13 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(transaction_13 PRIVATE pmemobj_13)
+endif()
+
+if(BUILD_CONVERT_V4)
+add_executable(transaction_14 transaction.c)
+disable_optimization(transaction_14)
+target_include_directories(transaction_14 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/src/include)
+target_link_libraries(transaction_14 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(transaction_14 PRIVATE pmemobj_14)
+endif()
+
 test("cli_test" cli)
+test("single_file_pools" transaction_0)
