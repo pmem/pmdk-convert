@@ -99,3 +99,58 @@ endfunction()
 function(execute expectation name)
 	execute_arg("" ${expectation} ${name} ${ARGN})
 endfunction()
+
+function(make_transactions prepare_files)
+	set(curr_scenario 0)
+	set(last_scenario 9)
+
+	list(LENGTH VERSIONS num)
+	math(EXPR num "${num} - 1")
+
+	while(NOT curr_scenario GREATER last_scenario)
+		prepare_files()
+		set(index 1)
+
+		while(index LESS num)
+			list(GET VERSIONS ${index} curr_version)
+
+			math(EXPR next "${index} + 1")
+			list(GET VERSIONS ${next} next_version)
+
+			string(REPLACE "." "" curr_bin_version ${curr_version})
+			string(REPLACE "." "" next_bin_version ${next_version})
+
+			if(next_version EQUAL "1.2")
+				set(mutex "-X;1.2-pmemmutex")
+			else()
+				unset(mutex)
+			endif()
+
+			execute(0 gdb --batch
+				--command=${SRC_DIR}/trip_on_pre_commit.gdb
+				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				${DIR}/pool${curr_bin_version}a c ${curr_scenario})
+			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
+				--to=${next_version} ${DIR}/pool${curr_bin_version}a
+				-X fail-safety ${mutex})
+			execute(0
+				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
+				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+
+			execute(0 gdb --batch
+				--command=${SRC_DIR}/trip_on_post_commit.gdb
+				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				${DIR}/pool${curr_bin_version}c c ${curr_scenario})
+			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
+				--to=${next_version} ${DIR}/pool${curr_bin_version}c
+				-X fail-safety ${mutex})
+			execute(0
+				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
+				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+
+			MATH(EXPR index "${index} + 1")
+		endwhile()
+
+		MATH(EXPR curr_scenario "${curr_scenario} + 1")
+	endwhile()
+endfunction()

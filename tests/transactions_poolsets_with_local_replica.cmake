@@ -37,10 +37,18 @@ function(prepare_files)
 
 	foreach(version ${VERSIONS})
 		string(REPLACE "." "" bin_version ${version})
+
+		file(WRITE ${DIR}/pool${bin_version}a "PMEMPOOLSET\n
+			16M ${DIR}/part${bin_version}a_rep1\nREPLICA\n
+			16M ${DIR}/part${bin_version}a_rep2\n")
 		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
-				${DIR}/pool${bin_version}a 16)
+				${DIR}/pool${bin_version}a)
+
+		file(WRITE ${DIR}/pool${bin_version}c "PMEMPOOLSET\n
+			16M ${DIR}/part${bin_version}c_rep1\nREPLICA\n
+			16M ${DIR}/part${bin_version}c_rep2\n")
 		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
-				${DIR}/pool${bin_version}c 16)
+				${DIR}/pool${bin_version}c)
 	endforeach()
 
 endfunction()

@@ -181,3 +181,7 @@ endif()
 
 test("cli_test" cli)
 test("transactions_single_file_pools" transactions_single_file_pools)
+test("transactions_single_file_poolsets" transactions_single_file_poolsets)
+test("transactions_multi_file_poolsets" transactions_multi_file_poolsets)
+test("transactions_poolsets_with_local_replica"
+	transactions_poolsets_with_local_replica)
