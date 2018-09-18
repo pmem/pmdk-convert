@@ -180,4 +180,7 @@ target_link_libraries(transaction_14 PRIVATE pmemobj_14)
 endif()
 
 test("cli_test" cli)
-test("transactions_single_file_pools" transactions_single_file_pools)
+test("tx_intr_single_file_pools" tx_intr_single_file_pools)
+test("tx_intr_single_file_poolsets" tx_intr_single_file_poolsets)
+test("tx_intr_multi_file_poolsets" tx_intr_multi_file_poolsets)
+test("tx_intr_poolsets_with_local_replica" tx_intr_poolsets_with_local_replica)
