@@ -154,3 +154,51 @@ function(test_intr_tx prepare_files)
 		MATH(EXPR curr_scenario "${curr_scenario} + 1")
 	endwhile()
 endfunction()
+
+set(DEVDAX_LOCKS "${CMAKE_CURRENT_BINARY_DIR}/devdax.lock")
+
+# acquire a lock on DAX devices
+function(lock_devdax)
+       file(LOCK ${DEVDAX_LOCKS} TIMEOUT 100)
+endfunction()
+
+# release a lock on DAX devices
+function(unlock_devdax)
+       file(LOCK ${DEVDAX_LOCKS} RELEASE)
+endfunction()
+
+function(test_intr_tx_devdax prepare_files curr_version next_version)
+	set(curr_scenario 0)
+	set(last_scenario 9)
+
+	while(NOT curr_scenario GREATER last_scenario)
+		string(REPLACE "." "" curr_bin_version ${curr_version})
+		string(REPLACE "." "" next_bin_version ${next_version})
+
+		prepare_files(${curr_bin_version})
+
+		execute(0 gdb --batch
+				--command=${SRC_DIR}/trip_on_pre_commit.gdb
+				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				${pool_file} c ${curr_scenario})
+		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
+				--to=${next_version} ${pool_file} -X fail-safety)
+		execute(0
+				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
+				${pool_file} va ${curr_scenario})
+
+		prepare_files(${curr_bin_version})
+
+		execute(0 gdb --batch
+				--command=${SRC_DIR}/trip_on_post_commit.gdb
+				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				${pool_file} c ${curr_scenario})
+		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
+				--to=${next_version} ${pool_file} -X fail-safety)
+		execute(0
+				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
+				${pool_file} vc ${curr_scenario})
+
+		MATH(EXPR curr_scenario "${curr_scenario} + 1")
+	endwhile()
+endfunction()
