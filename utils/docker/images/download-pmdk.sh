@@ -44,15 +44,17 @@ wget https://github.com/pmem/pmdk/archive/1.2.3.tar.gz -O /opt/pmdk/nvml-1.2.3.t
 wget https://github.com/pmem/pmdk/archive/1.1.tar.gz -O /opt/pmdk/nvml-1.1.tar.gz
 wget https://github.com/pmem/pmdk/archive/1.0.tar.gz -O /opt/pmdk/nvml-1.0.tar.gz
 
-# Download and install libpmem-1.4 packages
+# Download and install libpmem-1.4 and libpmempool-1.4 packages
 if [ "$1" = "deb" ]; then
 	wget https://github.com/pmem/pmdk/releases/download/1.4/pmdk-1.4-dpkgs.tar.gz
 	tar -xzf pmdk-1.4-dpkgs.tar.gz
 	dpkg -i libpmem_*.deb libpmem-dev*.deb
+	dpkg -i libpmempool_*.deb libpmempool-dev*.deb
 	rm *.deb pmdk-1.4-dpkgs.tar.gz
 elif [ "$1" = "rpm" ]; then
 	wget https://github.com/pmem/pmdk/releases/download/1.4/pmdk-1.4-rpms.tar.gz
 	tar -xzf pmdk-1.4-rpms.tar.gz
 	rpm -i x86_64/libpmem-*.rpm
+	rpm -i x86_64/libpmempool-*.rpm
 	rm -r x86_64 *.rpm pmdk-1.4-rpms.tar.gz
 fi

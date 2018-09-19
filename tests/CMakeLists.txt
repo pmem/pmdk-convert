@@ -59,6 +59,15 @@ function(test name file)
 		ENVIRONMENT "LC_ALL=C;PATH=$ENV{PATH}")
 endfunction()
 
+macro(require_libpmempool ver)
+	if(PKG_CONFIG_FOUND)
+		pkg_check_modules(LIBPMEMPOOL REQUIRED libpmempool>=${ver})
+	else()
+		find_package(LIBPMEMPOOL REQUIRED)
+	endif()
+	link_directories(${LIBPMEMPOOL_LIBRARY_DIRS})
+endmacro()
+
 if(BUILD_CONVERT_V1)
 add_executable(create_10 create.c)
 target_include_directories(create_10 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.0/src/include)
@@ -178,6 +187,8 @@ target_include_directories(transaction_14 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/s
 target_link_libraries(transaction_14 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(transaction_14 PRIVATE pmemobj_14)
 endif()
+
+require_libpmempool(1.2)
 
 test("cli_test" cli)
 test("tx_intr_single_file_pools" tx_intr_single_file_pools)
