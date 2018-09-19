@@ -36,9 +36,21 @@ set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/test
 
 option(TESTS_USE_FORCED_PMEM "let tests force enable or force disable use of optimized flush in libpmemobj (to speed them up)" OFF)
 
+set(DEVICE_DAX_PATHS "" CACHE STRING
+	"for tests that require raw dax devices without a file system. Some tests might require two DAX devices.
+	Example: '/dev/dax1.0 /dev/dax2.0'")
+
 set(GLOBAL_TEST_ARGS
 	-DPARENT_DIR=${TEST_DIR}/
-	-DTESTS_USE_FORCED_PMEM=${TESTS_USE_FORCED_PMEM})
+	-DTESTS_USE_FORCED_PMEM=${TESTS_USE_FORCED_PMEM}
+	-DDEVICE_DAX_PATHS=${DEVICE_DAX_PATHS})
+
+# convert the DEVICE_DAX_PATHS list to the array
+if(DEVICE_DAX_PATHS)
+	string(REPLACE " " ";" DEVICE_DAX_PATHS ${DEVICE_DAX_PATHS})
+endif()
+
+list(LENGTH DEVICE_DAX_PATHS devdax_num)
 
 if(TRACE_TESTS)
 	set(GLOBAL_TEST_ARGS ${GLOBAL_TEST_ARGS} --trace-expand)
@@ -188,10 +200,40 @@ target_link_libraries(transaction_14 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(transaction_14 PRIVATE pmemobj_14)
 endif()
 
-require_libpmempool(1.2)
+require_libpmempool(1.3)
+
+add_executable(clean_pool clean.c)
+target_link_libraries(clean_pool PRIVATE ${LIBPMEMPOOL_LIBRARIES})
+
+if(DEVICE_DAX_PATHS)
+	file(WRITE ${TEST_DIR}/../devdax.lock "")
+endif()
 
 test("cli_test" cli)
 test("tx_intr_single_file_pools" tx_intr_single_file_pools)
 test("tx_intr_single_file_poolsets" tx_intr_single_file_poolsets)
 test("tx_intr_multi_file_poolsets" tx_intr_multi_file_poolsets)
 test("tx_intr_poolsets_with_local_replica" tx_intr_poolsets_with_local_replica)
+
+if(NOT DEVICE_DAX_PATHS)
+	test("tx_intr_single_file_pools_devdax_SKIP_BECAUSE_OF_NO_DEVDAX_DEFINED"
+		skip_test)
+	test("tx_intr_single_file_poolsets_devdax_SKIP_BECAUSE_OF_NO_DEVDAX_DEFINED"
+		skip_test)
+else()
+	test("tx_intr_single_file_pools_devdax" tx_intr_single_file_pools_devdax)
+	test("tx_intr_single_file_poolsets_devdax"
+		tx_intr_single_file_poolsets_devdax)
+endif()
+
+if(devdax_num LESS 2)
+	test("tx_intr_multi_file_poolsets_devdax_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
+		skip_test)
+	test("tx_intr_poolsets_with_local_replica_devdax_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
+		skip_test)
+else()
+	test("tx_intr_multi_file_poolsets_devdax"
+		tx_intr_multi_file_poolsets_devdax)
+	test("tx_intr_poolsets_with_local_replica_devdax"
+		tx_intr_poolsets_with_local_replica_devdax)
+endif()
