@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -30,31 +29,47 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#
-# download-pmdk.sh - download pmdk sources
-#
+include(${SRC_DIR}/helpers.cmake)
 
-set -e
+# prepare single file pools on DAX devices for testing for each version of PMDK
+function(prepare_files version)
+	file(WRITE ${DIR}/pool${version} "PMEMPOOLSET\nAUTO ${devdax_1}\nREPLICA\n
+		AUTO ${devdax_2}\n")
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/clean_pool ${devdax_1})
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/clean_pool ${devdax_2})
+	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${version}
+			${DIR}/pool${version})
+	set(pool_file "${DIR}/pool${version}" PARENT_SCOPE)
+endfunction()
 
-mkdir /opt/pmdk
+function(test_devdax test_intr_tx_devdax)
+	lock_devdax()
+	setup()
 
-wget https://github.com/pmem/pmdk/archive/1.4.2.tar.gz -O /opt/pmdk/nvml-1.4.2.tar.gz
-wget https://github.com/pmem/pmdk/archive/1.3.1.tar.gz -O /opt/pmdk/nvml-1.3.1.tar.gz
-wget https://github.com/pmem/pmdk/archive/1.2.3.tar.gz -O /opt/pmdk/nvml-1.2.3.tar.gz
-wget https://github.com/pmem/pmdk/archive/1.1.tar.gz -O /opt/pmdk/nvml-1.1.tar.gz
-wget https://github.com/pmem/pmdk/archive/1.0.tar.gz -O /opt/pmdk/nvml-1.0.tar.gz
+	string(REPLACE " " ";" DEVICE_DAX_PATHS ${DEVICE_DAX_PATHS})
+	list(GET DEVICE_DAX_PATHS 0 devdax_1)
+	list(GET DEVICE_DAX_PATHS 1 devdax_2)
+	list(LENGTH VERSIONS num)
+	math(EXPR num "${num} - 1")
+	set(index 1)
 
-# Download and install libpmem-1.4 and libpmempool-1.4 packages
-if [ "$1" = "deb" ]; then
-	wget https://github.com/pmem/pmdk/releases/download/1.4/pmdk-1.4-dpkgs.tar.gz
-	tar -xzf pmdk-1.4-dpkgs.tar.gz
-	dpkg -i libpmem_*.deb libpmem-dev*.deb
-	dpkg -i libpmempool_*.deb libpmempool-dev*.deb
-	rm *.deb pmdk-1.4-dpkgs.tar.gz
-elif [ "$1" = "rpm" ]; then
-	wget https://github.com/pmem/pmdk/releases/download/1.4/pmdk-1.4-rpms.tar.gz
-	tar -xzf pmdk-1.4-rpms.tar.gz
-	rpm -i x86_64/libpmem-*.rpm
-	rpm -i x86_64/libpmempool-*.rpm
-	rm -r x86_64 *.rpm pmdk-1.4-rpms.tar.gz
-fi
+	while(index LESS num)
+		list(GET VERSIONS ${index} curr_version)
+		math(EXPR next "${index} + 1")
+		list(GET VERSIONS ${next} next_version)
+
+		# DAX devices are supported from PMDK version 1.2
+		if(curr_version VERSION_GREATER "1.1")
+		execute(0 echo ${pool_file})
+			test_intr_tx_devdax(prepare_files ${curr_version} ${next_version})
+		endif()
+		
+		MATH(EXPR index "${index} + 1")
+	endwhile()
+	unlock_devdax()
+
+endfunction()
+
+test_devdax(test_intr_tx_devdax)
+
+cleanup()
