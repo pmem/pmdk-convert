@@ -65,6 +65,7 @@ function(test name file)
 			-DSRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}
 			-DBIN_DIR=${CMAKE_CURRENT_BINARY_DIR}/${file}
 			-DVERSIONS=${VERSIONS}
+			-DCONFIG=$<CONFIG>
 			-P ${CMAKE_CURRENT_SOURCE_DIR}/${file}.cmake)
 
 	set_tests_properties(${name} PROPERTIES
@@ -85,6 +86,12 @@ add_executable(create_10 create.c)
 target_include_directories(create_10 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.0/src/include)
 target_link_libraries(create_10 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_10 PRIVATE pmemobj_10)
+
+add_executable(open_10 open.c)
+target_include_directories(open_10 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.0/src/include)
+target_link_libraries(open_10 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(open_10 PRIVATE pmemobj_10)
+
 set(VERSIONS "${VERSIONS} 1.0")
 test("1.0_pool_conversion" basic10)
 endif()
@@ -94,6 +101,12 @@ add_executable(create_11 create.c)
 target_include_directories(create_11 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.1/src/include)
 target_link_libraries(create_11 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_11 PRIVATE pmemobj_11)
+
+add_executable(open_11 open.c)
+target_include_directories(open_11 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.1/src/include)
+target_link_libraries(open_11 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(open_11 PRIVATE pmemobj_11)
+
 set(VERSIONS "${VERSIONS} 1.1")
 test("1.1_pool_conversion" basic11)
 endif()
@@ -103,17 +116,39 @@ add_executable(create_12 create.c)
 target_include_directories(create_12 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.2/src/include)
 target_link_libraries(create_12 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_12 PRIVATE pmemobj_12)
+
+add_executable(open_12 open.c)
+target_include_directories(open_12 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.2/src/include)
+target_link_libraries(open_12 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(open_12 PRIVATE pmemobj_12)
+
 set(VERSIONS "${VERSIONS} 1.2")
 test("1.2_pool_conversion" basic12)
 endif()
 
-if(BUILD_CONVERT_V4)
+if(BUILD_13)
 add_executable(create_13 create.c)
 target_include_directories(create_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
 target_link_libraries(create_13 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_13 PRIVATE pmemobj_13)
+target_compile_definitions(create_13 PRIVATE NVML_UTF8_API)
+
+add_executable(open_13 open.c)
+target_include_directories(open_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
+target_link_libraries(open_13 PRIVATE ${PMEM_LIBRARIES})
+target_link_libraries(open_13 PRIVATE pmemobj_13)
+target_compile_definitions(open_13 PRIVATE NVML_UTF8_API)
+
 set(VERSIONS "${VERSIONS} 1.3")
 test("1.3_pool_conversion" basic13)
+
+if(WIN32)
+	# on windows dll and executable must be in the same dir
+	add_custom_command(TARGET open_13 POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		$<TARGET_FILE:pmemobj_13>
+		$<TARGET_FILE_DIR:open_13>)
+endif()
 endif()
 
 if(BUILD_CONVERT_V4)
@@ -121,44 +156,31 @@ add_executable(create_14 create.c)
 target_include_directories(create_14 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/src/include)
 target_link_libraries(create_14 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(create_14 PRIVATE pmemobj_14)
-set(VERSIONS "${VERSIONS} 1.4")
-test("1.4_pool_conversion" basic14)
-endif()
+target_compile_definitions(create_14 PRIVATE NVML_UTF8_API)
 
-if(BUILD_CONVERT_V1)
-add_executable(open_10 open.c)
-target_include_directories(open_10 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.0/src/include)
-target_link_libraries(open_10 PRIVATE ${PMEM_LIBRARIES})
-target_link_libraries(open_10 PRIVATE pmemobj_10)
-endif()
-
-if(BUILD_CONVERT_V2)
-add_executable(open_11 open.c)
-target_include_directories(open_11 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.1/src/include)
-target_link_libraries(open_11 PRIVATE ${PMEM_LIBRARIES})
-target_link_libraries(open_11 PRIVATE pmemobj_11)
-endif()
-
-if(BUILD_CONVERT_V3)
-add_executable(open_12 open.c)
-target_include_directories(open_12 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.2/src/include)
-target_link_libraries(open_12 PRIVATE ${PMEM_LIBRARIES})
-target_link_libraries(open_12 PRIVATE pmemobj_12)
-endif()
-
-if(BUILD_CONVERT_V4)
-add_executable(open_13 open.c)
-target_include_directories(open_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
-target_link_libraries(open_13 PRIVATE ${PMEM_LIBRARIES})
-target_link_libraries(open_13 PRIVATE pmemobj_13)
-endif()
-
-if(BUILD_CONVERT_V4)
 add_executable(open_14 open.c)
 target_include_directories(open_14 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/src/include)
 target_link_libraries(open_14 PRIVATE ${PMEM_LIBRARIES})
 target_link_libraries(open_14 PRIVATE pmemobj_14)
+target_compile_definitions(open_14 PRIVATE NVML_UTF8_API)
+
+set(VERSIONS "${VERSIONS} 1.4")
+test("1.4_pool_conversion" basic14)
+
+if(WIN32)
+	# on windows dll and executable must be in the same dir
+	add_custom_command(TARGET open_14 POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		$<TARGET_FILE:pmemobj_14>
+		$<TARGET_FILE_DIR:open_14>)
+		
+	add_custom_command(TARGET open_14 POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		$<TARGET_FILE_DIR:pmemobj_14>/libpmem.dll
+		$<TARGET_FILE_DIR:open_14>)
 endif()
+endif()
+
 
 if(BUILD_CONVERT_V1)
 add_executable(transaction_10 transaction.c)
