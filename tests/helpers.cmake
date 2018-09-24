@@ -35,6 +35,14 @@ set(DIR ${PARENT_DIR}/${TEST_NAME})
 # convert the version list to the array
 string(REPLACE " " ";" VERSIONS ${VERSIONS})
 
+if (WIN32)
+	set(EXE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG})
+	set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/../tests/${CONFIG})
+else()
+	set(EXE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../)
+	set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/../tests/)
+endif()
+
 # tries to open the ${pool} with all PMDK ${VERSIONS}
 # expect a success when a pmdk version is on the ${correct} list
 function(check_open pool correct)
@@ -42,9 +50,9 @@ function(check_open pool correct)
 	foreach(it ${VERSIONS})
 		string(REPLACE "." "" app ${it})
 		if (${it} IN_LIST correct)
-			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/open_${app} ${pool})
+			execute(0 ${TEST_DIR}/open_${app} ${pool})
 		else()
-			execute(2 ${CMAKE_CURRENT_BINARY_DIR}/open_${app} ${pool})
+			execute(2 ${TEST_DIR}/open_${app} ${pool})
 		endif()
 	endforeach(it)
 endfunction(check_open)

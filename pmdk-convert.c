@@ -31,10 +31,8 @@
  */
 
 #include <ctype.h>
-#include <dlfcn.h>
 #include <errno.h>
 #include <getopt.h>
-#include <libgen.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -67,6 +65,7 @@ enum {
 	CREATE_VERSION_STR_FAILED = 16,
 	OPEN_LIB_FAILED = 17,
 	DLSYM_FAILED = 18,
+	FREELIB_FAILED = 19,
 };
 
 #define ARRAY_LENGTH(array) (sizeof((array)) / sizeof((array)[0]))
@@ -95,6 +94,9 @@ static const struct {
 #endif
 };
 
+#ifndef WIN32
+#include <dlfcn.h>
+#include <libgen.h>
 /*
  * open_lib -- opens conversion plugin
  */
@@ -106,7 +108,7 @@ open_lib(const char *name)
 	char path[2][strlen(dir) + 100];
 	char *reason0 = NULL;
 
-	sprintf(path[0], "%s/%s", dir, name);
+	sprintf(path[0], "%s/%s.so", dir, name);
 	void *lib = dlopen(path[0], RTLD_NOW);
 	if (!lib) {
 		reason0 = strdup(dlerror());
@@ -123,6 +125,131 @@ open_lib(const char *name)
 		exit(OPEN_LIB_FAILED);
 	return lib;
 }
+/*
+ * get_fun -- returns function from library
+ */
+static void *
+get_fun(void * library, const char *function)
+{
+	void *_fun = dlsym(library, function);
+	if (!_fun) {
+		fprintf(stderr, "dlsym failed: %s\n", dlerror());
+		exit(DLSYM_FAILED);
+	}
+	return _fun;
+}
+
+/*
+ * close_lib -- closes conversion plugin
+ */
+static void
+close_lib(void *lib)
+{
+	dlclose(lib);
+}
+
+#else
+#include <windows.h>
+/*
+ * dirname - windows implementation of dirname function
+ */
+static char *
+dirname(char *path)
+{
+	if (path == NULL)
+		return ".";
+
+	size_t len = strlen(path);
+	if (len == 0)
+		return ".";
+
+	char *end = path + len;
+
+	/* strip trailing forslashes and backslashes */
+	while ((--end) > path) {
+		if (*end != '\\' && *end != '/') {
+			*(end + 1) = '\0';
+			break;
+		}
+	}
+
+	/* strip basename */
+	while ((--end) > path) {
+		if (*end == '\\' || *end == '/') {
+			*end = '\0';
+			break;
+		}
+	}
+
+	if (end != path) {
+		return path;
+		/* handle edge cases */
+	} else if (*end == '\\' || *end == '/') {
+		*(end + 1) = '\0';
+	} else {
+		*end++ = '.';
+		*end = '\0';
+	}
+
+	return path;
+}
+
+/*
+ * open_lib -- opens conversion plugin
+ */
+static void *
+open_lib(const char *name)
+{
+	char *argv0copy = strdup(AppName);
+	char *dir = dirname(argv0copy);
+	char *path = malloc(strlen(dir) + 100);
+
+	if (path == NULL) {
+		fprintf(stderr, "malloc failed");
+		exit(OPEN_LIB_FAILED);
+	}
+
+	sprintf(path, "%s/%s.dll", dir, name);
+	void *lib = LoadLibrary(path);
+
+	if (!lib)
+		fprintf(stderr, "LoadLibrary(%s) failed: %d",
+			path, GetLastError());
+
+	free(argv0copy);
+	free(path);
+
+	if (!lib)
+		exit(OPEN_LIB_FAILED);
+
+	return lib;
+}
+
+/*
+ * get_fun -- returns function from library
+ */
+static void *
+get_fun(void *library, const char *function)
+{
+	void *_fun = GetProcAddress(library, function);
+	if (!_fun) {
+		fprintf(stderr, "GetProcAddress failed: %d\n", GetLastError());
+		exit(DLSYM_FAILED);
+	}
+	return _fun;
+}
+
+/*
+ * close_lib -- closes conversion plugin
+ */
+static void
+close_lib(void *lib)
+{
+	if (!FreeLibrary(lib))
+		exit(FREELIB_FAILED);
+}
+#endif
+
 
 /*
  * conv_version -- converts version string from major.minor format to number
@@ -168,12 +295,7 @@ conv_layout_version(const char *strver)
  */
 #define RUN_FUNCTION(library, function, type, ret, ...)			\
 	do {								\
-		type _fun = dlsym(library, function);			\
-		if (!_fun) {						\
-			fprintf(stderr, "dlsym failed: %s\n",		\
-				dlerror());				\
-			exit(DLSYM_FAILED);				\
-		}							\
+		type _fun = get_fun(library, function);			\
 									\
 		ret = _fun(__VA_ARGS__);				\
 	} while (0)
@@ -260,11 +382,11 @@ detect_layout_version(const char *path)
 	for (int ver = from; ver < to; ver++) {
 		char lib_name[100];
 		int ret;
-		sprintf(lib_name, "libpmemobj_convert_v%d.so", ver);
+		sprintf(lib_name, "pmemobj_convert_v%d", ver);
 		void *lib = open_lib(lib_name);
 		RUN_FUNCTION(lib, "pmemobj_convert_try_open",
 			try_op, ret, path);
-		dlclose(lib);
+		close_lib(lib);
 		if (!ret)
 			return ver;
 	}
@@ -543,16 +665,16 @@ main(int argc, char *argv[])
 		fflush(stdout);
 		char lib_name[100];
 		const char *msg;
-		sprintf(lib_name, "libpmemobj_convert_v%d.so", ver);
+		sprintf(lib_name, "pmemobj_convert_v%d", ver);
 		void *lib = open_lib(lib_name);
 		RUN_FUNCTION(lib, "pmemobj_convert", conv, msg, path, force);
 		if (msg) {
 			fprintf(stderr, "failed: %s (%s)\n",
 				msg, strerror(errno));
-			dlclose(lib);
+			close_lib(lib);
 			exit(CONVERT_FAILED);
 		}
-		dlclose(lib);
+		close_lib(lib);
 		printf("Done\n");
 	}
 
