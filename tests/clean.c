@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "libpmempool.h"
+#include <libpmempool.h>
 
 int
 main(int argc, char *argv[])

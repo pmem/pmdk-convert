@@ -203,6 +203,7 @@ endif()
 require_libpmempool(1.3)
 
 add_executable(clean_pool clean.c)
+target_include_directories(clean_pool PRIVATE ${LIBPMEMPOOL_INCLUDE_DIRS})
 target_link_libraries(clean_pool PRIVATE ${LIBPMEMPOOL_LIBRARIES})
 
 if(DEVICE_DAX_PATHS)
