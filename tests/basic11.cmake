@@ -35,26 +35,26 @@ function(test)
 	check_open(${DIR}/pool11 "1.1")
 
 	# 1.1 -> 1.2
-	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --to=1.2 ${DIR}/pool11 -X fail-safety -X 1.2-pmemmutex)
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.2 ${DIR}/pool11 -X fail-safety -X 1.2-pmemmutex)
 	check_open(${DIR}/pool11 "1.2")
 
 	# 1.2 -> 1.3
-	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --to=1.3 ${DIR}/pool11 -X fail-safety)
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.3 ${DIR}/pool11 -X fail-safety)
 	check_open(${DIR}/pool11 "1.3 1.4")
 
 	# 1.3 -> 1.4
-	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --to=1.4 ${DIR}/pool11 -X fail-safety)
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.4 ${DIR}/pool11 -X fail-safety)
 	check_open(${DIR}/pool11 "1.3 1.4")
 
 	# 1.4 -> 1.5
-	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert --to=1.5 ${DIR}/pool11 -X fail-safety)
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.5 ${DIR}/pool11 -X fail-safety)
 	check_open(${DIR}/pool11 "1.5")
 endfunction(test)
 
 # single file pool
 setup()
 
-execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_11 ${DIR}/pool11 16)
+execute(0 ${TEST_DIR}/create_11 ${DIR}/pool11 16)
 
 test()
 
@@ -63,7 +63,7 @@ setup()
 
 file(WRITE ${DIR}/pool11 "PMEMPOOLSET\n16M ${DIR}/part11\n")
 
-execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_11 ${DIR}/pool11)
+execute(0 ${TEST_DIR}/create_11 ${DIR}/pool11)
 
 test()
 
@@ -72,7 +72,7 @@ setup()
 
 file(WRITE ${DIR}/pool11 "PMEMPOOLSET\n16M ${DIR}/part11_1\n16M ${DIR}/part11_2\n")
 
-execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_11 ${DIR}/pool11)
+execute(0 ${TEST_DIR}/create_11 ${DIR}/pool11)
 
 test()
 
@@ -80,13 +80,13 @@ test()
 setup()
 
 file(WRITE ${DIR}/pool11 "PMEMPOOLSET\n16M ${DIR}/part11_rep1\nREPLICA\n16M ${DIR}/part11_rep2\n")
-execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_11 ${DIR}/pool11)
+execute(0 ${TEST_DIR}/create_11 ${DIR}/pool11)
 
 test()
 
 setup()
 
 file(WRITE ${DIR}/not_a_pool "This is not a pool\n")
-execute(15 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/not_a_pool -X fail-safety --from 1.1) # CONVERT_FAILED
+execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool -X fail-safety --from 1.1) # CONVERT_FAILED
 
 cleanup()
