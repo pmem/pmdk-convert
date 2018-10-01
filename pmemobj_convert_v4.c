@@ -47,30 +47,6 @@
 #include "nvml-1.4/src/tools/pmempool/output.h"
 
 /*
- * outv_err_vargs -- print error message
- */
-void
-outv_err_vargs(const char *fmt, va_list ap)
-{
-	fprintf(stderr, "error: ");
-	vfprintf(stderr, fmt, ap);
-	if (!strchr(fmt, '\n'))
-		fprintf(stderr, "\n");
-}
-
-/*
- * outv_err -- print error message
- */
-void
-outv_err(const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	outv_err_vargs(fmt, ap);
-	va_end(ap);
-}
-
-/*
  * pool_set_file_unmap_headers -- unmap headers of each pool set part file
  */
 static void
