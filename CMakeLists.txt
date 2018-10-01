@@ -36,10 +36,16 @@ project(pmdk-convert C)
 
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
 
 include(FindThreads)
 
-set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
+if(WIN32)
+	set(MIN_VERSION 1.4 CACHE STRING "First supported version (major.minor)")
+else()
+	set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
+endif()
+
 set(MAX_VERSION 1.5)
 
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" MIN_VERSION_MAJOR "${MIN_VERSION}")
@@ -54,7 +60,9 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 include(CheckCCompilerFlag)
 include(GNUInstallDirs)
-find_package(PkgConfig QUIET)
+if(NOT WIN32)
+	find_package(PkgConfig QUIET)
+endif()
 
 set(CMAKE_C_STANDARD 99)
 
@@ -79,41 +87,43 @@ macro(add_c_flag flag)
 	endif()
 endmacro()
 
-add_c_flag(-fno-common)
-add_c_flag(-Wall)
-add_c_flag(-Wconversion)
-add_c_flag(-Wmissing-field-initializers)
-add_c_flag(-Wmissing-prototypes)
-add_c_flag(-Wmissing-variable-declarations)
-add_c_flag(-Wpointer-arith)
-add_c_flag(-Wsign-compare)
-add_c_flag(-Wsign-conversion)
-add_c_flag(-Wunused-macros)
-add_c_flag(-Wunreachable-code-return)
+if(NOT MSVC)
+	add_c_flag(-fno-common)
+	add_c_flag(-Wall)
+	add_c_flag(-Wconversion)
+	add_c_flag(-Wmissing-field-initializers)
+	add_c_flag(-Wmissing-prototypes)
+	add_c_flag(-Wmissing-variable-declarations)
+	add_c_flag(-Wpointer-arith)
+	add_c_flag(-Wsign-compare)
+	add_c_flag(-Wsign-conversion)
+	add_c_flag(-Wunused-macros)
+	add_c_flag(-Wunreachable-code-return)
 
-# Place each function or data item into its own section. Will be used to strip unneeded symbols.
-add_c_flag(-fdata-sections)
-add_c_flag(-ffunction-sections)
+	# Place each function or data item into its own section. Will be used to strip unneeded symbols.
+	add_c_flag(-fdata-sections)
+	add_c_flag(-ffunction-sections)
 
-check_c_compiler_flag(-Wl,-z,relro LINKER_HAS_RELRO)
-if(LINKER_HAS_RELRO)
-	set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -Wl,-z,relro")
-	set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS}  -Wl,-z,relro")
+	add_c_flag(-ggdb DEBUG)
+	add_c_flag(-DDEBUG DEBUG)
+
+	add_c_flag(-ggdb RELWITHDEBINFO)
+	add_c_flag(-fno-omit-frame-pointer RELWITHDEBINFO)
+
+	check_c_compiler_flag(-Wl,-z,relro LINKER_HAS_RELRO)
+	if(LINKER_HAS_RELRO)
+		set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -Wl,-z,relro")
+		set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS}  -Wl,-z,relro")
+	endif()
+
+	check_c_compiler_flag(-Wl,--warn-common LINKER_HAS_WARN_COMMON)
+	if(LINKER_HAS_WARN_COMMON)
+		set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,--warn-common")
+		set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--warn-common")
+	endif()
+
+	add_c_flag("-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2" RELEASE)
 endif()
-
-check_c_compiler_flag(-Wl,--warn-common LINKER_HAS_WARN_COMMON)
-if(LINKER_HAS_WARN_COMMON)
-	set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,--warn-common")
-	set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--warn-common")
-endif()
-
-add_c_flag(-ggdb DEBUG)
-add_c_flag(-DDEBUG DEBUG)
-
-add_c_flag(-ggdb RELWITHDEBINFO)
-add_c_flag(-fno-omit-frame-pointer RELWITHDEBINFO)
-
-add_c_flag("-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2" RELEASE)
 
 configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
@@ -123,14 +133,14 @@ configure_file(
 add_custom_target(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
-macro(require_libpmem ver)
+function(require_libpmem ver)
 	if(PKG_CONFIG_FOUND)
 		pkg_check_modules(PMEM REQUIRED libpmem>=${ver})
 	else()
-		find_package(PMEM REQUIRED)
+		find_package(PMEM REQUIRED ${ver})
 	endif()
 	link_directories(${PMEM_LIBRARY_DIRS})
-endmacro()
+endfunction()
 
 function(version_supported ver ver_next RESULT)
 	if (${MIN_VERSION} VERSION_GREATER ${ver})
@@ -149,6 +159,11 @@ version_supported(1.4 1.5 BUILD_CONVERT_V4)
 version_supported(1.2 1.4 BUILD_CONVERT_V3)
 version_supported(1.1 1.2 BUILD_CONVERT_V2)
 version_supported(1.0 1.1 BUILD_CONVERT_V1)
+if (NOT ${MIN_VERSION} VERSION_GREATER "1.3")
+	set(BUILD_13 1)
+else()
+	set(BUILD_13 0)
+endif()
 
 add_executable(check_license EXCLUDE_FROM_ALL utils/check_license/check-license.c)
 
@@ -161,13 +176,13 @@ function(add_cstyle name)
 	if(${ARGC} EQUAL 1)
 		add_custom_target(cstyle-${name}
 			COMMAND ${PERL_EXECUTABLE}
-				${CMAKE_SOURCE_DIR}/utils/cstyle
-				${CMAKE_CURRENT_SOURCE_DIR}/*.c
-				${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+			${CMAKE_SOURCE_DIR}/utils/cstyle
+			${CMAKE_CURRENT_SOURCE_DIR}/*.c
+			${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 	else()
 		add_custom_target(cstyle-${name}
 			COMMAND ${PERL_EXECUTABLE}
-				${CMAKE_SOURCE_DIR}/utils/cstyle ${ARGN})
+			${CMAKE_SOURCE_DIR}/utils/cstyle ${ARGN})
 	endif()
 	add_dependencies(cstyle cstyle-${name})
 endfunction()
@@ -182,13 +197,13 @@ function(add_check_whitespace name)
 	if(${ARGC} EQUAL 1)
 		add_custom_target(check-whitespace-${name}
 			COMMAND ${PERL_EXECUTABLE}
-				${CMAKE_SOURCE_DIR}/utils/check_whitespace
-				${CMAKE_CURRENT_SOURCE_DIR}/*.c
-				${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+			${CMAKE_SOURCE_DIR}/utils/check_whitespace
+			${CMAKE_CURRENT_SOURCE_DIR}/*.c
+			${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 	else()
 		add_custom_target(check-whitespace-${name}
 			COMMAND ${PERL_EXECUTABLE}
-				${CMAKE_SOURCE_DIR}/utils/check_whitespace ${ARGN})
+			${CMAKE_SOURCE_DIR}/utils/check_whitespace ${ARGN})
 	endif()
 	add_dependencies(check-whitespace check-whitespace-${name})
 endfunction()
@@ -198,10 +213,10 @@ add_custom_target(cstyle)
 add_custom_target(check-whitespace)
 add_custom_target(check-license
 	COMMAND ${CMAKE_SOURCE_DIR}/utils/check_license/check-headers.sh
-		${CMAKE_SOURCE_DIR}
-		${CMAKE_BINARY_DIR}/check_license
-		${CMAKE_SOURCE_DIR}/LICENSE
-		-a)
+	${CMAKE_SOURCE_DIR}
+	${CMAKE_BINARY_DIR}/check_license
+	${CMAKE_SOURCE_DIR}/LICENSE
+	-a)
 add_dependencies(check-license check_license)
 
 add_cstyle(main)
@@ -210,14 +225,14 @@ add_cstyle(check_license ${CMAKE_SOURCE_DIR}/utils/check_license/*.c)
 add_check_whitespace(check_license ${CMAKE_SOURCE_DIR}/utils/check_license/*.c)
 add_check_whitespace(src)
 add_check_whitespace(other
-			${CMAKE_SOURCE_DIR}/utils/check_license/*.sh
-			${CMAKE_SOURCE_DIR}/README.md
-#			${CMAKE_SOURCE_DIR}/utils/*.sh
-#			${CMAKE_SOURCE_DIR}/*.spec
-#			${CMAKE_SOURCE_DIR}/debian/*
-#			${CMAKE_SOURCE_DIR}/debian/*/*
-#			${CMAKE_SOURCE_DIR}/doc/*.md
-)
+	${CMAKE_SOURCE_DIR}/utils/check_license/*.sh
+	${CMAKE_SOURCE_DIR}/README.md
+	#			${CMAKE_SOURCE_DIR}/utils/*.sh
+	#			${CMAKE_SOURCE_DIR}/*.spec
+	#			${CMAKE_SOURCE_DIR}/debian/*
+	#			${CMAKE_SOURCE_DIR}/debian/*/*
+	#			${CMAKE_SOURCE_DIR}/doc/*.md
+	)
 
 option(DEVELOPER_MODE "enable developer checks" OFF)
 if(DEVELOPER_MODE)
@@ -245,15 +260,14 @@ if(BUILD_CONVERT_V4)
 	set(pkg nvml-${NVML14}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML14}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML14}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=df7e658e75d28cd80f6d2ff7b9fc9ae2885d52f8923fdbacecfd46215115fb4c)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/b7c4d0ae08f7f535e6f8a2b789c2ad3db0ee0858.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=be6646fc24d0eca9c5b46d60dc807533ea0323ad5dd26a7a6b822de760404eeb)
 		message(STATUS "Downloading NVML ${NVML14} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.4)
 		uncompress(${pkg})
-
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML14} ${CMAKE_SOURCE_DIR}/nvml-1.4)
+		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-b7c4d0ae08f7f535e6f8a2b789c2ad3db0ee0858 ${CMAKE_SOURCE_DIR}/nvml-1.4)
 	endif()
 
 	set(SOURCES_14
@@ -283,35 +297,58 @@ if(BUILD_CONVERT_V4)
 		nvml-1.4/src/libpmemobj/tx.c
 
 		nvml-1.4/src/common/file.c
-		nvml-1.4/src/common/file_posix.c
-		nvml-1.4/src/common/fs_posix.c
 		nvml-1.4/src/common/mmap.c
-		nvml-1.4/src/common/mmap_posix.c
-		nvml-1.4/src/common/os_deep_linux.c
 		nvml-1.4/src/common/os_dimm_none.c
-		nvml-1.4/src/common/os_posix.c
-		nvml-1.4/src/common/os_thread_posix.c
 		nvml-1.4/src/common/out.c
 		nvml-1.4/src/common/pool_hdr.c
 		nvml-1.4/src/common/set.c
 		nvml-1.4/src/common/shutdown_state.c
 		nvml-1.4/src/common/util.c
-		nvml-1.4/src/common/util_posix.c
 		nvml-1.4/src/common/uuid.c
-		nvml-1.4/src/common/uuid_linux.c
 		)
 
 	if(WIN32)
-		set(SOURCES_14 ${SOURCES_14} nvml-1.4/src/libpmemobj/libpmemobj_main.c)
+		set(SOURCES_14 ${SOURCES_14}
+			nvml-1.4/src/libpmemobj/libpmemobj_main.c
+			nvml-1.4/src/common/file_windows.c
+			nvml-1.4/src/common/fs_windows.c
+			nvml-1.4/src/common/mmap_windows.c
+			nvml-1.4/src/common/os_deep_windows.c
+			nvml-1.4/src/common/os_windows.c
+			nvml-1.4/src/common/os_thread_windows.c
+			nvml-1.4/src/common/util_windows.c
+			nvml-1.4/src/common/uuid_windows.c
+			)
+	else()
+		set(SOURCES_14 ${SOURCES_14}
+			nvml-1.4/src/common/file_posix.c
+			nvml-1.4/src/common/fs_posix.c
+			nvml-1.4/src/common/mmap_posix.c
+			nvml-1.4/src/common/os_deep_linux.c
+			nvml-1.4/src/common/os_posix.c
+			nvml-1.4/src/common/os_thread_posix.c
+			nvml-1.4/src/common/util_posix.c
+			nvml-1.4/src/common/uuid_linux.c
+			)
 	endif()
 
-	add_library(pmemobj_convert_v4_o OBJECT ${SOURCES_14}
-		pmemobj_convert_v4.c
-		nvml-1.4/src/libpmemblk/btt.c
-		nvml-1.4/src/tools/pmempool/common.c)
+	if(WIN32)
+		add_library(pmemobj_convert_v4_o OBJECT ${SOURCES_14}
+			pmemobj_convert_v4.c
+			nvml-1.4/src/libpmemblk/btt.c
+			nvml-1.4/src/tools/pmempool/common.c
+			nvml-1.4/src/tools/pmempool/output.c
+			nvml-1.4/src/windows/getopt/getopt.c)
+	else()
+		add_library(pmemobj_convert_v4_o OBJECT ${SOURCES_14}
+			pmemobj_convert_v4.c
+			nvml-1.4/src/libpmemblk/btt.c
+			nvml-1.4/src/tools/pmempool/common.c
+			nvml-1.4/src/tools/pmempool/output.c)
+	endif()
 
 	target_compile_definitions(pmemobj_convert_v4_o PRIVATE SRCVERSION="${NVML14}")
-	target_compile_definitions(pmemobj_convert_v4_o PRIVATE USE_LIBDL)
+	target_compile_definitions(pmemobj_convert_v4_o PRIVATE PMDK_UTF8_API)
 	target_compile_definitions(pmemobj_convert_v4_o PRIVATE _PMEMOBJ_INTRNL)
 
 	target_include_directories(pmemobj_convert_v4_o PRIVATE nvml-1.4/src/include)
@@ -322,37 +359,69 @@ if(BUILD_CONVERT_V4)
 	target_include_directories(pmemobj_convert_v4_o PRIVATE nvml-1.4/src/common)
 	target_include_directories(pmemobj_convert_v4_o PRIVATE ${PMEM_INCLUDE_DIRS})
 
-	add_library(pmemobj_convert_v4_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v4_o>)
+	if(WIN32)
+		target_include_directories(pmemobj_convert_v4_o PRIVATE nvml-1.4/src/windows/include/)
+		target_include_directories(pmemobj_convert_v4_o PRIVATE nvml-1.4/src/windows/getopt/)
+		target_include_directories(pmemobj_convert_v4_o PRIVATE include/)
+		target_compile_options(pmemobj_convert_v4_o PRIVATE /FI"${CMAKE_SOURCE_DIR}/nvml-1.4/src/windows/include/platform.h")
+	endif()
+
+	if(WIN32)
+		add_library(pmemobj_convert_v4_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v4_o> ${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_v4.def)
+	else()
+		add_library(pmemobj_convert_v4_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v4_o>)
+		target_link_libraries(pmemobj_convert_v4_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
+	endif()
+
 	target_link_libraries(pmemobj_convert_v4_shared PRIVATE ${PMEM_LIBRARIES})
 	target_link_libraries(pmemobj_convert_v4_shared PRIVATE ${CMAKE_DL_LIBS})
 	target_link_libraries(pmemobj_convert_v4_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-	target_link_libraries(pmemobj_convert_v4_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
 	# strip unneeded symbols, requires -fdata-sections -ffunction-sections
 	target_link_libraries(pmemobj_convert_v4_shared PRIVATE -Wl,--gc-sections)
 	set_target_properties(pmemobj_convert_v4_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v4)
-
+	# remove lib prefix from library name
+	set_target_properties(pmemobj_convert_v4_shared PROPERTIES PREFIX "")
 	install(TARGETS pmemobj_convert_v4_shared
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
-	add_library(pmemobj_14 SHARED ${SOURCES_14})
-	disable_optimization(pmemobj_14)
+	if(WIN32)
+		FILE(READ nvml-1.4/src/libpmemobj/libpmemobj.def DEFFILE)
+		string(REPLACE "libpmemobj" "pmemobj_14" DEFFILE "${DEFFILE}")
+		FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_14.def "${DEFFILE}")
+		add_library(pmemobj_14 SHARED ${SOURCES_14} ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_14.def)
+		target_compile_options(pmemobj_14 PRIVATE /FI"${CMAKE_SOURCE_DIR}/nvml-1.4/src/windows/include/platform.h")
+	else()
+		add_library(pmemobj_14 SHARED ${SOURCES_14})
+		disable_optimization(pmemobj_14)
+	endif()
+
 	target_compile_definitions(pmemobj_14 PRIVATE SRCVERSION="${NVML14}")
 	target_compile_definitions(pmemobj_14 PRIVATE USE_LIBDL)
+	target_compile_definitions(pmemobj_14 PRIVATE PMDK_UTF8_API)
 	target_compile_definitions(pmemobj_14 PRIVATE _PMEMOBJ_INTRNL)
 
 	target_include_directories(pmemobj_14 PRIVATE nvml-1.4/src/include)
 	target_include_directories(pmemobj_14 PRIVATE nvml-1.4/src/libpmemobj)
 	target_include_directories(pmemobj_14 PRIVATE nvml-1.4/src/common)
 	target_include_directories(pmemobj_14 PRIVATE ${PMEM_INCLUDE_DIRS})
+
+	if(WIN32)
+		target_include_directories(pmemobj_14 PRIVATE nvml-1.4/src/windows/include/)
+		target_include_directories(pmemobj_14 PRIVATE include/)
+	endif()
+
 	target_link_libraries(pmemobj_14 PRIVATE ${PMEM_LIBRARIES})
 	target_link_libraries(pmemobj_14 PRIVATE ${CMAKE_DL_LIBS})
 	target_link_libraries(pmemobj_14 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-	target_link_libraries(pmemobj_14 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.4/src/libpmemobj/libpmemobj.map)
+
+	if(NOT WIN32)
+		target_link_libraries(pmemobj_14 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.4/src/libpmemobj/libpmemobj.map)
+	endif()
 
 endif(BUILD_CONVERT_V4)
 
 ###################################################### 1.3 (tests only)
-if(BUILD_CONVERT_V4)
+if(BUILD_13)
 
 	require_libpmem(1.3)
 
@@ -398,41 +467,72 @@ if(BUILD_CONVERT_V4)
 		nvml-1.3/src/libpmemobj/tx.c
 
 		nvml-1.3/src/common/file.c
-		nvml-1.3/src/common/file_linux.c
 		nvml-1.3/src/common/mmap.c
-		nvml-1.3/src/common/mmap_linux.c
-		nvml-1.3/src/common/os_linux.c
-		nvml-1.3/src/common/os_thread_linux.c
 		nvml-1.3/src/common/out.c
 		nvml-1.3/src/common/pool_hdr.c
-		nvml-1.3/src/common/pool_hdr_linux.c
 		nvml-1.3/src/common/set.c
 		nvml-1.3/src/common/util.c
 		nvml-1.3/src/common/uuid.c
-		nvml-1.3/src/common/uuid_linux.c
-		nvml-1.3/src/common/util_linux.c
 		)
 
 	if(WIN32)
-		set(SOURCES_13 ${SOURCES_13} nvml-1.3/src/libpmemobj/libpmemobj_main.c)
+		set(SOURCES_13 ${SOURCES_13}
+			nvml-1.3/src/libpmemobj/libpmemobj_main.c
+			nvml-1.3/src/common/file_windows.c
+			nvml-1.3/src/common/mmap_windows.c
+			nvml-1.3/src/common/os_windows.c
+			nvml-1.3/src/common/os_thread_windows.c
+			nvml-1.3/src/common/pool_hdr_windows.c
+			nvml-1.3/src/common/util_windows.c
+			nvml-1.3/src/common/uuid_windows.c
+			)
+	else()
+		set(SOURCES_13 ${SOURCES_13}
+			nvml-1.3/src/common/file_linux.c
+			nvml-1.3/src/common/mmap_linux.c
+			nvml-1.3/src/common/os_linux.c
+			nvml-1.3/src/common/os_thread_linux.c
+			nvml-1.3/src/common/pool_hdr_linux.c
+			nvml-1.3/src/common/util_linux.c
+			nvml-1.3/src/common/uuid_linux.c
+			)
 	endif()
 
-	add_library(pmemobj_13 SHARED ${SOURCES_13})
-	disable_optimization(pmemobj_13)
+	if(WIN32)
+		FILE(READ nvml-1.3/src/libpmemobj/libpmemobj.def DEFFILE)
+		string(REPLACE "libpmemobj" "pmemobj_13" DEFFILE "${DEFFILE}")
+		FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_13.def "${DEFFILE}")
+		add_library(pmemobj_13 SHARED ${SOURCES_13} ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_13.def ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_13.def)
+		target_compile_options(pmemobj_13 PRIVATE /FI"${CMAKE_SOURCE_DIR}/nvml-1.3/src/windows/include/platform.h")
+	else()
+		add_library(pmemobj_13 SHARED ${SOURCES_13})
+		disable_optimization(pmemobj_13)
+	endif()
+
 	target_compile_definitions(pmemobj_13 PRIVATE SRCVERSION="${NVML13}")
 	target_compile_definitions(pmemobj_13 PRIVATE USE_LIBDL)
+	target_compile_definitions(pmemobj_13 PRIVATE NVML_UTF8_API)
 	target_compile_definitions(pmemobj_13 PRIVATE _PMEMOBJ_INTRNL)
 
 	target_include_directories(pmemobj_13 PRIVATE nvml-1.3/src/include)
 	target_include_directories(pmemobj_13 PRIVATE nvml-1.3/src/libpmemobj)
 	target_include_directories(pmemobj_13 PRIVATE nvml-1.3/src/common)
 	target_include_directories(pmemobj_13 PRIVATE ${PMEM_INCLUDE_DIRS})
+
+	if(WIN32)
+		target_include_directories(pmemobj_13 PRIVATE nvml-1.3/src/windows/include/)
+		target_include_directories(pmemobj_13 PRIVATE include/)
+	endif()
+
 	target_link_libraries(pmemobj_13 PRIVATE ${PMEM_LIBRARIES})
 	target_link_libraries(pmemobj_13 PRIVATE ${CMAKE_DL_LIBS})
 	target_link_libraries(pmemobj_13 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-	target_link_libraries(pmemobj_13 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.3/src/libpmemobj/libpmemobj.map)
 
-endif(BUILD_CONVERT_V4)
+	if(NOT WIN32)
+		target_link_libraries(pmemobj_13 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.3/src/libpmemobj/libpmemobj.map)
+	endif()
+
+endif(BUILD_13)
 
 ###################################################### 1.2
 
@@ -516,6 +616,7 @@ if(BUILD_CONVERT_V3)
 	target_link_libraries(pmemobj_convert_v3_shared PRIVATE -Wl,--gc-sections)
 
 	set_target_properties(pmemobj_convert_v3_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v3)
+	set_target_properties(pmemobj_convert_v3_shared PROPERTIES PREFIX "")
 
 	install(TARGETS pmemobj_convert_v3_shared
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
@@ -609,6 +710,7 @@ if(BUILD_CONVERT_V2)
 	target_link_libraries(pmemobj_convert_v2_shared PRIVATE -Wl,--gc-sections)
 
 	set_target_properties(pmemobj_convert_v2_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v2)
+	set_target_properties(pmemobj_convert_v2_shared PROPERTIES PREFIX "")
 
 	install(TARGETS pmemobj_convert_v2_shared
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
@@ -691,6 +793,7 @@ if(BUILD_CONVERT_V1)
 	target_link_libraries(pmemobj_convert_v1_shared PRIVATE -Wl,--gc-sections)
 
 	set_target_properties(pmemobj_convert_v1_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v1)
+	set_target_properties(pmemobj_convert_v1_shared PROPERTIES PREFIX "")
 
 	install(TARGETS pmemobj_convert_v1_shared
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
@@ -710,8 +813,15 @@ if(BUILD_CONVERT_V1)
 endif(BUILD_CONVERT_V1)
 
 ###################################################### everything else
+if (WIN32)
+	# XXX when 1.5 will be added to convert s/nvml-1.4/nvml-$(MAX_VERSION)/
+	add_executable(pmdk-convert pmdk-convert.c nvml-1.4/src/windows/getopt/getopt.c)
+	target_include_directories(pmdk-convert PRIVATE nvml-1.4/src/windows/getopt/)
+	target_include_directories(pmdk-convert PRIVATE nvml-1.4/src/windows/include/)
+else()
+	add_executable(pmdk-convert pmdk-convert.c)
+endif()
 
-add_executable(pmdk-convert pmdk-convert.c)
 target_compile_definitions(pmdk-convert PRIVATE LIBDIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 target_compile_definitions(pmdk-convert PRIVATE MIN_VERSION_MAJOR=${MIN_VERSION_MAJOR})
 target_compile_definitions(pmdk-convert PRIVATE MIN_VERSION_MINOR=${MIN_VERSION_MINOR})
