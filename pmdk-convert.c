@@ -33,12 +33,17 @@
 #include <ctype.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+
 #define MINVERSION ((MIN_VERSION_MAJOR) * 10 + (MIN_VERSION_MINOR))
 #define MAXVERSION ((MAX_VERSION_MAJOR) * 10 + (MAX_VERSION_MINOR))
 
@@ -67,6 +72,10 @@ enum {
 	CREATE_VERSION_STR_FAILED = 16,
 	OPEN_LIB_FAILED = 17,
 	DLSYM_FAILED = 18,
+	REMOTE = 19,
+	OPEN_FAILED = 20,
+	STAT_FAILED = 21,
+	MMAP_FAILED = 22
 };
 
 #define ARRAY_LENGTH(array) (sizeof((array)) / sizeof((array)[0]))
@@ -340,6 +349,65 @@ print_help()
 	list_supported_pools();
 }
 
+#define POOLSET_DESC "PMEMPOOLSET\n"
+#define REPLICA_DESC "\nREPLICA"
+
+static int
+check_remote(const char *path)
+{
+#ifdef WIN32
+	return 0;
+#else
+	int fd = open(path, 0);
+
+	if (fd == 0) {
+		fprintf(stderr, "open failed:%d\n", errno);
+		exit(OPEN_FAILED);
+	}
+
+	struct stat st;
+	if (fstat(fd, &st))  {
+		fprintf(stderr, "fstat failed:%d\n", errno);
+		exit(STAT_FAILED);
+	}
+
+	size_t map_size = (size_t)st.st_size;
+	const char *poolset = mmap(NULL, map_size, PROT_READ,
+		MAP_PRIVATE | MAP_NORESERVE, fd, 0);
+
+	if (poolset == MAP_FAILED) {
+		fprintf(stderr, "mmap failed:%d\n", errno);
+		exit(MMAP_FAILED);
+	}
+
+	if (memcmp(poolset, POOLSET_DESC, sizeof(POOLSET_DESC) - 1) != 0) {
+		return 0; /* not a poolset */
+	}
+
+	for (unsigned long i = 0; i < map_size - sizeof(REPLICA_DESC) - 1;
+			i++) {
+		if (memcmp(poolset + i, REPLICA_DESC,
+				sizeof(REPLICA_DESC) - 1) == 0) {
+			i += sizeof(REPLICA_DESC) - 1;
+
+			/* check if it is not REPLCA[^\s] */
+			if (!isblank(poolset[i])) {
+				continue;
+			}
+
+			for (; i < map_size; i++) {
+				if (poolset[i] == '\n')
+					break;
+
+				if (poolset[i] != ' ' && poolset[i] != '#')
+					return 1;
+			}
+		}
+	}
+	return 0;
+#endif
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -507,6 +575,10 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Backward conversion is not implemented.\n");
 		print_usage();
 		exit(BACKWARD_CONVERSION);
+	}
+	if (check_remote(path)) {
+		fprintf(stderr, "Remote replication is not supported\n");
+		exit(REMOTE);
 	}
 
 	printf(
