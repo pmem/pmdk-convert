@@ -76,6 +76,7 @@ enum {
 	STAT_FAILED = 21,
 	MMAP_FAILED = 22,
 	REMOTE = 23,
+	ARG_CONVERSION_FAILED = 24,
 };
 
 #define ARRAY_LENGTH(array) (sizeof((array)) / sizeof((array)[0]))
@@ -260,6 +261,36 @@ close_lib(void *lib)
 	if (!FreeLibrary(lib))
 		exit(FREELIB_FAILED);
 }
+
+/*
+ * util_toUTF8 -- allocating conversion from wide char string to UTF8
+ */
+static char *
+util_toUTF8(const wchar_t *wstr)
+{
+	int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1,
+		NULL, 0, NULL, NULL);
+	if (size == 0)
+		goto err;
+
+	char *str = malloc(size * sizeof(char));
+	if (str == NULL)
+		goto out;
+
+	if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1, str,
+			size, NULL, NULL) == 0) {
+		free(str);
+		goto err;
+	}
+
+out:
+	return str;
+
+err:
+	errno = EINVAL;
+	return NULL;
+}
+
 #endif
 
 
@@ -536,6 +567,20 @@ check_remote(const char *path)
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			fprintf(stderr,
+				"Error during arguments conversion %s\n",
+				strerror(errno));
+			exit(ARG_CONVERSION_FAILED);
+		}
+	}
+#endif
 	const char *path;
 	int from = 0;
 	int to = 0;
@@ -756,5 +801,9 @@ main(int argc, char *argv[])
 		printf("Done\n");
 	}
 
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
 	return 0;
 }
