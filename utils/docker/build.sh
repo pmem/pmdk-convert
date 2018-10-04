@@ -32,7 +32,7 @@
 
 #
 # build-local.sh - runs a Docker container from a Docker image with environment
-#                  prepared for running libpmemobj-cpp tests and run those tests.
+#                  prepared for running pmdk-convert tests and run those tests.
 #
 #
 # Notes:
@@ -66,6 +66,12 @@ fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 
+
+# Only run doc update on pmem/pmdk-convert master branch
+if [[ "$TRAVIS_BRANCH" != "master" || "$TRAVIS_PULL_REQUEST" != "false" || "$TRAVIS_REPO_SLUG" != "${GITHUB_REPO}" ]]; then
+	AUTO_DOC_UPDATE=0
+fi
+
 WORKDIR=/pmdk-convert
 SCRIPTSDIR=$WORKDIR/utils/docker
 
@@ -82,6 +88,7 @@ docker run --privileged=true --name=$containerName -ti \
 	$ci_env \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
+	--end AUTO_DOC_UPDATE=$AUTO_DOC_UPDATE \
 	--env GITHUB_TOKEN=$GITHUB_TOKEN \
 	--env WORKDIR=$WORKDIR \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
