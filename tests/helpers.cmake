@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.3)
-set(DIR ${PARENT_DIR}/${TEST_NAME})
+set(DIR ${PARENT_DIR}/😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋${TEST_NAME})
 
 # convert the version list to the array
 string(REPLACE " " ";" VERSIONS ${VERSIONS})
