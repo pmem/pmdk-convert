@@ -240,6 +240,7 @@ test("tx_intr_single_file_pools" tx_intr_single_file_pools)
 test("tx_intr_single_file_poolsets" tx_intr_single_file_poolsets)
 test("tx_intr_multi_file_poolsets" tx_intr_multi_file_poolsets)
 test("tx_intr_poolsets_with_local_replica" tx_intr_poolsets_with_local_replica)
+test("poolsets_with_remote_replica" remote)
 
 if(NOT DEVICE_DAX_PATHS)
 	test("tx_intr_single_file_pools_devdax_SKIP_BECAUSE_OF_NO_DEVDAX_DEFINED"
