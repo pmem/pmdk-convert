@@ -191,3 +191,25 @@ fi
 # pmdk-convert ...
 
 rm -r $INSTALL_DIR
+
+# -----------------------------------------
+# doc
+
+# Trigger auto doc update on master
+if [[ "$AUTO_DOC_UPDATE" == "1" ]]; then
+	echo "Running auto doc update"
+
+	mkdir doc_update
+	cd doc_update
+
+	mkdir build
+	cd build
+	CC=gcc cmake .. -DCMAKE_BUILD_TYPE=Debug
+	cd ..
+
+	$SCRIPTSDIR/run-doc-update.sh
+
+	rm -r build
+	cd ..
+	rm -rf doc_update
+fi
