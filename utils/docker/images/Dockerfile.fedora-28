@@ -51,6 +51,7 @@ RUN dnf update -y \
 	libunwind-devel \
 	make \
 	man \
+	pandoc \
 	passwd \
 	perl-Text-Diff \
 	rpm-build \
