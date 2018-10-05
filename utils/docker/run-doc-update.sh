@@ -47,19 +47,24 @@ git checkout master
 git remote update
 git rebase upstream/master
 
+mkdir build
+cd build
+CC=gcc cmake .. -DCMAKE_BUILD_TYPE=Debug
+cd ..
+
 # Build & PR groff
-# make md2man -C ./build
-# git add -A
-# git commit -m "doc: automatic master docs update" && true
-# git push -f ${ORIGIN} master
-#
+make md2man -C ./build
+git add -A
+git commit -m "doc: automatic master docs update" && true
+git push -f ${ORIGIN} master
+
 # Makes pull request.
 # When there is already an open PR or there are no changes an error is thrown, which we ignore.
-# hub pull-request -f -b pmem:master -h pmem-bot:master -m "doc: automatic master docs update" && true
-#
-# git clean -df
+hub pull-request -f -b pmem:master -h pmem-bot:master -m "doc: automatic master docs update" && true
 
-# Build & PR web md
+git clean -df
+
+# Copy man & PR web md
 mkdir web_manpages
 cp -r ./doc/pmdk-convert/* web_manpages/
 
