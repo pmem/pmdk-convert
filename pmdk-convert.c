@@ -422,7 +422,7 @@ detect_layout_version(const char *path)
 	int from = find_layout_version(MINVERSION);
 	int to = find_layout_version(MAXVERSION);
 
-	for (int ver = from; ver < to; ver++) {
+	for (int ver = from; ver <= to; ver++) {
 		char lib_name[100];
 		int ret;
 		sprintf(lib_name, "pmemobj_convert_v%d", ver);
