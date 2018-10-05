@@ -217,6 +217,18 @@ add_custom_target(check-license
 	${CMAKE_BINARY_DIR}/check_license
 	${CMAKE_SOURCE_DIR}/LICENSE
 	-a)
+add_custom_target(md2man
+	COMMAND ${CMAKE_SOURCE_DIR}/utils/md2man/md2man.sh
+	${CMAKE_SOURCE_DIR}/doc/pmdk-convert/pmdk-convert.1.md
+	${CMAKE_SOURCE_DIR}/utils/md2man/default.man
+	${CMAKE_SOURCE_DIR}/doc/generated/pmdk-convert.1
+	)
+
+if (NOT WIN32)
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/doc/generated/pmdk-convert.1
+		DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+endif()
+
 add_dependencies(check-license check_license)
 
 add_cstyle(main)
