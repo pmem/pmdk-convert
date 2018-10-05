@@ -47,15 +47,26 @@ git checkout master
 git remote update
 git rebase upstream/master
 
-# Build docs
+# Build & PR groff
+# make md2man -C ./build
+# git add -A
+# git commit -m "doc: automatic master docs update" && true
+# git push -f ${ORIGIN} master
+#
+# Makes pull request.
+# When there is already an open PR or there are no changes an error is thrown, which we ignore.
+# hub pull-request -f -b pmem:master -h pmem-bot:master -m "doc: automatic master docs update" && true
+#
+# git clean -df
+
+# Build & PR web md
 mkdir web_manpages
 cp -r ./doc/pmdk-convert/* web_manpages/
-# TODO groff generate
 
 # Checkout gh-pages and copy docs
 git checkout -fb gh-pages upstream/gh-pages
 git clean -df
-cp -r  ./web_manpages/* ./
+cp -r  ./web_manpages/* .
 
 # Add and push changes.
 # git commit command may fail if there is nothing to commit.
@@ -65,8 +76,6 @@ git add -A
 git commit -m "doc: automatic gh-pages docs update" && true
 git push -f ${ORIGIN} gh-pages
 
-# Makes pull request.
-# When there is already an open PR or there are no changes an error is thrown, which we ignore.
 hub pull-request -f -b pmem:gh-pages -h pmem-bot:gh-pages -m "doc: automatic gh-pages docs update" && true
 
 exit 0
