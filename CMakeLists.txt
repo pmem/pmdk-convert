@@ -34,6 +34,10 @@ include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
 cmake_minimum_required(VERSION 3.3)
 project(pmdk-convert C)
 
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 5)
+set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
+
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
@@ -1081,3 +1085,7 @@ option(TRACE_TESTS
 	"more verbose test outputs" OFF)
 enable_testing()
 add_subdirectory(tests)
+
+if(NOT "${CPACK_GENERATOR}" STREQUAL "")
+	include(${CMAKE_SOURCE_DIR}/packages.cmake)
+endif()

@@ -166,31 +166,46 @@ fi
 # -----------------------------------------
 # deb & rpm
 
-#mkdir build
-#cd build
+mkdir build
+cd build
 
-#cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
-#		-DCPACK_GENERATOR=$PACKAGE_MANAGER \
-#		-DMAX_VERSION=1.5
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
+		-DCPACK_GENERATOR=$PACKAGE_MANAGER \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DTRACE_TESTS=1 \
+		-DTESTS_USE_FORCED_PMEM=ON
 
-#make -j2
-#ctest --output-on-failure
+make -j2
+ctest --output-on-failure
 
-#make package
+make package
 
-#if [ $PACKAGE_MANAGER = "deb" ]; then
-#	sudo dpkg -i pmdk-convert*.deb
-#elif [ $PACKAGE_MANAGER = "rpm" ]; then
-#	sudo rpm -i pmdk-convert*.rpm
-#fi
+if [ $PACKAGE_MANAGER = "deb" ]; then
+	echo $USERPASS | sudo -S dpkg -i pmdk-convert*.deb
+elif [ $PACKAGE_MANAGER = "rpm" ]; then
+	echo $USERPASS | sudo -S rpm -i pmdk-convert*.rpm
+fi
 
-#cd ..
-#rm -rf build
+cp ./tests/create_10 /tmp
+cp ./tests/open_15 /tmp
+cp ./libpmem-convert.so /tmp
+cp ./libpmemobj_10.so /tmp
+cp ./libpmemobj_15.so /tmp
+
+cd ..
+rm -rf build
 
 # Verify installed package
 # pmdk-convert ...
 
 rm -r $INSTALL_DIR
+echo "Creating 1.0 pool"
+LD_LIBRARY_PATH=/tmp:$LD_LIBRARY_PATH /tmp/create_10 /tmp/pool 16
+echo "Converting 1.0 pool to the latest version"
+pmdk-convert -X fail-safety -X 1.2-pmemmutex /tmp/pool
+echo "Checking pool works with the latest version"
+LD_LIBRARY_PATH=/tmp:$LD_LIBRARY_PATH /tmp/open_15 /tmp/pool
+echo "OK"
 
 # -----------------------------------------
 # doc
