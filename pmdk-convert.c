@@ -123,7 +123,7 @@ open_lib(const char *name)
 	void *lib = dlopen(path[0], RTLD_NOW);
 	if (!lib) {
 		reason0 = strdup(dlerror());
-		sprintf(path[1], "%s/pmdk-convert/%s", LIBDIR, name);
+		sprintf(path[1], "%s/pmdk-convert/%s.so", LIBDIR, name);
 		lib = dlopen(path[1], RTLD_NOW);
 	}
 
