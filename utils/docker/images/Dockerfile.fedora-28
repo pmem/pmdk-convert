@@ -48,6 +48,7 @@ RUN dnf update -y \
 	gcc \
 	gdb \
 	git \
+	hub \
 	libunwind-devel \
 	make \
 	man \
