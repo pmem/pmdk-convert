@@ -346,6 +346,8 @@ if(BUILD_CONVERT_V5)
 	target_link_libraries(libpmem-convert PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 	set(PMEM_INCLUDE_DIRS nvml-1.5/src/include)
 	set(PMEM_LIBRARIES libpmem-convert)
+	install(TARGETS libpmem-convert
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 	set(SOURCES_15
 		nvml-1.5/src/libpmemobj/alloc_class.c
