@@ -71,4 +71,6 @@ execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 5 --to-layout 4) # 
 file(WRITE ${DIR}/yes "Yy\n")
 execute_arg(${DIR}/yes 0 ${EXE_DIR}/pmdk-convert ${DIR}/pool)
 
+execute_arg(${DIR}/yes 0 ${EXE_DIR}/pmdk-convert ${DIR}/pool) # nothing to convert
+
 cleanup()
