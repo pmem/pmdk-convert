@@ -62,7 +62,7 @@ git push -f ${ORIGIN} master
 # When there is already an open PR or there are no changes an error is thrown, which we ignore.
 hub pull-request -f -b pmem:master -h pmem-bot:master -m "doc: automatic master docs update" && true
 
-git clean -df
+git clean -dfx
 
 # Copy man & PR web md
 mkdir ../web_manpages
@@ -70,7 +70,7 @@ cp -r ./doc/pmdk-convert/* ../web_manpages/
 
 # Checkout gh-pages and copy docs
 git checkout -fb gh-pages upstream/gh-pages
-git clean -df
+git clean -dfx
 cp -r  ../web_manpages/* .
 
 # Add and push changes.
