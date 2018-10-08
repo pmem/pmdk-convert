@@ -65,13 +65,13 @@ hub pull-request -f -b pmem:master -h pmem-bot:master -m "doc: automatic master 
 git clean -df
 
 # Copy man & PR web md
-mkdir web_manpages
-cp -r ./doc/pmdk-convert/* web_manpages/
+mkdir ../web_manpages
+cp -r ./doc/pmdk-convert/* ../web_manpages/
 
 # Checkout gh-pages and copy docs
 git checkout -fb gh-pages upstream/gh-pages
 git clean -df
-cp -r  ./web_manpages/* .
+cp -r  ../web_manpages/* .
 
 # Add and push changes.
 # git commit command may fail if there is nothing to commit.
