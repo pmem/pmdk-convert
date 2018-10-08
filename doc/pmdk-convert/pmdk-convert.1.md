@@ -36,3 +36,4 @@ date: pmem Tools version 1.5
 
 [comment]: <> (pmdk-convert.1 -- man page for pmdk-convert)
 
+pmdk-convert
