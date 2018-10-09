@@ -34,6 +34,10 @@ include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
 cmake_minimum_required(VERSION 3.3)
 project(pmdk-convert C)
 
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 5)
+set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
+
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
@@ -346,6 +350,8 @@ if(BUILD_CONVERT_V5)
 	target_link_libraries(libpmem-convert PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 	set(PMEM_INCLUDE_DIRS nvml-1.5/src/include)
 	set(PMEM_LIBRARIES libpmem-convert)
+	install(TARGETS libpmem-convert
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
 
 	set(SOURCES_15
 		nvml-1.5/src/libpmemobj/alloc_class.c
@@ -1079,3 +1085,7 @@ option(TRACE_TESTS
 	"more verbose test outputs" OFF)
 enable_testing()
 add_subdirectory(tests)
+
+if(NOT "${CPACK_GENERATOR}" STREQUAL "")
+	include(${CMAKE_SOURCE_DIR}/packages.cmake)
+endif()

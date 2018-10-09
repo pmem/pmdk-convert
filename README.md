@@ -11,26 +11,47 @@ Requirements:
 - libpmem-dev(el) >= 1.3 (http://pmem.io/pmdk/)
 - cmake >= 3.3
 - git
+
 On Windows:
 - [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) >= 10.0.16299
 
-### On Linux ###
+For all systems:
+
 ```sh
 $ git clone https://github.com/pmem/pmdk-convert.git
 $ cd pmdk-convert
 $ mkdir build
 $ cd build
+```
+
+And then:
+
+### On RPM-based Linux distros (Fedora, openSUSE, RHEL, SLES) ###
+
+```sh
+$ cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCPACK_GENERATOR=rpm
+$ make package
+$ sudo rpm -i pmdk-convert*.rpm
+```
+
+### On DEB-based Linux distros (Debian, Ubuntu) ###
+
+```sh
+$ cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCPACK_GENERATOR=deb
+$ make package
+$ sudo dpkg -i pmdk-convert*.deb
+```
+
+### On other Linux distros ###
+```sh
 $ cmake .. -DCMAKE_INSTALL_PREFIX=/home/user/pmdk-convert-bin
 $ make
 $ make install
 ```
+
 ### On Windows ###
 
 ```sh
-PS> git clone https://github.com/pmem/pmdk-convert.git
-PS> cd pmdk-convert
-PS> mkdir build
-PS> cd build
 PS> cmake .. -G "Visual Studio 14 2015 Win64"
 PS> msbuild build/ALL_BUILD.vcxproj
 ```

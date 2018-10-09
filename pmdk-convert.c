@@ -123,7 +123,7 @@ open_lib(const char *name)
 	void *lib = dlopen(path[0], RTLD_NOW);
 	if (!lib) {
 		reason0 = strdup(dlerror());
-		sprintf(path[1], "%s/pmdk-convert/%s", LIBDIR, name);
+		sprintf(path[1], "%s/pmdk-convert/%s.so", LIBDIR, name);
 		lib = dlopen(path[1], RTLD_NOW);
 	}
 
@@ -695,6 +695,8 @@ main(int argc, char *argv[])
 
 	path = argv[optind];
 
+	void *pmem_convert = open_lib("libpmem-convert");
+
 	if (from == 0) {
 		if (from_layout == 0) {
 			if ((from_layout = detect_layout_version(path)) < 0) {
@@ -800,6 +802,8 @@ main(int argc, char *argv[])
 		close_lib(lib);
 		printf("Done\n");
 	}
+
+	close_lib(pmem_convert);
 
 #ifdef _WIN32
 	for (int i = argc; i > 0; i--)
