@@ -330,7 +330,6 @@ if(BUILD_CONVERT_V5)
 	# remove lib prefix from library name
 	set_target_properties(libpmem-convert PROPERTIES PREFIX "")
 	target_compile_definitions(libpmem-convert PRIVATE SRCVERSION="${NVML15}")
-	target_compile_definitions(libpmem-convert PRIVATE USE_LIBDL)
 	target_compile_definitions(libpmem-convert PRIVATE PMDK_UTF8_API)
 	target_compile_definitions(libpmem-convert PRIVATE _PMEMOBJ_INTRNL)
 	target_compile_definitions(libpmem-convert PRIVATE SSE2_AVAILABLE=0)
@@ -429,7 +428,6 @@ if(BUILD_CONVERT_V5)
 		nvml-1.5/src/tools/pmempool/output.c)
 
 	target_compile_definitions(pmemobj_convert_v5_o PRIVATE SRCVERSION="${NVML15}")
-	target_compile_definitions(pmemobj_convert_v5_o PRIVATE USE_LIBDL)
 	target_compile_definitions(pmemobj_convert_v5_o PRIVATE PMDK_UTF8_API)
 	target_compile_definitions(pmemobj_convert_v5_o PRIVATE _PMEMOBJ_INTRNL)
 
@@ -482,7 +480,6 @@ if(BUILD_CONVERT_V5)
 	endif()
 
 	target_compile_definitions(pmemobj_15 PRIVATE SRCVERSION="${NVML15}")
-	target_compile_definitions(pmemobj_15 PRIVATE USE_LIBDL)
 	target_compile_definitions(pmemobj_15 PRIVATE PMDK_UTF8_API)
 	target_compile_definitions(pmemobj_15 PRIVATE _PMEMOBJ_INTRNL)
 
@@ -599,7 +596,6 @@ if(BUILD_CONVERT_V4)
 
 
 	target_compile_definitions(pmemobj_convert_v4_o PRIVATE SRCVERSION="${NVML14}")
-	target_compile_definitions(pmemobj_convert_v4_o PRIVATE USE_LIBDL)
 	target_compile_definitions(pmemobj_convert_v4_o PRIVATE PMDK_UTF8_API)
 	target_compile_definitions(pmemobj_convert_v4_o PRIVATE _PMEMOBJ_INTRNL)
 
@@ -652,7 +648,6 @@ if(BUILD_CONVERT_V4)
 	endif()
 
 	target_compile_definitions(pmemobj_14 PRIVATE SRCVERSION="${NVML14}")
-	target_compile_definitions(pmemobj_14 PRIVATE USE_LIBDL)
 	target_compile_definitions(pmemobj_14 PRIVATE PMDK_UTF8_API)
 	target_compile_definitions(pmemobj_14 PRIVATE _PMEMOBJ_INTRNL)
 
@@ -764,7 +759,6 @@ if(BUILD_13)
 	endif()
 
 	target_compile_definitions(pmemobj_13 PRIVATE SRCVERSION="${NVML13}")
-	target_compile_definitions(pmemobj_13 PRIVATE USE_LIBDL)
 	target_compile_definitions(pmemobj_13 PRIVATE NVML_UTF8_API)
 	target_compile_definitions(pmemobj_13 PRIVATE _PMEMOBJ_INTRNL)
 
@@ -850,8 +844,6 @@ if(BUILD_CONVERT_V3)
 		nvml-1.2/src/tools/pmempool/common.c)
 
 	target_compile_definitions(pmemobj_convert_v3_o PRIVATE SRCVERSION="${NVML12}")
-	target_compile_definitions(pmemobj_convert_v3_o PRIVATE USE_LIBDL)
-
 	target_include_directories(pmemobj_convert_v3_o PRIVATE nvml-1.2/src/include)
 	target_include_directories(pmemobj_convert_v3_o PRIVATE nvml-1.2/src/libpmemobj)
 	target_include_directories(pmemobj_convert_v3_o PRIVATE nvml-1.2/src/libpmemlog)
@@ -876,8 +868,6 @@ if(BUILD_CONVERT_V3)
 	add_library(pmemobj_12 SHARED ${SOURCES_12})
 	disable_optimization(pmemobj_12)
 	target_compile_definitions(pmemobj_12 PRIVATE SRCVERSION="${NVML12}")
-	target_compile_definitions(pmemobj_12 PRIVATE USE_LIBDL)
-
 	target_include_directories(pmemobj_12 PRIVATE nvml-1.2/src/include)
 	target_include_directories(pmemobj_12 PRIVATE nvml-1.2/src/libpmemobj)
 	target_include_directories(pmemobj_12 PRIVATE nvml-1.2/src/common)
