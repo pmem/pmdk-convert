@@ -514,14 +514,14 @@ if(BUILD_CONVERT_V4)
 	set(pkg nvml-${NVML14}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML14}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/b7c4d0ae08f7f535e6f8a2b789c2ad3db0ee0858.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=be6646fc24d0eca9c5b46d60dc807533ea0323ad5dd26a7a6b822de760404eeb)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML14}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=df7e658e75d28cd80f6d2ff7b9fc9ae2885d52f8923fdbacecfd46215115fb4c)
 		message(STATUS "Downloading NVML ${NVML14} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.4)
 		uncompress(${pkg})
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-b7c4d0ae08f7f535e6f8a2b789c2ad3db0ee0858 ${CMAKE_SOURCE_DIR}/nvml-1.4)
+		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML14} ${CMAKE_SOURCE_DIR}/nvml-1.4)
 	endif()
 
 	set(SOURCES_14
