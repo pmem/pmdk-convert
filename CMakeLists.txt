@@ -501,6 +501,101 @@ if(BUILD_CONVERT_V5)
 		target_link_libraries(pmemobj_15 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nvml-1.5/src/libpmemobj/libpmemobj.map)
 	endif()
 
+	set(LIBPMEMPOOL_SOURCES
+		nvml-1.5/src/libpmempool/check_backup.c
+		nvml-1.5/src/libpmempool/check_bad_blocks.c
+		nvml-1.5/src/libpmempool/check_blk.c
+		nvml-1.5/src/libpmempool/check_btt_info.c
+		nvml-1.5/src/libpmempool/check_btt_map_flog.c
+		nvml-1.5/src/libpmempool/check.c
+		nvml-1.5/src/libpmempool/check_cto.c
+		nvml-1.5/src/libpmempool/check_log.c
+		nvml-1.5/src/libpmempool/check_pool_hdr.c
+		nvml-1.5/src/libpmempool/check_sds.c
+		nvml-1.5/src/libpmempool/check_util.c
+		nvml-1.5/src/libpmempool/check_write.c
+		nvml-1.5/src/libpmempool/libpmempool.c
+		nvml-1.5/src/libpmempool/pool.c
+		nvml-1.5/src/libpmempool/replica.c
+		nvml-1.5/src/libpmempool/rm.c
+		nvml-1.5/src/libpmempool/sync.c
+		nvml-1.5/src/libpmempool/transform.c
+
+		nvml-1.5/src/libpmemblk/btt.c
+
+		nvml-1.5/src/common/badblock.c
+		nvml-1.5/src/common/file.c
+		nvml-1.5/src/common/mmap.c
+		nvml-1.5/src/common/pool_hdr.c
+		nvml-1.5/src/common/out.c
+		nvml-1.5/src/common/os_dimm_none.c
+		nvml-1.5/src/common/set.c
+		nvml-1.5/src/common/shutdown_state.c
+		nvml-1.5/src/common/util.c
+		nvml-1.5/src/common/uuid.c
+		)
+
+	if(WIN32)
+		set(LIBPMEMPOOL_SOURCES ${LIBPMEMPOOL_SOURCES}
+			nvml-1.5/src/libpmempool/libpmempool_main.c
+			nvml-1.5/src/common/badblock_windows.c
+			nvml-1.5/src/common/file_windows.c
+			nvml-1.5/src/common/fs_windows.c
+			nvml-1.5/src/common/mmap_windows.c
+			nvml-1.5/src/common/os_deep_windows.c
+			nvml-1.5/src/common/os_thread_windows.c
+			nvml-1.5/src/common/os_windows.c
+			nvml-1.5/src/common/util_windows.c
+			nvml-1.5/src/common/uuid_windows.c
+			)
+	else()
+		set(LIBPMEMPOOL_SOURCES ${LIBPMEMPOOL_SOURCES}
+			nvml-1.5/src/common/badblock_linux.c
+			nvml-1.5/src/common/extent_linux.c
+			nvml-1.5/src/common/file_posix.c
+			nvml-1.5/src/common/fs_posix.c
+			nvml-1.5/src/common/mmap_posix.c
+			nvml-1.5/src/common/os_deep_linux.c
+			nvml-1.5/src/common/os_posix.c
+			nvml-1.5/src/common/os_thread_posix.c
+			nvml-1.5/src/common/util_posix.c
+			nvml-1.5/src/common/uuid_linux.c
+			)
+	endif()
+
+	if(MSVC)
+		FILE(READ nvml-1.5/src/libpmempool/libpmempool.def DEFFILE)
+		string(REPLACE "libpmempool" "libpmempool-convert" DEFFILE "${DEFFILE}")
+		FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/libpmempool.def "${DEFFILE}")
+		add_library(libpmempool-convert SHARED ${LIBPMEMPOOL_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/libpmempool.def)
+		target_link_libraries(libpmempool-convert PRIVATE ntdll.lib)
+	else()
+		add_library(libpmempool-convert SHARED ${LIBPMEMPOOL_SOURCES})
+		target_link_libraries(libpmempool-convert PRIVATE -Wl,--version-script=${CMAKE_SOURCE_DIR}/nvml-1.5/src/libpmempool/libpmempool.map)
+	endif()
+	target_link_libraries(libpmempool-convert PRIVATE libpmem-convert)
+
+	target_compile_definitions(libpmempool-convert PRIVATE SRCVERSION="${NVML15}")
+	target_compile_definitions(libpmempool-convert PRIVATE PMDK_UTF8_API)
+
+	target_include_directories(libpmempool-convert PRIVATE nvml-1.5/src/include)
+	target_include_directories(libpmempool-convert PRIVATE nvml-1.5/src/common)
+	target_include_directories(libpmempool-convert PRIVATE nvml-1.5/src/libpmempool)
+	target_include_directories(libpmempool-convert PRIVATE nvml-1.5/src/libpmemblk)
+	target_include_directories(libpmempool-convert PRIVATE nvml-1.5/src/libpmemcto)
+	target_include_directories(libpmempool-convert PRIVATE nvml-1.5/src/libpmemlog)
+	target_include_directories(libpmempool-convert PRIVATE nvml-1.5/src/libpmemobj)
+
+	if(MSVC)
+		target_include_directories(libpmempool-convert PRIVATE nvml-1.5/src/windows/include/)
+		target_include_directories(libpmempool-convert PRIVATE include/)
+		target_compile_options(libpmempool-convert PRIVATE /FI"${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/include/platform.h")
+	endif()
+
+	target_link_libraries(libpmempool-convert PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+	set(LIBPMEMPOOL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/nvml-1.5/src/include)
+	set(LIBPMEMPOOL_LIBRARIES libpmempool-convert)
+
 endif(BUILD_CONVERT_V5)
 
 ###################################################### 1.4
