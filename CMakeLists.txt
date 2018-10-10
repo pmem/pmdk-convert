@@ -514,6 +514,7 @@ if(BUILD_CONVERT_V5)
 		nvml-1.5/src/libpmempool/check_sds.c
 		nvml-1.5/src/libpmempool/check_util.c
 		nvml-1.5/src/libpmempool/check_write.c
+		nvml-1.5/src/libpmempool/feature.c
 		nvml-1.5/src/libpmempool/libpmempool.c
 		nvml-1.5/src/libpmempool/pool.c
 		nvml-1.5/src/libpmempool/replica.c
