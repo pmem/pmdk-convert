@@ -527,6 +527,10 @@ check_remote(const char *path)
 		exit(STAT_FAILED);
 	}
 
+	if (S_ISCHR(st.st_mode)) {
+		return 0; /* char device(DEVDAX) is not a poolset file */
+	}
+
 	size_t map_size = (size_t)st.st_size;
 	const char *poolset = mmap(NULL, map_size, PROT_READ,
 		MAP_PRIVATE | MAP_NORESERVE, fd, 0);
