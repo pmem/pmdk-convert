@@ -377,7 +377,8 @@ if(BUILD_CONVERT_V5)
 
 		nvml-1.5/src/common/badblock.c
 		nvml-1.5/src/common/ctl.c
-		nvml-1.5/src/common/ctl_global.c
+		nvml-1.5/src/common/ctl_prefault.c
+		nvml-1.5/src/common/ctl_sds.c
 		nvml-1.5/src/common/file.c
 		nvml-1.5/src/common/mmap.c
 		nvml-1.5/src/common/os_dimm_none.c
@@ -508,7 +509,6 @@ if(BUILD_CONVERT_V5)
 		nvml-1.5/src/libpmempool/check_btt_info.c
 		nvml-1.5/src/libpmempool/check_btt_map_flog.c
 		nvml-1.5/src/libpmempool/check.c
-		nvml-1.5/src/libpmempool/check_cto.c
 		nvml-1.5/src/libpmempool/check_log.c
 		nvml-1.5/src/libpmempool/check_pool_hdr.c
 		nvml-1.5/src/libpmempool/check_sds.c
