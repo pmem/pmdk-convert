@@ -36,7 +36,7 @@ project(pmdk-convert C)
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 5)
-set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}-rc1)
+set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}-rc2)
 
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -266,14 +266,14 @@ if(BUILD_CONVERT_V5)
 	set(pkg nvml-${NVML15}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML15}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/1.5-rc1.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=f8d9a020814ccf58a0ec54b0c3ed032bc627fb8e7898021d5647c3970ed68959)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/1.5-rc2.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=449f49d05cc88a9ee71a510f31afa1251fa20da7bbdcd9c84fec672c00bf54df)
 		message(STATUS "Downloading NVML ${NVML15} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.5)
 		uncompress(${pkg})
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-1.5-rc1 ${CMAKE_SOURCE_DIR}/nvml-1.5)
+		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-1.5-rc2 ${CMAKE_SOURCE_DIR}/nvml-1.5)
 	endif()
 
 
