@@ -1,5 +1,9 @@
 Wed Oct 19 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-        * Version 1.5-rc3
+	* Version 1.5-rc3
 
-        TBD
+	This is the first release of pmdk-convert. It replaces "pmempool convert"
+	from PMDK.
+
+	It allows conversion of PMDK pools from any version, starting from 1.0, to
+	all later versions, including 1.5. Windows support starts with 1.4.
