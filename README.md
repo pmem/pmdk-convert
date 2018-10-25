@@ -8,9 +8,7 @@ pmdk-convert: PMDK pool conversion tool
 # Building The Source #
 
 Requirements:
-- libpmem-dev(el) >= 1.3 (http://pmem.io/pmdk/)
 - cmake >= 3.3
-- git
 
 On Windows:
 - [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) >= 10.0.16299
