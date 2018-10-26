@@ -1,6 +1,6 @@
-Wed Oct 19 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+Fri Oct 26 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.5-rc3
+	* Version 1.5
 
 	This is the first release of pmdk-convert. It replaces "pmempool convert"
 	from PMDK.
