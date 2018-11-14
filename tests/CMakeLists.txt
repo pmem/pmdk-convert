@@ -261,6 +261,7 @@ if (NOT WIN32)
 endif()
 
 test("cli_test" cli)
+test("compare_replicas" compare_replicas)
 
 if (NOT WIN32)
 	add_executable(clean_pool clean.c)
