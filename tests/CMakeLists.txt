@@ -278,6 +278,8 @@ if (NOT WIN32)
 	test("tx_intr_poolset_local_regfile" tx_intr_poolset_local_regfile)
 	test("tx_intr_poolset_local_regfile_rep_regfile"
 		tx_intr_poolset_local_regfile_rep_regfile)
+	test("tx_intr_poolset_local_2regfiles_rep_3regfiles"
+		tx_intr_poolset_local_2regfiles_rep_3regfiles)
 	test("poolsets_with_remote_replica" remote)
 
 	if(NOT DEVICE_DAX_PATHS)
@@ -295,9 +297,17 @@ if (NOT WIN32)
 			skip_test)
 		test("tx_intr_poolset_local_devdax_rep_devdax_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
 			skip_test)
+		test("tx_intr_poolset_local_2devdaxes_rep_2regfiles_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
+			skip_test)
+		test("tx_intr_poolset_local_2regfiles_rep_2devdaxes_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
+			skip_test)
 	else()
 		test("tx_intr_poolset_local_2devdaxes" tx_intr_poolset_local_2devdaxes)
 		test("tx_intr_poolset_local_devdax_rep_devdax"
 			tx_intr_poolset_local_devdax_rep_devdax)
+		test("tx_intr_poolset_local_2devdaxes_rep_2regfiles" 
+			tx_intr_poolset_local_2devdaxes_rep_2regfiles)
+		test("tx_intr_poolset_local_2regfiles_rep_2devdaxes"
+			tx_intr_poolset_local_2regfiles_rep_2devdaxes)
 	endif()
 endif()
