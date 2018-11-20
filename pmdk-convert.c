@@ -77,6 +77,7 @@ enum {
 	MMAP_FAILED = 22,
 	REMOTE = 23,
 	ARG_CONVERSION_FAILED = 24,
+	STDIN_EOF = 25,
 };
 
 #define ARRAY_LENGTH(array) (sizeof((array)) / sizeof((array)[0]))
@@ -768,7 +769,10 @@ main(int argc, char *argv[])
 	if (!(force & QUEST_FAIL_SAFETY)) {
 		printf(
 			"Hit Ctrl-C now if you want to stop or Enter to continue.\n");
-		getchar();
+		if (getchar() == EOF) {
+			fprintf(stderr, "EOF, aborting\n");
+			exit(STDIN_EOF);
+		}
 	}
 
 	char to_str[255];
