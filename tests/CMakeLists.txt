@@ -271,32 +271,31 @@ if (NOT WIN32)
 		file(WRITE ${TEST_DIR}/../devdax.lock "")
 	endif()
 
-	test("tx_intr_single_file_pools" tx_intr_single_file_pools)
-	test("tx_intr_single_file_poolsets" tx_intr_single_file_poolsets)
-	test("tx_intr_multi_file_poolsets" tx_intr_multi_file_poolsets)
-	test("tx_intr_poolsets_with_local_replica" tx_intr_poolsets_with_local_replica)
+	test("tx_intr_pool_regfile" tx_intr_pool_regfile)
+	test("tx_intr_poolset_local_2regfiles" tx_intr_poolset_local_2regfiles)
+	test("tx_intr_poolset_local_regfile" tx_intr_poolset_local_regfile)
+	test("tx_intr_poolset_local_regfile_rep_regfile"
+		tx_intr_poolset_local_regfile_rep_regfile)
 	test("poolsets_with_remote_replica" remote)
 
 	if(NOT DEVICE_DAX_PATHS)
-		test("tx_intr_single_file_pools_devdax_SKIP_BECAUSE_OF_NO_DEVDAX_DEFINED"
+		test("tx_intr_pool_devdax_SKIP_BECAUSE_OF_NO_DEVDAX_DEFINED"
 			skip_test)
-		test("tx_intr_single_file_poolsets_devdax_SKIP_BECAUSE_OF_NO_DEVDAX_DEFINED"
+		test("tx_intr_poolset_local_devdax_devdax_SKIP_BECAUSE_OF_NO_DEVDAX_DEFINED"
 			skip_test)
 	else()
-		test("tx_intr_single_file_pools_devdax" tx_intr_single_file_pools_devdax)
-		test("tx_intr_single_file_poolsets_devdax"
-			tx_intr_single_file_poolsets_devdax)
+		test("tx_intr_pool_devdax" tx_intr_pool_devdax)
+		test("tx_intr_poolset_local_devdax" tx_intr_poolset_local_devdax)
 	endif()
 
 	if(devdax_num LESS 2)
-		test("tx_intr_multi_file_poolsets_devdax_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
+		test("tx_intr_poolset_local_2devdaxes_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
 			skip_test)
-		test("tx_intr_poolsets_with_local_replica_devdax_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
+		test("tx_intr_poolset_local_devdax_rep_devdax_SKIP_BECAUSE_OF_NOT_ENOUGH_DEVDAX_DEFINED"
 			skip_test)
 	else()
-		test("tx_intr_multi_file_poolsets_devdax"
-			tx_intr_multi_file_poolsets_devdax)
-		test("tx_intr_poolsets_with_local_replica_devdax"
-			tx_intr_poolsets_with_local_replica_devdax)
+		test("tx_intr_poolset_local_2devdaxes" tx_intr_poolset_local_2devdaxes)
+		test("tx_intr_poolset_local_devdax_rep_devdax"
+			tx_intr_poolset_local_devdax_rep_devdax)
 	endif()
 endif()
