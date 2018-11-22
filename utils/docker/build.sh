@@ -96,6 +96,7 @@ docker run --privileged=true --name=$containerName -ti \
 	--env TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG \
 	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
+	--env TEST_BUILD=$TEST_BUILD \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
 	-w $SCRIPTSDIR \

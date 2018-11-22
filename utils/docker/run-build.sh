@@ -36,6 +36,7 @@
 #
 
 set -e
+set -x
 
 cd $WORKDIR
 INSTALL_DIR=/tmp/pmdk-convert
@@ -45,13 +46,13 @@ mkdir $INSTALL_DIR
 cp /opt/pmdk/*.tar.gz .
 
 # -----------------------------------------
-# gcc & Debug
+# gcc
 
 mkdir build
 cd build
 
 CC=gcc \
-cmake .. -DCMAKE_BUILD_TYPE=Debug \
+cmake .. -DCMAKE_BUILD_TYPE=$TEST_BUILD \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 	-DTRACE_TESTS=1 \
@@ -67,32 +68,13 @@ cd ..
 rm -r build
 
 # -----------------------------------------
-# gcc & Release
+# gcc (different MINVERSION)
 
 mkdir build
 cd build
 
 CC=gcc \
-cmake .. -DCMAKE_BUILD_TYPE=Release \
-	-DDEVELOPER_MODE=1 \
-	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-	-DTRACE_TESTS=1 \
-	-DTESTS_USE_FORCED_PMEM=ON
-
-make -j2
-ctest --output-on-failure
-
-cd ..
-rm -r build
-
-# -----------------------------------------
-# gcc & Release (different MINVERSION)
-
-mkdir build
-cd build
-
-CC=gcc \
-  cmake .. -DCMAKE_BUILD_TYPE=Release \
+  cmake .. -DCMAKE_BUILD_TYPE=$TEST_BUILD \
   -DDEVELOPER_MODE=1 \
   -DMIN_VERSION=1.3 \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
@@ -106,32 +88,13 @@ cd ..
 rm -r build
 
 # -----------------------------------------
-# Clang & Debug
+# Clang
 
 mkdir build
 cd build
 
 CC=clang \
-cmake .. -DCMAKE_BUILD_TYPE=Debug \
-	-DDEVELOPER_MODE=1 \
-	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-	-DTRACE_TESTS=1 \
-	-DTESTS_USE_FORCED_PMEM=ON
-
-make -j2
-ctest --output-on-failure
-
-cd ..
-rm -r build
-
-# -----------------------------------------
-# Clang & Release
-
-mkdir build
-cd build
-
-CC=clang \
-cmake .. -DCMAKE_BUILD_TYPE=Release \
+cmake .. -DCMAKE_BUILD_TYPE=$TEST_BUILD \
 	-DDEVELOPER_MODE=1 \
 	-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 	-DTRACE_TESTS=1 \
@@ -150,7 +113,7 @@ if [[ $COVERAGE -eq 1 ]] ; then
 	cd build
 
 	CC=gcc \
-	cmake .. -DCMAKE_BUILD_TYPE=Debug \
+	cmake .. -DCMAKE_BUILD_TYPE=$TEST_BUILD \
 		-DTRACE_TESTS=1 \
 		-DCMAKE_C_FLAGS=-coverage\
 		-DTESTS_USE_FORCED_PMEM=ON
@@ -171,7 +134,7 @@ cd build
 
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
 		-DCPACK_GENERATOR=$PACKAGE_MANAGER \
-		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_BUILD_TYPE=$TEST_BUILD \
 		-DTRACE_TESTS=1 \
 		-DTESTS_USE_FORCED_PMEM=ON
 
