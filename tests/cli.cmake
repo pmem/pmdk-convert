@@ -32,7 +32,7 @@
 include(${SRC_DIR}/helpers.cmake)
 
 list(GET VERSIONS 1 VER)
-string(REPLACE "." "" VER ${VER})
+string(REPLACE "." "" BIN_VER ${VER})
 
 # argument parsing
 setup()
@@ -55,10 +55,14 @@ execute(9 ${EXE_DIR}/pmdk-convert --to-layout v10) # TO_LAYOUT_INVALID
 execute(10 ${EXE_DIR}/pmdk-convert --from 1.0 --to 1.1) # NO_POOL
 
 file(WRITE ${DIR}/not_a_pool "This is not a pool\n")
-execute(11 ${EXE_DIR}/pmdk-convert not_a_pool) # POOL_DETECTION
+execute(11 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool) # POOL_DETECTION
+execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool --from ${VER} -X fail-safety) # CONVERT_FAILED
 
-file(WRITE ${DIR}/pool "PMEMPOOLSET\n16M ${DIR}/part\n")
-execute(0 ${TEST_DIR}/create_${VER} ${DIR}/pool)
+file(WRITE ${DIR}/pool "PMEMPOOLSET\n16M ${DIR}/part_a\n16M ${DIR}/part_b\n")
+execute(0 ${TEST_DIR}/create_${BIN_VER} ${DIR}/pool)
+execute(11 ${EXE_DIR}/pmdk-convert ${DIR}/part_a) # POOL_DETECTION
+execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/part_b --from ${VER} -X fail-safety) # CONVERT_FAILED
+
 execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.7) # UNSUPPORTED_FROM
 execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 7) # UNSUPPORTED_FROM
 
@@ -67,6 +71,9 @@ execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to-layout 7) # UNSUPPORTED_TO
 
 execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.5 --to 1.4) # BACKWARD_CONVERSION
 execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 5 --to-layout 4) # BACKWARD_CONVERSION
+
+file(WRITE ${DIR}/empty_file "")
+execute_arg(${DIR}/empty_file 25 ${EXE_DIR}/pmdk-convert ${DIR}/pool) # STDIN_EOF
 
 file(WRITE ${DIR}/yes "Yy\n")
 execute_arg(${DIR}/yes 0 ${EXE_DIR}/pmdk-convert ${DIR}/pool)
