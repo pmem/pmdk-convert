@@ -271,6 +271,8 @@ if (NOT WIN32)
 		file(WRITE ${TEST_DIR}/../devdax.lock "")
 	endif()
 
+	file(WRITE ${TEST_DIR}/../tx_intr.lock "")
+
 	test("tx_intr_pool_regfile" tx_intr_pool_regfile)
 	test("tx_intr_poolset_local_2regfiles" tx_intr_poolset_local_2regfiles)
 	test("tx_intr_poolset_local_regfile" tx_intr_poolset_local_regfile)

@@ -134,6 +134,8 @@ function(test_intr_tx prepare_files)
 				unset(mutex)
 			endif()
 
+			lock_tx_intr()
+
 			execute(0 gdb --batch
 				--command=${SRC_DIR}/trip_on_pre_commit.gdb
 				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
@@ -156,6 +158,8 @@ function(test_intr_tx prepare_files)
 				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
 				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
 
+			unlock_tx_intr()
+
 			MATH(EXPR index "${index} + 1")
 		endwhile()
 
@@ -164,15 +168,26 @@ function(test_intr_tx prepare_files)
 endfunction()
 
 set(DEVDAX_LOCKS "${PARENT_DIR}/../devdax.lock")
+set(TX_INTR_LOCKS "${PARENT_DIR}/../tx_intr.lock")
 
 # acquire a lock on DAX devices
 function(lock_devdax)
-       file(LOCK ${DEVDAX_LOCKS} TIMEOUT 100)
+       file(LOCK ${DEVDAX_LOCKS})
 endfunction()
 
 # release a lock on DAX devices
 function(unlock_devdax)
        file(LOCK ${DEVDAX_LOCKS} RELEASE)
+endfunction()
+
+# acquire a lock on tests with interrupted transactions
+function(lock_tx_intr)
+       file(LOCK ${TX_INTR_LOCKS})
+endfunction()
+
+# release a lock on tests with interrupted transactions
+function(unlock_tx_intr)
+       file(LOCK ${TX_INTR_LOCKS} RELEASE)
 endfunction()
 
 function(test_intr_tx_devdax prepare_files curr_version next_version)
@@ -184,6 +199,8 @@ function(test_intr_tx_devdax prepare_files curr_version next_version)
 		string(REPLACE "." "" next_bin_version ${next_version})
 
 		prepare_files(${curr_bin_version})
+
+		lock_tx_intr()
 
 		execute(0 gdb --batch
 				--command=${SRC_DIR}/trip_on_pre_commit.gdb
@@ -206,6 +223,8 @@ function(test_intr_tx_devdax prepare_files curr_version next_version)
 		execute(0
 				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
 				${pool_file} vc ${curr_scenario})
+
+		unlock_tx_intr()
 
 		MATH(EXPR curr_scenario "${curr_scenario} + 1")
 	endwhile()
