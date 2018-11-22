@@ -71,7 +71,7 @@ cp -r ./doc/pmdk-convert/* ../web_manpages/
 # Checkout gh-pages and copy docs
 git checkout -fb gh-pages upstream/gh-pages
 git clean -dfx
-cp -r  ../web_manpages/* .
+cp -r  ../web_manpages/* ./manpages/master/
 
 # Add and push changes.
 # git commit command may fail if there is nothing to commit.
