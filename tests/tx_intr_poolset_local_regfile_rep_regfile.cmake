@@ -31,22 +31,23 @@
 
 include(${SRC_DIR}/helpers.cmake)
 
-# prepare single file pools for testing for each version of PMDK
+# prepare poolsets with local replica on regular files for testing for each
+# version of PMDK
 function(prepare_files)
 	setup()
 
 	foreach(version ${VERSIONS})
 		string(REPLACE "." "" bin_version ${version})
 
-		file(WRITE ${DIR}/pool${bin_version}a "PMEMPOOLSET\n
-			16M ${DIR}/part${bin_version}a_rep1\nREPLICA\n
-			16M ${DIR}/part${bin_version}a_rep2\n")
+		file(WRITE ${DIR}/pool${bin_version}a "PMEMPOOLSET
+			16M ${DIR}/part${bin_version}a_rep1\nREPLICA
+			16M ${DIR}/part${bin_version}a_rep2")
 		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
 				${DIR}/pool${bin_version}a)
 
-		file(WRITE ${DIR}/pool${bin_version}c "PMEMPOOLSET\n
-			16M ${DIR}/part${bin_version}c_rep1\nREPLICA\n
-			16M ${DIR}/part${bin_version}c_rep2\n")
+		file(WRITE ${DIR}/pool${bin_version}c "PMEMPOOLSET
+			16M ${DIR}/part${bin_version}c_rep1\nREPLICA
+			16M ${DIR}/part${bin_version}c_rep2")
 		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
 				${DIR}/pool${bin_version}c)
 	endforeach()
