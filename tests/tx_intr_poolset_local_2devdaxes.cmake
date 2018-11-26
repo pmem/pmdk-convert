@@ -31,10 +31,11 @@
 
 include(${SRC_DIR}/helpers.cmake)
 
-# prepare single file pools on DAX devices for testing for each version of PMDK
+# prepare poolset on DAX devices for testing for each version of PMDK
 function(prepare_files version)
-	file(WRITE ${DIR}/pool${version} "PMEMPOOLSET\nAUTO ${devdax_1}\n
-		AUTO ${devdax_2}\n")
+	file(WRITE ${DIR}/pool${version} "PMEMPOOLSET
+AUTO ${devdax_1}
+AUTO ${devdax_2}")
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/clean_pool ${devdax_1})
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/clean_pool ${devdax_2})
 	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${version}
@@ -65,8 +66,8 @@ function(test_devdax test_intr_tx_devdax)
 		
 		MATH(EXPR index "${index} + 1")
 	endwhile()
-	unlock_devdax()
 
+	unlock_devdax()
 endfunction()
 
 test_devdax(test_intr_tx_devdax)
