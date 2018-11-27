@@ -31,42 +31,41 @@
 
 include(${SRC_DIR}/helpers.cmake)
 
-# prepare poolset on DAX device for testing for each version of PMDK
-function(prepare_files version)
-	file(WRITE ${DIR}/pool${version} "PMEMPOOLSET
-AUTO ${devdax}")
-	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/clean_pool ${devdax})
-	execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${version}
-			${DIR}/pool${version})
-	set(pool_file "${DIR}/pool${version}" PARENT_SCOPE)
-endfunction()
-
-function(test_devdax test_intr_tx_devdax)
-	lock_devdax()
+# prepare poolsets with local replica on regular files for testing for
+# each version of PMDK
+function(prepare_files)
 	setup()
 
-	string(REPLACE " " ";" DEVICE_DAX_PATHS ${DEVICE_DAX_PATHS})
-	list(GET DEVICE_DAX_PATHS 0 devdax)
-	list(LENGTH VERSIONS num)
-	math(EXPR num "${num} - 1")
-	set(index 1)
+	foreach(version ${VERSIONS})
+		string(REPLACE "." "" bin_version ${version})
 
-	while(index LESS num)
-		list(GET VERSIONS ${index} curr_version)
-		math(EXPR next "${index} + 1")
-		list(GET VERSIONS ${next} next_version)
-
-		# DAX devices are supported from PMDK version 1.2
-		if(curr_version VERSION_GREATER "1.1")
-			test_intr_tx_devdax(prepare_files ${curr_version} ${next_version})
-		endif()
+		file(WRITE ${DIR}/pool${bin_version}a
+			"PMEMPOOLSET
+32M ${DIR}/part${bin_version}a_1
+16M ${DIR}/part${bin_version}a_2
+REPLICA
+12M ${DIR}/part${bin_version}a_3
+8M ${DIR}/part${bin_version}a_4
+40M ${DIR}/part${bin_version}a_5")
+	
+		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
+				${DIR}/pool${bin_version}a)
+	
+		file(WRITE ${DIR}/pool${bin_version}c
+			"PMEMPOOLSET
+128M ${DIR}/part${bin_version}c_1
+48M ${DIR}/part${bin_version}c_2
+REPLICA
+24M ${DIR}/part${bin_version}c_3
+10M ${DIR}/part${bin_version}c_4
+32M ${DIR}/part${bin_version}c_5")
 		
-		MATH(EXPR index "${index} + 1")
-	endwhile()
+		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
+				${DIR}/pool${bin_version}c)
+	endforeach()
 
-	unlock_devdax()
 endfunction()
 
-test_devdax(test_intr_tx_devdax)
+test_intr_tx(prepare_files)
 
-cleanup()
+#cleanup()

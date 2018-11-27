@@ -60,8 +60,8 @@ function(test_devdax test_intr_tx_devdax)
 		
 		MATH(EXPR index "${index} + 1")
 	endwhile()
+	
 	unlock_devdax()
-
 endfunction()
 
 test_devdax(test_intr_tx_devdax)
