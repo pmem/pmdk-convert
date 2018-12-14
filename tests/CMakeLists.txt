@@ -350,17 +350,22 @@ if(BUILD_CONVERT_V5)
 		)
 
 	if(WIN32)
-	add_executable(pmemspoil ${PMEMSPOIL_SOURCES} ${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/getopt/getopt.c)
+		set(PMEMSPOIL_SOURCES
+		${PMEMSPOIL_SOURCES}
+		${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/getopt/getopt.c
+		)
+	endif()
 
-	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/getopt)
-	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/include)
-	else()
 	add_executable(pmemspoil ${PMEMSPOIL_SOURCES})
+
+	if(WIN32)
+		target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/getopt)
+		target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/include)
 	endif()
 
 	if(MSVC)
-	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/include/)
-	target_compile_options(pmemspoil PRIVATE /FI"${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/include/platform.h")
+		target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/include/)
+		target_compile_options(pmemspoil PRIVATE /FI"${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/include/platform.h")
 	endif()
 
 	target_compile_definitions(pmemspoil PRIVATE SRCVERSION="${NVML15}")
@@ -384,7 +389,6 @@ if(BUILD_CONVERT_V5)
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 			$<TARGET_FILE:libpmem-convert>
 			$<TARGET_FILE_DIR:pmemspoil>)
-			message(status ${CMAKE_COMMAND})
 	endif()
 
 	set(PMEMPOOL_SOURCES
