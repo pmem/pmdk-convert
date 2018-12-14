@@ -341,6 +341,56 @@ if(BUILD_CONVERT_V5)
 		target_link_libraries(pmemlog_15 PRIVATE -Wl,--version-script=${CMAKE_SOURCE_DIR}/nvml-1.5/src/libpmemlog/libpmemlog.map)
 	endif()
 
+	set(PMEMSPOIL_SOURCES
+		${CMAKE_SOURCE_DIR}/nvml-1.5/src/test/tools/pmemspoil/spoil.c
+		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/common.c
+		${CMAKE_SOURCE_DIR}/nvml-1.5/src/libpmemblk/btt.c
+		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/output.c
+		${COMMON_SOURCES}
+		)
+
+	if(WIN32)
+		set(PMEMSPOIL_SOURCES
+			${PMEMSPOIL_SOURCES}
+			${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/getopt/getopt.c
+			)
+	endif()
+
+	add_executable(pmemspoil ${PMEMSPOIL_SOURCES})
+
+	if(WIN32)
+		target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/getopt)
+		target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/include)
+	endif()
+
+	if(MSVC)
+		target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/include/)
+		target_compile_options(pmemspoil PRIVATE /FI"${CMAKE_SOURCE_DIR}/nvml-1.5/src/windows/include/platform.h")
+	endif()
+
+	target_compile_definitions(pmemspoil PRIVATE SRCVERSION="${NVML15}")
+	target_compile_definitions(pmemspoil PRIVATE PMDK_UTF8_API)
+	target_compile_definitions(pmemspoil PRIVATE LIBDIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+
+	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/include)
+	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/common)
+	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/libpmemobj)
+	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/libpmemlog)
+	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/libpmemblk)
+	target_include_directories(pmemspoil PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool)
+
+	target_link_libraries(pmemspoil PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+	target_link_libraries(pmemspoil PRIVATE libpmem-convert)
+	target_link_libraries(pmemspoil PRIVATE pmemobj_15)
+
+	if(WIN32)
+		# on windows dll and executable must be in the same dir
+		add_custom_command(TARGET pmemspoil POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:libpmem-convert>
+			$<TARGET_FILE_DIR:pmemspoil>)
+	endif()
+
 	set(PMEMPOOL_SOURCES
 		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/pmempool.c
 		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/check.c
