@@ -37,7 +37,7 @@ string(REPLACE "." "" VER ${VER})
 setup()
 
 file(WRITE ${DIR}/pool "PMEMPOOLSET\n16M ${DIR}/part\nREPLICA user@example.com remote-objpool.set\n")
-execute(23 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool --from-layout 4 --to-layout 5)
+execute(23 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert ${DIR}/pool)
 
 setup()
 file(WRITE ${DIR}/pool "PMEMPOOLSET\n16M ${DIR}/part\nREPLICA          user@example.com remote-objpool.set # abcdefgh\n")

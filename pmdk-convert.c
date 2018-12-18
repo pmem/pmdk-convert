@@ -699,6 +699,13 @@ main(int argc, char *argv[])
 
 	path = argv[optind];
 
+	if (check_remote(path)) {
+		fprintf(stderr,
+			"Remote replication is not supported.\n"
+			"Please use pmempool transform to remove remote replica and then use pmdk-convert.\n");
+		exit(REMOTE);
+	}
+
 	void *pmem_convert = open_lib("libpmem-convert");
 
 	if (from == 0) {
@@ -751,13 +758,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Backward conversion is not implemented.\n");
 		print_usage();
 		exit(BACKWARD_CONVERSION);
-	}
-
-	if (check_remote(path)) {
-		fprintf(stderr,
-			"Remote replication is not supported.\n"
-			"Please use pmempool transform to remove remote replica and then use pmdk-convert.\n");
-		exit(REMOTE);
 	}
 
 	printf(
