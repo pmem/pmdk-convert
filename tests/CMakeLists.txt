@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -391,6 +391,8 @@ if(BUILD_CONVERT_V5)
 			$<TARGET_FILE_DIR:pmemspoil>)
 	endif()
 
+	test("spoiled_pool_hdr" spoiled_pool_hdr)
+	
 	set(PMEMPOOL_SOURCES
 		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/pmempool.c
 		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/check.c
