@@ -391,6 +391,8 @@ if(BUILD_CONVERT_V5)
 			$<TARGET_FILE_DIR:pmemspoil>)
 	endif()
 
+	test("pmempool_convert_cli" pmempool_convert_cli)
+	
 	set(PMEMPOOL_SOURCES
 		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/pmempool.c
 		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/check.c
