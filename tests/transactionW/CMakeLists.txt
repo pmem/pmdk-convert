@@ -1,0 +1,105 @@
+#
+# Copyright 2019, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -TP") #changing the flag for transaction windows project
+
+if(BUILD_CONVERT_V1)
+		add_executable(transaction_10 ${CMAKE_SOURCE_DIR}/tests/transaction.c)
+		 disable_optimization(transaction_10)
+		target_include_directories(transaction_10 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.0/src/include)
+		target_link_libraries(transaction_10 PRIVATE libpmem-convert)
+		target_link_libraries(transaction_10 PRIVATE pmemobj_10)
+	endif()
+
+	if(BUILD_CONVERT_V2)
+		add_executable(transaction_11 ${CMAKE_SOURCE_DIR}/tests/transaction.c)
+		 disable_optimization(transaction_11)
+		target_include_directories(transaction_11 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.1/src/include)
+		target_link_libraries(transaction_11 PRIVATE libpmem-convert)
+		target_link_libraries(transaction_11 PRIVATE pmemobj_11)
+	endif()
+
+	if(BUILD_CONVERT_V3)
+		add_executable(transaction_12 ${CMAKE_SOURCE_DIR}/tests/transaction.c)
+		 disable_optimization(transaction_12)
+		target_include_directories(transaction_12 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.2/src/include)
+		target_link_libraries(transaction_12 PRIVATE libpmem-convert)
+		target_link_libraries(transaction_12 PRIVATE pmemobj_12)
+	endif()
+
+	if(BUILD_13)
+
+		add_executable(transaction_13 ${CMAKE_SOURCE_DIR}/tests/transaction.c)
+		 disable_optimization(transaction_13)
+		target_include_directories(transaction_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
+		target_link_libraries(transaction_13 PRIVATE libpmem-convert)
+		target_link_libraries(transaction_13 PRIVATE pmemobj_13)
+	endif()
+
+	if(BUILD_CONVERT_V4)
+		add_executable(transaction_14 ${CMAKE_SOURCE_DIR}/tests/transaction.c)
+		 disable_optimization(transaction_14)
+		target_include_directories(transaction_14  PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/src/include)
+		target_link_libraries(transaction_14 PRIVATE libpmem-convert)
+		target_link_libraries(transaction_14 PRIVATE pmemobj_14)
+		
+		# on windows dll and executable must be in the same dir
+		add_custom_command(TARGET transaction_14 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:pmemobj_14>
+			$<TARGET_FILE_DIR:transaction_14>)
+
+		add_custom_command(TARGET transaction_14 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE_DIR:pmemobj_14>/libpmem-convert.dll
+			$<TARGET_FILE_DIR:transaction_14>)
+
+	endif()
+	
+	if(BUILD_CONVERT_V5)	
+		add_executable(transaction_15 ${CMAKE_SOURCE_DIR}/tests/transaction.c)
+		disable_optimization(transaction_15)
+		target_include_directories(transaction_15 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/include)
+		target_link_libraries(transaction_15 PRIVATE libpmem-convert)
+		target_link_libraries(transaction_15 PRIVATE pmemobj_15)
+		
+		add_custom_command(TARGET transaction_15 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:pmemobj_15>
+			$<TARGET_FILE_DIR:transaction_15>)
+
+		add_custom_command(TARGET transaction_15 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE_DIR:pmemobj_15>/libpmem-convert.dll
+			$<TARGET_FILE_DIR:transaction_15>)
+		
+	endif()
