@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,13 +41,12 @@ function(prepare_files)
 		file(WRITE ${DIR}/pool${bin_version}a
 			"PMEMPOOLSET
 16M ${DIR}/part${bin_version}a")
-		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
-				${DIR}/pool${bin_version}a)
-		
+		execute(0 ${TEST_DIR}/create_${bin_version}
+			${DIR}/pool${bin_version}a)
 		file(WRITE ${DIR}/pool${bin_version}c
 			"PMEMPOOLSET
 16M ${DIR}/part${bin_version}c")
-		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
+		execute(0 ${TEST_DIR}/create_${bin_version}
 			${DIR}/pool${bin_version}c)
 	endforeach()
 
