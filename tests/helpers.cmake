@@ -30,28 +30,35 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.3)
-set(DIR ${PARENT_DIR}/😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋${TEST_NAME})
-
+if(NOT WIN32)
+set(DIR ${PARENT_DIR}/PMDKBIN${TEST_NAME})
+else()
+set(DIR ${PARENT_DIR}PMDKBIN${TEST_NAME})
+endif()
 # convert the version list to the array
 string(REPLACE " " ";" VERSIONS ${VERSIONS})
 
-if (WIN32)
-	set(EXE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG})
-	set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/../tests/${CONFIG})
+ if (WIN32)
+		set(EXE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG})
+		set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/../tests/${CONFIG})
 else()
 	set(EXE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../)
 	set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/../tests/)
-endif()
+ endif()
 
 # tries to open the ${pool} with all PMDK ${VERSIONS}
 # expect a success when a pmdk version is on the ${correct} list
 function(check_open pool correct)
+if(NOT WIN32)
 	string(REPLACE " " ";" correct ${correct})
+endif()
 	foreach(it ${VERSIONS})
 		string(REPLACE "." "" app ${it})
 		if (${it} IN_LIST correct)
+			message("Execute 1 vesrion open with test_dir:${TEST_DIR}")
 			execute(0 ${TEST_DIR}/open_${app} ${pool})
 		else()
+		message("Execute 2 vesrion open with test_dir:${TEST_DIR}")
 			execute(2 ${TEST_DIR}/open_${app} ${pool})
 		endif()
 	endforeach(it)
@@ -111,15 +118,13 @@ endfunction()
 function(test_intr_tx prepare_files)
 	set(curr_scenario 0)
 	set(last_scenario 9)
-
 	list(LENGTH VERSIONS num)
 	math(EXPR num "${num} - 1")
-
 	while(NOT curr_scenario GREATER last_scenario)
 		prepare_files()
 		set(index 1)
-
 		while(index LESS num)
+
 			list(GET VERSIONS ${index} curr_version)
 
 			math(EXPR next "${index} + 1")
@@ -135,10 +140,11 @@ function(test_intr_tx prepare_files)
 			endif()
 
 			lock_tx_intr()
-
+			
+			
 			execute(0 gdb --batch
-				--command=${SRC_DIR}/trip_on_pre_commit.gdb
-				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				 --command=${SRC_DIR}/trip_on_pre_commit.gdb
+				 --args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
 				${DIR}/pool${curr_bin_version}a c ${curr_scenario})
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
 				--to=${next_version} ${DIR}/pool${curr_bin_version}a
@@ -146,11 +152,12 @@ function(test_intr_tx prepare_files)
 			execute(0
 				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
 				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-
-			execute(0 gdb --batch
-				--command=${SRC_DIR}/trip_on_post_commit.gdb
-				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
-				${DIR}/pool${curr_bin_version}c c ${curr_scenario})
+			 execute(0 gdb --batch
+				 --command=${SRC_DIR}/trip_on_post_commit.gdb
+				 --args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				 ${DIR}/pool${curr_bin_version}c c ${curr_scenario})
+			  
+				
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
 				--to=${next_version} ${DIR}/pool${curr_bin_version}c
 				-X fail-safety ${mutex})
@@ -158,6 +165,58 @@ function(test_intr_tx prepare_files)
 				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
 				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
 
+			unlock_tx_intr()
+
+			MATH(EXPR index "${index} + 1")
+		endwhile()
+
+		MATH(EXPR curr_scenario "${curr_scenario} + 1")
+	endwhile()
+endfunction()
+
+function(test_intr_tx_win prepare_files)
+	set(curr_scenario 0)
+	set(last_scenario 9)
+	list(LENGTH VERSIONS num)
+	math(EXPR num "${num} - 1")
+	while(NOT curr_scenario GREATER last_scenario)
+		prepare_files()
+		set(index 1)
+		while(index LESS num)
+
+			list(GET VERSIONS ${index} curr_version)
+
+			math(EXPR next "${index} + 1")
+			list(GET VERSIONS ${next} next_version)
+
+			string(REPLACE "." "" curr_bin_version ${curr_version})
+			string(REPLACE "." "" next_bin_version ${next_version})
+			
+			lock_tx_intr()
+				 
+			execute(0 #cdb -c \"g;q\"
+				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${curr_bin_version}
+				 ${DIR}/pool${curr_bin_version}a c ${curr_scenario})
+			
+			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
+				${DIR}/pool${curr_bin_version}a
+				-X fail-safety)
+			
+			execute(0
+				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
+				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+			
+			execute(0 #cdb -c \"g;q\"
+				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${curr_bin_version}
+				 ${DIR}/pool${curr_bin_version}c c ${curr_scenario})
+			
+			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
+				 ${DIR}/pool${curr_bin_version}c
+				-X fail-safety)
+			execute(0
+				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
+				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+				
 			unlock_tx_intr()
 
 			MATH(EXPR index "${index} + 1")

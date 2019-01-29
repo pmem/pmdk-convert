@@ -33,7 +33,6 @@ include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
 
 set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/test
 	CACHE STRING "working directory for tests")
-
 option(TESTS_USE_FORCED_PMEM "let tests force enable or force disable use of optimized flush in libpmemobj (to speed them up)" OFF)
 
 set(DEVICE_DAX_PATHS "" CACHE STRING
@@ -44,6 +43,7 @@ set(GLOBAL_TEST_ARGS
 	-DPARENT_DIR=${TEST_DIR}/
 	-DTESTS_USE_FORCED_PMEM=${TESTS_USE_FORCED_PMEM}
 	-DDEVICE_DAX_PATHS=${DEVICE_DAX_PATHS})
+
 
 # convert the DEVICE_DAX_PATHS list to the array
 if(DEVICE_DAX_PATHS)
@@ -75,9 +75,11 @@ endfunction()
 if(WIN32)
 	set(OPEN_SOURCE openW.c)
 	set(CREATE_SOURCE createW.c)
+	set(TRANSACTION_SOURCE transactionW.c)
 else()
 	set(OPEN_SOURCE open.c)
 	set(CREATE_SOURCE create.c)
+	set(TRANSACTION_SOURCE transaction.c)
 endif()
 
 if(BUILD_CONVERT_V1)
@@ -499,7 +501,8 @@ if(NOT WIN32)
 		target_link_libraries(transaction_12 PRIVATE pmemobj_12)
 	endif()
 
-	if(BUILD_CONVERT_V4)
+	if(BUILD_13)
+
 		add_executable(transaction_13 transaction.c)
 		disable_optimization(transaction_13)
 		target_include_directories(transaction_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
@@ -510,18 +513,21 @@ if(NOT WIN32)
 	if(BUILD_CONVERT_V4)
 		add_executable(transaction_14 transaction.c)
 		disable_optimization(transaction_14)
-		target_include_directories(transaction_14 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/src/include)
+		target_include_directories(transaction_14  PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/src/include)
 		target_link_libraries(transaction_14 PRIVATE libpmem-convert)
 		target_link_libraries(transaction_14 PRIVATE pmemobj_14)
 	endif()
-
+	
 	if(BUILD_CONVERT_V5)
 		add_executable(transaction_15 transaction.c)
 		disable_optimization(transaction_15)
 		target_include_directories(transaction_15 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/include)
 		target_link_libraries(transaction_15 PRIVATE libpmem-convert)
 		target_link_libraries(transaction_15 PRIVATE pmemobj_15)
+		
 	endif()
+else()
+	add_subdirectory(transactionW)
 endif()
 
 test("cli_test" cli)
@@ -574,4 +580,16 @@ if(NOT WIN32)
 		test("tx_intr_poolset_local_2regfiles_rep_2devdaxes"
 			tx_intr_poolset_local_2regfiles_rep_2devdaxes)
 	endif()
+else()
+	add_executable(clean_pool clean.c)
+	target_include_directories(clean_pool PRIVATE ${LIBPMEMPOOL_INCLUDE_DIRS})
+	target_link_libraries(clean_pool PRIVATE ${LIBPMEMPOOL_LIBRARIES})
+
+	file(WRITE ${TEST_DIR}/../tx_intr.lock "")
+
+	test("tx_intr_pool_regfile_win" tx_intr_pool_regfile_win)
+	test("tx_intr_poolset_local_2regfiles_win" tx_intr_poolset_local_2regfiles_win)
+	test("tx_intr_poolset_local_regfile_win" tx_intr_poolset_local_regfile_win)
+	test("tx_intr_poolset_local_regfile_rep_regfile_win" tx_intr_poolset_local_regfile_rep_regfile_win)
+
 endif()
