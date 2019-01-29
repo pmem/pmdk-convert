@@ -42,9 +42,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef _WIN32
 #include <string>
-#endif
 #include "libpmemobj.h"
 
 POBJ_LAYOUT_BEGIN(convert);
@@ -590,26 +588,18 @@ main(int argc, char *argv[])
 		printf("usage: %s file [c|va|vc] scenario", argv[0]);
 
 	const char *path = argv[1];
-#ifdef _WIN32
+
 	std::wstring wc(strlen(path), L'#');
 	mbstowcs(&wc[0], path, strlen(path)+1);
-#endif 
 	int prepare_pool = argv[2][0] == 'c';
 	int verify_abort = argv[2][1] == 'a';
 	int sc = atoi(argv[3]);
 
 	PMEMobjpool *pop = NULL;
-#ifdef _WIN32
 	if ((pop = pmemobj_open(wc.c_str(), NULL)) == NULL) {
-		printf("failed to open pool\n");
-		exit(24);
-	}
-#else
-	if ((pop = pmemobj_open(path, NULL)) == NULL) {
 			printf("failed to open pool\n");
 			exit(24);
 	}
-#endif
 
 	if (prepare_pool)
 		scenarios[sc].create(pop);
