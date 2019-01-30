@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 
 #
 # run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of libpmemobj-cpp.
+#                and starts a build of pmdk-convert.
 #
 
 set -e

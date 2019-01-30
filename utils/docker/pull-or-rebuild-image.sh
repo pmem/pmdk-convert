@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,7 @@
 # with Dockerfiles were modified and committed.
 #
 # If the Travis build is not of the "pull_request" type (i.e. in case of
-# merge after pull_request) and it succeed, the Docker image should be pushed
+# merge after pull_request) and it succeeds, the Docker image should be pushed
 # to the Docker Hub repository. An empty file is created to signal that to
 # further scripts.
 #
