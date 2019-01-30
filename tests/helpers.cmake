@@ -30,6 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.3)
+
 if(NOT WIN32)
 set(DIR ${PARENT_DIR}/PMDKBIN${TEST_NAME})
 else()
@@ -118,11 +119,13 @@ endfunction()
 function(test_intr_tx prepare_files)
 	set(curr_scenario 0)
 	set(last_scenario 9)
+
 	list(LENGTH VERSIONS num)
 	math(EXPR num "${num} - 1")
 	while(NOT curr_scenario GREATER last_scenario)
 		prepare_files()
 		set(index 1)
+
 		while(index LESS num)
 
 			list(GET VERSIONS ${index} curr_version)
@@ -140,11 +143,10 @@ function(test_intr_tx prepare_files)
 			endif()
 
 			lock_tx_intr()
-			
-			
+
 			execute(0 gdb --batch
-				 --command=${SRC_DIR}/trip_on_pre_commit.gdb
-				 --args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				--command=${SRC_DIR}/trip_on_pre_commit.gdb
+				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
 				${DIR}/pool${curr_bin_version}a c ${curr_scenario})
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
 				--to=${next_version} ${DIR}/pool${curr_bin_version}a
@@ -152,12 +154,11 @@ function(test_intr_tx prepare_files)
 			execute(0
 				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
 				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-			 execute(0 gdb --batch
-				 --command=${SRC_DIR}/trip_on_post_commit.gdb
-				 --args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
-				 ${DIR}/pool${curr_bin_version}c c ${curr_scenario})
-			  
-				
+
+			execute(0 gdb --batch
+				--command=${SRC_DIR}/trip_on_post_commit.gdb
+				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				${DIR}/pool${curr_bin_version}c c ${curr_scenario})
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
 				--to=${next_version} ${DIR}/pool${curr_bin_version}c
 				-X fail-safety ${mutex})
@@ -179,11 +180,11 @@ function(test_intr_tx_win prepare_files)
 	set(last_scenario 9)
 	list(LENGTH VERSIONS num)
 	math(EXPR num "${num} - 1")
+
 	while(NOT curr_scenario GREATER last_scenario)
 		prepare_files()
 		set(index 1)
 		while(index LESS num)
-
 			list(GET VERSIONS ${index} curr_version)
 
 			math(EXPR next "${index} + 1")
