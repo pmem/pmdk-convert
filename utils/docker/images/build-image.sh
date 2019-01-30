@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 
 #
 # build-image.sh <OS-VER> - prepares a Docker image with <OS>-based
-#                           environment for testing libpmemobj-cpp, according
+#                           environment for testing pmdk-convert, according
 #                           to the Dockerfile.<OS-VER> file located
 #                           in the same directory.
 #
