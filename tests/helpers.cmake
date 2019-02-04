@@ -47,6 +47,11 @@ else()
 	set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/../tests/)
  endif()
 
+ if(WIN32)
+	set(CDB_DIR "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe")
+	set(CDB_v14 "bm pmemobj_14!tx_pre_commit \".if ( poi (transaction_14!trap) == 1 ) {} .else {gc}\"\;g\;q")
+	set(CDB_v15 "bm pmemobj_15!tx_pre_commit \".if ( poi (transaction_14!trap) == 1 ) {}. else {gc}\"\;g\;q")
+ endif()
 # tries to open the ${pool} with all PMDK ${VERSIONS}
 # expect a success when a pmdk version is on the ${correct} list
 function(check_open pool correct)
@@ -194,23 +199,20 @@ function(test_intr_tx_win prepare_files)
 			string(REPLACE "." "" next_bin_version ${next_version})
 			
 			lock_tx_intr()
-				 
-			execute(0 #cdb -c \"g;q\"
+
+			execute_process(COMMAND ${CDB_DIR}  -c ${CDB_v14}
 				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${curr_bin_version}
-				 ${DIR}/pool${curr_bin_version}a c ${curr_scenario})
-			
+				${DIR}/pool${curr_bin_version}a c ${curr_scenario}
+				RESULT_VARIABLE aRET)
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
 				${DIR}/pool${curr_bin_version}a
 				-X fail-safety)
-			
 			execute(0
 				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
 				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-			
-			execute(0 #cdb -c \"g;q\"
+			execute_process(COMMAND ${CDB_DIR}  -c ${CDB_v15}
 				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${curr_bin_version}
-				 ${DIR}/pool${curr_bin_version}c c ${curr_scenario})
-			
+				 ${DIR}/pool${curr_bin_version}c c ${curr_scenario} RESULT_VARIABLE cRET)
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
 				 ${DIR}/pool${curr_bin_version}c
 				-X fail-safety)

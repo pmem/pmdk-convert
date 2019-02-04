@@ -132,7 +132,6 @@ sc0_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	trap = 1;
-
 	TX_BEGIN(pop) {
 		TX_ADD(rt);
 		D_RW(rt)->value[0] = TEST_VALUE;
