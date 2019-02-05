@@ -33,6 +33,7 @@ include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
 
 set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/test
 	CACHE STRING "working directory for tests")
+
 option(TESTS_USE_FORCED_PMEM "let tests force enable or force disable use of optimized flush in libpmemobj (to speed them up)" OFF)
 
 set(DEVICE_DAX_PATHS "" CACHE STRING
@@ -43,7 +44,6 @@ set(GLOBAL_TEST_ARGS
 	-DPARENT_DIR=${TEST_DIR}/
 	-DTESTS_USE_FORCED_PMEM=${TESTS_USE_FORCED_PMEM}
 	-DDEVICE_DAX_PATHS=${DEVICE_DAX_PATHS})
-
 
 # convert the DEVICE_DAX_PATHS list to the array
 if(DEVICE_DAX_PATHS)
@@ -517,14 +517,13 @@ if(NOT WIN32)
 		target_link_libraries(transaction_14 PRIVATE libpmem-convert)
 		target_link_libraries(transaction_14 PRIVATE pmemobj_14)
 	endif()
-	
+
 	if(BUILD_CONVERT_V5)
 		add_executable(transaction_15 transaction.c)
 		disable_optimization(transaction_15)
 		target_include_directories(transaction_15 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/include)
 		target_link_libraries(transaction_15 PRIVATE libpmem-convert)
 		target_link_libraries(transaction_15 PRIVATE pmemobj_15)
-		
 	endif()
 else()
 	add_subdirectory(transactionW)

@@ -59,10 +59,8 @@ endif()
 	foreach(it ${VERSIONS})
 		string(REPLACE "." "" app ${it})
 		if (${it} IN_LIST correct)
-			message("Execute 1 vesrion open with test_dir:${TEST_DIR}")
 			execute(0 ${TEST_DIR}/open_${app} ${pool})
 		else()
-		message("Execute 2 vesrion open with test_dir:${TEST_DIR}")
 			execute(2 ${TEST_DIR}/open_${app} ${pool})
 		endif()
 	endforeach(it)
@@ -125,12 +123,12 @@ function(test_intr_tx prepare_files)
 
 	list(LENGTH VERSIONS num)
 	math(EXPR num "${num} - 1")
+
 	while(NOT curr_scenario GREATER last_scenario)
 		prepare_files()
 		set(index 1)
 
 		while(index LESS num)
-
 			list(GET VERSIONS ${index} curr_version)
 
 			math(EXPR next "${index} + 1")
