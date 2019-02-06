@@ -24,11 +24,12 @@ before_build:
         -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake
         -DCMAKE_INSTALL_PREFIX=c:/install/pmdk-convert
         -DCMAKE_SYSTEM_VERSION="10.0.26624"
+        -DTESTS_USE_FORCED_PMEM=ON 
 
 build_script:
 - msbuild build/ALL_BUILD.vcxproj /property:Configuration=%CONFIGURATION%
 
 test_script:
 - cd build
-- ctest -C %CONFIGURATION% --output-on-failure -DTESTS_USE_FORCED_PMEM=ON 
+- ctest -C %CONFIGURATION% --output-on-failure 
 - msbuild INSTALL.vcxproj
