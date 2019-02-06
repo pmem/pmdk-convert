@@ -30,5 +30,5 @@ build_script:
 
 test_script:
 - cd build
-- ctest -C %CONFIGURATION% --output-on-failure
+- ctest -C %CONFIGURATION% --output-on-failure -DTESTS_USE_FORCED_PMEM=ON 
 - msbuild INSTALL.vcxproj
