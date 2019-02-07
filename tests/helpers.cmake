@@ -195,7 +195,7 @@ function(test_intr_tx_win prepare_files)
 			string(REPLACE "." "" next_bin_version ${next_version})
 			
 			set(CDB_PRE_COMMIT_COMMAND "bm pmemobj_${curr_bin_version}!tx_pre_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {} .else {gc}\"\;g\;q")
-			set(CDB_POST_COMMIT_COMMAND "bm pmemobj_${curr_bin_version}!tx_post_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {}. else {gc}\"\;g\;q")
+			set(CDB_POST_COMMIT_COMMAND "bm pmemobj_${curr_bin_version}!tx_post_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {} .else {gc}\"\;g\;q")
 
 			lock_tx_intr()
 
