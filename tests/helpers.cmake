@@ -194,24 +194,24 @@ function(test_intr_tx_win prepare_files)
 			string(REPLACE "." "" curr_bin_version ${curr_version})
 			string(REPLACE "." "" next_bin_version ${next_version})
 			
-			set(CDB_CURRENT_VER_COMMAND "bm pmemobj_${curr_bin_version}!tx_pre_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {} .else {gc}\"\;g\;q")
-			set(CDB_NEXT_VER_COMMAND "bm pmemobj_${next_bin_version}!tx_pre_commit \".if ( poi (transaction_${next_bin_version}!trap) == 1 ) {}. else {gc}\"\;g\;q")
+			set(CDB_PRE_COMMIT_COMMAND "bm pmemobj_${curr_bin_version}!tx_pre_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {} .else {gc}\"\;g\;q")
+			set(CDB_POST_COMMIT_COMMAND "bm pmemobj_${curr_bin_version}!tx_post_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {}. else {gc}\"\;g\;q")
 
 			lock_tx_intr()
 
-			execute_process(COMMAND ${CDB_DIR}  -c ${CDB_CURRENT_VER_COMMAND}
+			execute_process(COMMAND ${CDB_DIR}  -c ${CDB_PRE_COMMIT_COMMAND}
 				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${curr_bin_version}
 				${DIR}/pool${curr_bin_version}a c ${curr_scenario}
-				RESULT_VARIABLE aRET)
+				RESULT_VARIABLE PRE_RET)
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
 				${DIR}/pool${curr_bin_version}a
 				-X fail-safety)
 			execute(0
 				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
 				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-			execute_process(COMMAND ${CDB_DIR}  -c ${CDB_NEXT_VER_COMMAND}
+			execute_process(COMMAND ${CDB_DIR}  -c ${CDB_POST_COMMIT_COMMAND}
 				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${curr_bin_version}
-				 ${DIR}/pool${curr_bin_version}c c ${curr_scenario} RESULT_VARIABLE cRET)
+				 ${DIR}/pool${curr_bin_version}c c ${curr_scenario} RESULT_VARIABLE POST_RET)
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
 				 ${DIR}/pool${curr_bin_version}c
 				-X fail-safety)
