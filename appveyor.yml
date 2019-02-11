@@ -31,5 +31,5 @@ build_script:
 
 test_script:
 - cd build
-- ctest -C %CONFIGURATION% --output-on-failure -R tx_intr_poolset_local_regfile_win --verbose
+- ctest -C %CONFIGURATION% --output-on-failure
 - msbuild INSTALL.vcxproj
