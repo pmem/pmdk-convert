@@ -52,7 +52,7 @@ POBJ_LAYOUT_TOID(convert, struct bar);
 POBJ_LAYOUT_END(convert);
 
 #define SMALL_ALLOC (64)
-#define BIG_ALLOC (1024 * 200) /* just big enough to be a huge allocation */
+#define BIG_ALLOC (1024 * 10) /* just big enough to be a huge allocation */
 
 struct bar {
 	char value[BIG_ALLOC];
