@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@ project(pmdk-convert C)
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 5)
 set(VERSION_PATCH 1)
-set(VERSION_PRERELEASE rc1)
+set(VERSION_PRERELEASE rc2)
 
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
 if (VERSION_PATCH GREATER 0)
@@ -270,19 +270,19 @@ function(uncompress file)
 endfunction()
 
 if(BUILD_CONVERT_V5)
-	set(NVML15 1.5)
+	set(NVML15 1.5.1-rc2)
 
 	set(pkg nvml-${NVML15}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML15}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/1.5.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=6b069d7207febeb62440e89245e8b18fcdf40b6170d2ec2ef33c252ed16db2d4)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/1.5.1-rc2.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=cc5307c04c9b086bab57fa4054564825777c863d6ede78e8e0341cf1f6a58bf2)
 		message(STATUS "Downloading NVML ${NVML15} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.5)
 		uncompress(${pkg})
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-1.5 ${CMAKE_SOURCE_DIR}/nvml-1.5)
+		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-1.5.1-rc2 ${CMAKE_SOURCE_DIR}/nvml-1.5)
 	endif()
 
 
@@ -414,7 +414,7 @@ if(BUILD_CONVERT_V5)
 			)
 	else()
 		set(SOURCES_15 ${SOURCES_15}
-			nvml-1.5/src/common/badblock_linux.c
+			nvml-1.5/src/common/badblock_ndctl.c
 			nvml-1.5/src/common/extent_linux.c
 			nvml-1.5/src/common/file_posix.c
 			nvml-1.5/src/common/fs_posix.c
@@ -560,7 +560,7 @@ if(BUILD_CONVERT_V5)
 			)
 	else()
 		set(LIBPMEMPOOL_SOURCES ${LIBPMEMPOOL_SOURCES}
-			nvml-1.5/src/common/badblock_linux.c
+			nvml-1.5/src/common/badblock_ndctl.c
 			nvml-1.5/src/common/extent_linux.c
 			nvml-1.5/src/common/file_posix.c
 			nvml-1.5/src/common/fs_posix.c

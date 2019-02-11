@@ -239,7 +239,7 @@ if(BUILD_CONVERT_V5)
 			)
 	else()
 		set(COMMON_SOURCES ${COMMON_SOURCES}
-			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/badblock_linux.c
+			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/badblock_ndctl.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/extent_linux.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/file_posix.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/fs_posix.c
