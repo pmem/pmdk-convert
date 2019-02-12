@@ -37,7 +37,7 @@ project(pmdk-convert C)
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 5)
 set(VERSION_PATCH 1)
-set(VERSION_PRERELEASE rc3)
+set(VERSION_PRERELEASE rc4)
 
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
 if (VERSION_PATCH GREATER 0)
@@ -402,7 +402,7 @@ if(BUILD_CONVERT_V5)
 	if(WIN32)
 		set(SOURCES_15 ${SOURCES_15}
 			nvml-1.5/src/libpmemobj/libpmemobj_main.c
-			nvml-1.5/src/common/badblock_windows.c
+			nvml-1.5/src/common/badblock_none.c
 			nvml-1.5/src/common/file_windows.c
 			nvml-1.5/src/common/fs_windows.c
 			nvml-1.5/src/common/mmap_windows.c
@@ -548,7 +548,7 @@ if(BUILD_CONVERT_V5)
 	if(WIN32)
 		set(LIBPMEMPOOL_SOURCES ${LIBPMEMPOOL_SOURCES}
 			nvml-1.5/src/libpmempool/libpmempool_main.c
-			nvml-1.5/src/common/badblock_windows.c
+			nvml-1.5/src/common/badblock_none.c
 			nvml-1.5/src/common/file_windows.c
 			nvml-1.5/src/common/fs_windows.c
 			nvml-1.5/src/common/mmap_windows.c

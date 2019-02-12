@@ -227,7 +227,7 @@ if(BUILD_CONVERT_V5)
 
 	if(WIN32)
 		set(COMMON_SOURCES ${COMMON_SOURCES}
-			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/badblock_windows.c
+			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/badblock_none.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/file_windows.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/fs_windows.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/mmap_windows.c
