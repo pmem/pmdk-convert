@@ -1,3 +1,12 @@
+Fri Feb 12 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.5.1-rc4
+
+	This release fixes minor bugs.
+
+	- conversion should fail if stdin is empty
+	- remote poolset should be detected before layout detection
+
 Fri Oct 26 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.5

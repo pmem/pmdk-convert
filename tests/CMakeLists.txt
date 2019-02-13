@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -229,7 +229,7 @@ if(BUILD_CONVERT_V5)
 
 	if(WIN32)
 		set(COMMON_SOURCES ${COMMON_SOURCES}
-			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/badblock_windows.c
+			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/badblock_none.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/file_windows.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/fs_windows.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/mmap_windows.c
@@ -241,7 +241,7 @@ if(BUILD_CONVERT_V5)
 			)
 	else()
 		set(COMMON_SOURCES ${COMMON_SOURCES}
-			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/badblock_linux.c
+			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/badblock_ndctl.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/extent_linux.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/file_posix.c
 			${CMAKE_SOURCE_DIR}/nvml-1.5/src/common/fs_posix.c

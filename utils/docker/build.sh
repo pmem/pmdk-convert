@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,15 +31,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# build-local.sh - runs a Docker container from a Docker image with environment
-#                  prepared for running pmdk-convert tests and run those tests.
+# build.sh - runs a Docker container from a Docker image with environment
+#            prepared for running pmdk-convert tests and run these tests.
 #
 #
 # Notes:
 # - run this script from its location or set the variable 'HOST_WORKDIR' to
 #   where the root of this project is on the host machine,
 # - set variables 'OS' and 'OS_VER' properly to a system you want to build this
-#	repo on (for proper values take a look on the list of Dockerfiles at the
+#   repo on (for proper values take a look on the list of Dockerfiles at the
 #   utils/docker/images directory), eg. OS=ubuntu, OS_VER=16.04.
 #
 
