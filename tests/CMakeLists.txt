@@ -586,9 +586,10 @@ else()
 
 	file(WRITE ${TEST_DIR}/../tx_intr.lock "")
 
-	test("tx_intr_pool_regfile_win" tx_intr_pool_regfile_win)
-	test("tx_intr_poolset_local_2regfiles_win" tx_intr_poolset_local_2regfiles_win)
-	test("tx_intr_poolset_local_regfile_win" tx_intr_poolset_local_regfile_win)
-	test("tx_intr_poolset_local_regfile_rep_regfile_win" tx_intr_poolset_local_regfile_rep_regfile_win)
+	test("tx_intr_pool_regfile_win" $<$<CONFIG:DEBUG>:tx_intr_pool_regfile_win>$<$<CONFIG:RELEASE>:skip_test>)
+	test("tx_intr_poolset_local_2regfiles_win" $<$<CONFIG:DEBUG>:tx_intr_poolset_local_2regfiles_win>$<$<CONFIG:RELEASE>:skip_test>)
+	test("tx_intr_poolset_local_regfile_win" $<$<CONFIG:DEBUG>:tx_intr_poolset_local_regfile_win>$<$<CONFIG:RELEASE>:skip_test>)
+	test("tx_intr_poolset_local_regfile_rep_regfile_win" $<$<CONFIG:DEBUG>:tx_intr_poolset_local_regfile_rep_regfile_win>$<$<CONFIG:RELEASE>:skip_test>)
+	
 
 endif()

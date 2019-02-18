@@ -37,10 +37,8 @@ function(prepare_files)
 
 	foreach(version ${VERSIONS})
 		string(REPLACE "." "" bin_version ${version})
-		message(STATUS "Execute 1")
 		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/${CONFIG}/create_${bin_version}
 				${DIR}/pool${bin_version}a 16)
-		message(STATUS "Execute 2")
 		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/${CONFIG}/create_${bin_version}
 				${DIR}/pool${bin_version}c 16)
 	endforeach()
