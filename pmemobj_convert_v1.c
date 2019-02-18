@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -87,21 +87,15 @@ pmemobj_convert(const char *path, unsigned force)
 
 	pmemobj_close(pop);
 
-	static char errstr[500];
 	const char *ret = NULL;
 	struct pmem_pool_params params;
-	if (pmem_pool_parse_params(path, &params, 1)) {
-		sprintf(errstr, "cannot open pool: %s", strerror(errno));
-		ret = errstr;
-		return ret;
-	}
+	if (pmem_pool_parse_params(path, &params, 1))
+		return get_error("cannot open pool: %s", strerror(errno));
 
 	struct pool_set_file *psf = pool_set_file_open(path, 0, 1);
 	if (psf == NULL) {
-		sprintf(errstr, "pool_set_file_open failed: %s",
+		return get_error("pool_set_file_open failed: %s",
 				strerror(errno));
-		ret = errstr;
-		return ret;
 	}
 
 	void *addr = pool_set_file_map(psf, 0);
@@ -114,14 +108,12 @@ pmemobj_convert(const char *path, unsigned force)
 	uint32_t m = le32toh(phdr->major);
 	if (m != OBJ_FORMAT_MAJOR) {
 		/* shouldn't be possible, because pool open succeeded earlier */
-		sprintf(errstr, "invalid pool version: %d", m);
-		ret = errstr;
+		ret = get_error("invalid pool version: %d", m);
 		goto pool_set_close;
 	}
 
 	if (pool_set_file_map_headers(psf, 0, POOL_HDR_SIZE)) {
-		sprintf(errstr, "mapping headers failed: %s", strerror(errno));
-		ret = errstr;
+		ret = get_error("mapping headers failed: %s", strerror(errno));
 		goto pool_set_close;
 	}
 
