@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -117,7 +117,7 @@ open_lib(const char *name)
 {
 	char *argv0copy = strdup(AppName);
 	char *dir = dirname(argv0copy);
-	char path[2][strlen(dir) + 100];
+	char path[2][strlen(dir) + strlen(name) + strlen(LIBDIR) + 100];
 	char *reason0 = NULL;
 
 	sprintf(path[0], "%s/%s.so", dir, name);
@@ -216,7 +216,7 @@ open_lib(const char *name)
 {
 	char *argv0copy = strdup(AppName);
 	char *dir = dirname(argv0copy);
-	char *path = malloc(strlen(dir) + 100);
+	char *path = malloc(strlen(dir) + strlen(name) + 100);
 
 	if (path == NULL) {
 		fprintf(stderr, "malloc failed");
