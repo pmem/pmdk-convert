@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,8 +33,37 @@
 #ifndef PMEMOBJ_CONVERT_H
 #define PMEMOBJ_CONVERT_H
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #define QUEST_FAIL_SAFETY  (1U << 0)
 #define QUEST_12_PMEMMUTEX (1U << 1)
+
+#ifdef __GNUC__
+#define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
+#else
+#define FORMAT_PRINTF(a, b)
+#endif
+
+FORMAT_PRINTF(1, 2)
+static inline char *
+get_error(const char *format, ...)
+{
+	static char errstr[500];
+	int ret;
+	va_list ap;
+
+	va_start(ap, format);
+	ret = vsnprintf(errstr, sizeof(errstr), format, ap);
+	va_end(ap);
+	if (ret < 0)
+		sprintf(errstr, "vsnsprintf error %d (%d)", ret, errno);
+	else if (ret >= (int)sizeof(errstr))
+		sprintf(errstr + sizeof(errstr) - 20, "... (truncated)");
+
+	return errstr;
+}
+
 
 const char *pmemobj_convert(const char *path, unsigned force);
 int pmemobj_convert_try_open(char *path);
