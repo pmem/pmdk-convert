@@ -270,19 +270,19 @@ function(uncompress file)
 endfunction()
 
 if(BUILD_CONVERT_V5)
-	set(NVML15 1.5.1-rc2)
+	set(NVML15 1.5.1)
 
 	set(pkg nvml-${NVML15}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML15}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/1.5.1-rc2.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=cc5307c04c9b086bab57fa4054564825777c863d6ede78e8e0341cf1f6a58bf2)
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/1.5.1.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
+			EXPECTED_HASH SHA256=501f27e341248e206c8632d7c12007dc7690583f90e081569d6d5786fa3bf1f1)
 		message(STATUS "Downloading NVML ${NVML15} done")
 	endif()
 
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.5)
 		uncompress(${pkg})
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-1.5.1-rc2 ${CMAKE_SOURCE_DIR}/nvml-1.5)
+		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-1.5.1 ${CMAKE_SOURCE_DIR}/nvml-1.5)
 	endif()
 
 
