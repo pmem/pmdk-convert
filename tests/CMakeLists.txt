@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -75,11 +75,9 @@ endfunction()
 if(WIN32)
 	set(OPEN_SOURCE openW.c)
 	set(CREATE_SOURCE createW.c)
-	set(TRANSACTION_SOURCE transactionW.c)
 else()
 	set(OPEN_SOURCE open.c)
 	set(CREATE_SOURCE create.c)
-	set(TRANSACTION_SOURCE transaction.c)
 endif()
 
 if(BUILD_CONVERT_V1)
