@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,9 +53,7 @@ else()
 # tries to open the ${pool} with all PMDK ${VERSIONS}
 # expect a success when a pmdk version is on the ${correct} list
 function(check_open pool correct)
-if(NOT WIN32)
 	string(REPLACE " " ";" correct ${correct})
-endif()
 	foreach(it ${VERSIONS})
 		string(REPLACE "." "" app ${it})
 		if (${it} IN_LIST correct)
@@ -82,7 +80,6 @@ endfunction()
 # the command.
 function(execute_arg input expectation name)
 	if(TESTS_USE_FORCED_PMEM)
-		message(STATUS "Pmem_force mode is on")
 		set(ENV{PMEM_IS_PMEM_FORCE} 1)
 	endif()
 
@@ -100,7 +97,6 @@ function(execute_arg input expectation name)
 			ERROR_FILE ${BIN_DIR}/err)
 	endif()
 	if(TESTS_USE_FORCED_PMEM)
-	message(STATUS "Pmem_force mode is off")
 		unset(ENV{PMEM_IS_PMEM_FORCE})
 	endif()
 
@@ -117,6 +113,32 @@ endfunction()
 
 function(execute expectation name)
 	execute_arg("" ${expectation} ${name} ${ARGN})
+endfunction()
+
+
+function(execute_cdb MODE SRC_VERSION SCENARIO)
+	set(CDB_PRE_COMMIT_COMMAND "bm pmemobj_${SRC_VERSION}!tx_pre_commit \".if ( poi (transaction_${SRC_VERSION}!trap) == 1 ) {} .else {gc}\"\;g\;q")
+	set(CDB_POST_COMMIT_COMMAND "bm pmemobj_${SRC_VERSION}!tx_post_commit \".if ( poi (transaction_${SRC_VERSION}!trap) == 1 ) {} .else {gc}\"\;g\;q")
+	
+	if(TESTS_USE_FORCED_PMEM)
+		set(ENV{PMEM_IS_PMEM_FORCE} 1)
+	endif()
+	
+	if(MODE EQUAL 0)
+		execute_process(COMMAND ${CDB_DIR}  -c ${CDB_PRE_COMMIT_COMMAND}
+			${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${SRC_VERSION}
+			${DIR}/pool${SRC_VERSION}a c ${SCENARIO}
+			RESULT_VARIABLE CDB_RET)
+	elseif(MODE EQUAL 1)
+		execute_process(COMMAND ${CDB_DIR}  -c ${CDB_POST_COMMIT_COMMAND}
+			${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${SRC_VERSION}
+			${DIR}/pool${SRC_VERSION}c c ${SCENARIO}
+			RESULT_VARIABLE CDB_RET)
+	endif()
+	
+	if(TESTS_USE_FORCED_PMEM)
+		unset(ENV{PMEM_IS_PMEM_FORCE})
+	endif()
 endfunction()
 
 function(test_intr_tx prepare_files)
@@ -201,19 +223,15 @@ function(test_intr_tx_win prepare_files)
 
 			lock_tx_intr()
 
-			execute_process(COMMAND ${CDB_DIR}  -c ${CDB_PRE_COMMIT_COMMAND}
-				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${curr_bin_version}
-				${DIR}/pool${curr_bin_version}a c ${curr_scenario}
-				RESULT_VARIABLE PRE_RET)
+			execute_cdb(0 ${curr_bin_version} ${curr_scenario})
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
 				${DIR}/pool${curr_bin_version}a
 				-X fail-safety)
 			execute(0
 				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
 				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-			execute_process(COMMAND ${CDB_DIR}  -c ${CDB_POST_COMMIT_COMMAND}
-				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${curr_bin_version}
-				 ${DIR}/pool${curr_bin_version}c c ${curr_scenario} RESULT_VARIABLE POST_RET)
+			
+			execute_cdb(1 ${curr_bin_version} ${curr_scenario})
 			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
 				 ${DIR}/pool${curr_bin_version}c
 				-X fail-safety)
