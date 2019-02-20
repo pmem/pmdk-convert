@@ -294,9 +294,21 @@ if(BUILD_CONVERT_V5)
 		nvml-1.5/src/libpmem/libpmem.c
 		nvml-1.5/src/libpmem/memops_generic.c
 		nvml-1.5/src/libpmem/pmem.c
-		nvml-1.5/src/libpmem/x86_64/init.c
-		nvml-1.5/src/libpmem/x86_64/cpu.c
 		)
+	if (CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64
+		OR CMAKE_SYSTEM_PROCESSOR STREQUAL amd64
+		OR CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64)
+		set(LIBPMEM_SOURCES ${LIBPMEM_SOURCES}
+			nvml-1.5/src/libpmem/x86_64/init.c
+			nvml-1.5/src/libpmem/x86_64/cpu.c
+			)
+	elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
+		set(LIBPMEM_SOURCES ${LIBPMEM_SOURCES}
+			nvml-1.5/src/libpmem/aarch64/init.c
+			)
+	else()
+		message(FATAL_ERROR "Unknown architecture ${CMAKE_SYSTEM_PROCESSOR}")
+	endif()
 	if(WIN32)
 		set(LIBPMEM_SOURCES ${LIBPMEM_SOURCES}
 			nvml-1.5/src/libpmem/libpmem_main.c
