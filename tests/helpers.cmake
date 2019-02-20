@@ -53,9 +53,7 @@ else()
 # tries to open the ${pool} with all PMDK ${VERSIONS}
 # expect a success when a pmdk version is on the ${correct} list
 function(check_open pool correct)
-if(NOT WIN32)
 	string(REPLACE " " ";" correct ${correct})
-endif()
 	foreach(it ${VERSIONS})
 		string(REPLACE "." "" app ${it})
 		if (${it} IN_LIST correct)
@@ -82,7 +80,6 @@ endfunction()
 # the command.
 function(execute_arg input expectation name)
 	if(TESTS_USE_FORCED_PMEM)
-		message(STATUS "Pmem_force mode is on")
 		set(ENV{PMEM_IS_PMEM_FORCE} 1)
 	endif()
 
@@ -100,7 +97,6 @@ function(execute_arg input expectation name)
 			ERROR_FILE ${BIN_DIR}/err)
 	endif()
 	if(TESTS_USE_FORCED_PMEM)
-	message(STATUS "Pmem_force mode is off")
 		unset(ENV{PMEM_IS_PMEM_FORCE})
 	endif()
 
