@@ -80,7 +80,6 @@ endfunction()
 # the command.
 function(execute_arg input expectation name)
 	if(TESTS_USE_FORCED_PMEM)
-		message(STATUS "Pmem_force mode is on")
 		set(ENV{PMEM_IS_PMEM_FORCE} 1)
 	endif()
 
@@ -98,7 +97,6 @@ function(execute_arg input expectation name)
 			ERROR_FILE ${BIN_DIR}/err)
 	endif()
 	if(TESTS_USE_FORCED_PMEM)
-	message(STATUS "Pmem_force mode is off")
 		unset(ENV{PMEM_IS_PMEM_FORCE})
 	endif()
 
