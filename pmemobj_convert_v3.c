@@ -202,8 +202,10 @@ pmemobj_convert(const char *path, unsigned force)
 	}
 
 	if (psf->poolset->remote) {
-		return get_error("Conversion of remotely replicated pools is "
+		ret = get_error("Conversion of remotely replicated pools is "
 			"currently not supported. Remove the replica first");
+		goto pool_set_close;
+
 	}
 
 	void *addr = pool_set_file_map(psf, 0);

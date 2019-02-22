@@ -124,6 +124,10 @@ open_lib(const char *name)
 	void *lib = dlopen(path[0], RTLD_NOW);
 	if (!lib) {
 		reason0 = strdup(dlerror());
+		if (reason0 == NULL) {
+			fprintf(stderr, "strdup failed");
+			exit(OPEN_LIB_FAILED);
+		}
 		sprintf(path[1], "%s/pmdk-convert/%s.so", LIBDIR, name);
 		lib = dlopen(path[1], RTLD_NOW);
 	}
@@ -525,11 +529,14 @@ check_remote(const char *path)
 	struct stat st;
 	if (fstat(fd, &st)) {
 		fprintf(stderr, "fstat failed: %s\n", strerror(errno));
+		close(fd);
 		exit(STAT_FAILED);
 	}
 
-	if (S_ISCHR(st.st_mode))
+	if (S_ISCHR(st.st_mode)) {
+		close(fd);
 		return 0; /* char device(DEVDAX) is not a poolset file */
+	}
 
 	size_t map_size = (size_t)st.st_size;
 	const char *poolset = mmap(NULL, map_size, PROT_READ,
@@ -537,9 +544,11 @@ check_remote(const char *path)
 
 	if (poolset == MAP_FAILED) {
 		fprintf(stderr, "mmap failed: %s\n", strerror(errno));
+		close(fd);
 		exit(MMAP_FAILED);
 	}
 
+	close(fd);
 	if (memcmp(poolset, POOLSET_DESC, sizeof(POOLSET_DESC) - 1) != 0)
 		return 0; /* not a poolset */
 
