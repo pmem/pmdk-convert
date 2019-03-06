@@ -40,10 +40,13 @@ set(DEVICE_DAX_PATHS "" CACHE STRING
 	"for tests that require raw dax devices without a file system. Some tests might require two DAX devices.
 	Example: '/dev/dax1.0 /dev/dax2.0'")
 
+set(CDB_PATH "" CACHE PATH "requied for windows tests with cdb debugger")
+
 set(GLOBAL_TEST_ARGS
 	-DPARENT_DIR=${TEST_DIR}/
 	-DTESTS_USE_FORCED_PMEM=${TESTS_USE_FORCED_PMEM}
-	-DDEVICE_DAX_PATHS=${DEVICE_DAX_PATHS})
+	-DDEVICE_DAX_PATHS=${DEVICE_DAX_PATHS}
+	-DCDB_PATH=${CDB_PATH})
 
 # convert the DEVICE_DAX_PATHS list to the array
 if(DEVICE_DAX_PATHS)
@@ -499,7 +502,7 @@ if(NOT WIN32)
 		target_link_libraries(transaction_12 PRIVATE pmemobj_12)
 	endif()
 
-	if(BUILD_13)
+	if(BUILD_CONVERT_V4)
 
 		add_executable(transaction_13 transaction.c)
 		disable_optimization(transaction_13)
