@@ -30,12 +30,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.3)
+set(DIR ${PARENT_DIR}/😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋${TEST_NAME})
 
-if(NOT WIN32)
-set(DIR ${PARENT_DIR}/PMDKBIN${TEST_NAME})
-else()
-set(DIR ${PARENT_DIR}PMDKBIN${TEST_NAME})
-endif()
 # convert the version list to the array
 string(REPLACE " " ";" VERSIONS ${VERSIONS})
 
@@ -48,7 +44,9 @@ else()
  endif()
 
  if(WIN32)
-	set(CDB_DIR "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe")
+	if(CDB_PATH)
+		find_program(CDB_EXE cdb.exe PATH CDB_PATH)
+	endif()
  endif()
 # tries to open the ${pool} with all PMDK ${VERSIONS}
 # expect a success when a pmdk version is on the ${correct} list
@@ -111,6 +109,16 @@ function(execute_arg input expectation name)
 	endif()
 endfunction()
 
+function(set_cdb_executable)
+message(STATUS "CDB_PATH: ${CDB_PATH}")
+if(EXISTS ${CDB_PATH})
+	find_program(CDB_EXE cdb.exe ${CDB_PATH})
+	message(STATUS "CDB_EXE: ${CDB_EXE}")
+else()
+	unset(CDB_EXE)
+endif()
+endfunction()
+
 function(execute expectation name)
 	execute_arg("" ${expectation} ${name} ${ARGN})
 endfunction()
@@ -125,12 +133,12 @@ function(execute_cdb MODE SRC_VERSION SCENARIO)
 	endif()
 	
 	if(MODE EQUAL 0)
-		execute_process(COMMAND ${CDB_DIR}  -c ${CDB_PRE_COMMIT_COMMAND}
+		execute_process(COMMAND ${CDB_EXE} -c ${CDB_PRE_COMMIT_COMMAND}
 			${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${SRC_VERSION}
 			${DIR}/pool${SRC_VERSION}a c ${SCENARIO}
 			RESULT_VARIABLE CDB_RET)
 	elseif(MODE EQUAL 1)
-		execute_process(COMMAND ${CDB_DIR}  -c ${CDB_POST_COMMIT_COMMAND}
+		execute_process(COMMAND ${CDB_EXE} -c ${CDB_POST_COMMIT_COMMAND}
 			${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${SRC_VERSION}
 			${DIR}/pool${SRC_VERSION}c c ${SCENARIO}
 			RESULT_VARIABLE CDB_RET)
@@ -218,27 +226,28 @@ function(test_intr_tx_win prepare_files)
 			string(REPLACE "." "" curr_bin_version ${curr_version})
 			string(REPLACE "." "" next_bin_version ${next_version})
 			
-			set(CDB_PRE_COMMIT_COMMAND "bm pmemobj_${curr_bin_version}!tx_pre_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {} .else {gc}\"\;g\;q")
-			set(CDB_POST_COMMIT_COMMAND "bm pmemobj_${curr_bin_version}!tx_post_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {} .else {gc}\"\;g\;q")
-
-			lock_tx_intr()
-
-			execute_cdb(0 ${curr_bin_version} ${curr_scenario})
-			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
-				${DIR}/pool${curr_bin_version}a
-				-X fail-safety)
-			execute(0
-				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
-				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+			set_cdb_executable()
 			
-			execute_cdb(1 ${curr_bin_version} ${curr_scenario})
-			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
-				 ${DIR}/pool${curr_bin_version}c
-				-X fail-safety)
-			execute(0
-				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
-				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
-				
+			lock_tx_intr()
+			if(EXISTS ${CDB_EXE})
+				execute_cdb(0 ${curr_bin_version} ${curr_scenario})
+				execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
+					${DIR}/pool${curr_bin_version}a
+					-X fail-safety)
+				execute(0
+					${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
+					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+			
+				execute_cdb(1 ${curr_bin_version} ${curr_scenario})
+				execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
+					${DIR}/pool${curr_bin_version}c
+					-X fail-safety)
+				execute(0
+					${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
+					${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+			else()
+				message(WARNING "No cdb path file was chosen. Scenario nr ${curr_scenario} will be skipped")
+			endif()
 			unlock_tx_intr()
 
 			MATH(EXPR index "${index} + 1")
