@@ -30,12 +30,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.3)
+set(DIR ${PARENT_DIR}/😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋${TEST_NAME})
 
-if(NOT WIN32)
-set(DIR ${PARENT_DIR}/PMDKBIN${TEST_NAME})
-else()
-set(DIR ${PARENT_DIR}PMDKBIN${TEST_NAME})
-endif()
 # convert the version list to the array
 string(REPLACE " " ";" VERSIONS ${VERSIONS})
 
@@ -48,7 +44,11 @@ else()
  endif()
 
  if(WIN32)
-	set(CDB_DIR "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe")
+	if(EXISTS "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe")
+		set(CDB_DIR "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe")
+	else()
+		unset(CDB_DIR)
+	endif()
  endif()
 # tries to open the ${pool} with all PMDK ${VERSIONS}
 # expect a success when a pmdk version is on the ${correct} list
@@ -222,23 +222,23 @@ function(test_intr_tx_win prepare_files)
 			set(CDB_POST_COMMIT_COMMAND "bm pmemobj_${curr_bin_version}!tx_post_commit \".if ( poi (transaction_${curr_bin_version}!trap) == 1 ) {} .else {gc}\"\;g\;q")
 
 			lock_tx_intr()
-
-			execute_cdb(0 ${curr_bin_version} ${curr_scenario})
-			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
-				${DIR}/pool${curr_bin_version}a
-				-X fail-safety)
-			execute(0
-				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
-				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+			if(CDB_DIR)
+				execute_cdb(0 ${curr_bin_version} ${curr_scenario})
+				execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
+					${DIR}/pool${curr_bin_version}a
+					-X fail-safety)
+				execute(0
+					${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
+					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
 			
-			execute_cdb(1 ${curr_bin_version} ${curr_scenario})
-			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
-				 ${DIR}/pool${curr_bin_version}c
-				-X fail-safety)
-			execute(0
-				${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
-				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
-				
+				execute_cdb(1 ${curr_bin_version} ${curr_scenario})
+				execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG}/pmdk-convert
+					${DIR}/pool${curr_bin_version}c
+					-X fail-safety)
+				execute(0
+					${CMAKE_CURRENT_BINARY_DIR}/transactionW/${CONFIG}/transaction_${next_bin_version}
+					${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+			endif()
 			unlock_tx_intr()
 
 			MATH(EXPR index "${index} + 1")
