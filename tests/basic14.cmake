@@ -36,11 +36,25 @@ function(test)
 
 	# 1.4 -> 1.5
 	execute(0 ${EXE_DIR}/pmdk-convert --to=1.5 ${DIR}/pool14 -X fail-safety)
-	check_open(${DIR}/pool14 "1.5 1.6")
+	if (NOT BUILD_MASTER)
+		check_open(${DIR}/pool14 "1.5 1.6")
+	else()
+		check_open(${DIR}/pool14 "1.5 1.6 1.7")
+	endif()
 
 	# 1.5 -> 1.6
 	execute(0 ${EXE_DIR}/pmdk-convert --to=1.6 ${DIR}/pool14 -X fail-safety)
-	check_open(${DIR}/pool14 "1.5 1.6")
+	if (NOT BUILD_MASTER)
+		check_open(${DIR}/pool14 "1.5 1.6")
+	else()
+		check_open(${DIR}/pool14 "1.5 1.6 1.7")
+	endif()
+
+	# 1.6 -> master
+	if (BUILD_MASTER)
+		execute(0 ${EXE_DIR}/pmdk-convert --to=1.7 ${DIR}/pool14 -X fail-safety)
+		check_open(${DIR}/pool14 "1.5 1.6 1.7")
+	endif()
 endfunction(test)
 
 # single file pool

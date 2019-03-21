@@ -45,7 +45,8 @@ if(WIN32)
 endif()
 
 set(GLOBAL_TEST_ARGS
-	-DPARENT_DIR=${TEST_DIR}/
+	-DPARENT_DIR=${TEST_DIR}
+	-DBUILD_MASTER=${BUILD_MASTER}
 	-DTESTS_USE_FORCED_PMEM=${TESTS_USE_FORCED_PMEM}
 	-DDEVICE_DAX_PATHS=${DEVICE_DAX_PATHS}
 	-DCDB_PATH=${CDB_PATH})
@@ -116,6 +117,9 @@ if(BUILD_15)
 endif()
 if(BUILD_CONVERT_V5)
 	set(VERSIONS "${VERSIONS} 1.6")
+endif()
+if(BUILD_MASTER)
+	set(VERSIONS "${VERSIONS} 1.7")
 endif()
 
 if(BUILD_CONVERT_V1)
@@ -236,6 +240,8 @@ if(BUILD_CONVERT_V5)
 	target_include_directories(open_16 PRIVATE ${CMAKE_SOURCE_DIR}/${VER16}/src/include)
 	target_link_libraries(open_16 PRIVATE libpmem-convert)
 	target_link_libraries(open_16 PRIVATE pmemobj_16)
+
+	test("1.6_pool_conversion" basic16)
 
 	if(WIN32)
 		# on windows dll and executable must be in the same dir
@@ -551,6 +557,28 @@ if(BUILD_CONVERT_V5)
 	test("compare_replicas" compare_replicas)
 endif()
 
+if(BUILD_MASTER)
+	add_executable(create_17 ${CREATE_SOURCE})
+	target_include_directories(create_17 PRIVATE ${CMAKE_SOURCE_DIR}/${pmdk_master}/src/include)
+	target_link_libraries(create_17 PRIVATE libpmem-convert)
+	target_link_libraries(create_17 PRIVATE pmemobj_17)
+
+	add_executable(open_17 ${OPEN_SOURCE})
+	target_include_directories(open_17 PRIVATE ${CMAKE_SOURCE_DIR}/${pmdk_master}/src/include)
+	target_link_libraries(open_17 PRIVATE libpmem-convert)
+	target_link_libraries(open_17 PRIVATE pmemobj_17)
+
+	test("1.7_pool_conversion" basic16)
+
+	if(WIN32)
+		# on windows dll and executable must be in the same dir
+		add_custom_command(TARGET open_17 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:pmemobj_17>
+			$<TARGET_FILE_DIR:open_17>)
+	endif()
+endif()
+
 if(NOT WIN32)
 	if(BUILD_CONVERT_V1)
 		add_executable(transaction_10 transaction.c)
@@ -607,6 +635,14 @@ if(BUILD_CONVERT_V5)
 	target_include_directories(transaction_16 PRIVATE ${CMAKE_SOURCE_DIR}/${VER16}/src/include)
 	target_link_libraries(transaction_16 PRIVATE libpmem-convert)
 	target_link_libraries(transaction_16 PRIVATE pmemobj_16)
+endif()
+
+if(BUILD_MASTER)
+	add_executable(transaction_17 transaction.c)
+	disable_optimization(transaction_17)
+	target_include_directories(transaction_17 PRIVATE ${CMAKE_SOURCE_DIR}/${pmdk_master}/src/include)
+	target_link_libraries(transaction_17 PRIVATE libpmem-convert)
+	target_link_libraries(transaction_17 PRIVATE pmemobj_17)
 endif()
 
 if(MSVC)

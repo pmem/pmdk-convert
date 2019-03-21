@@ -39,6 +39,12 @@ set(VERSION_MINOR 6)
 set(VERSION_PATCH 0)
 #set(VERSION_PRERELEASE rc0)
 
+if (CONVERT_TO_MASTER)
+	set(BUILD_MASTER 1)
+else()
+	set(BUILD_MASTER 0)
+endif()
+
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
 if (VERSION_PATCH GREATER 0)
 	set(VERSION ${VERSION}.${VERSION_PATCH})
@@ -59,8 +65,14 @@ else()
 	set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
 endif()
 
-set(MAX_VERSION 1.6)
 set(MAX_STABLE 1.6)
+if(BUILD_MASTER)
+	set(MAX_VERSION 1.7)
+else()
+	set(MAX_VERSION ${MAX_STABLE})
+endif()
+
+
 
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" MIN_VERSION_MAJOR "${MIN_VERSION}")
 STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" MIN_VERSION_MINOR "${MIN_VERSION}")
@@ -148,18 +160,7 @@ add_custom_target(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 
-function(version_supported ver ver_next RESULT)
-	if (${MIN_VERSION} VERSION_GREATER ${ver})
-		set(${RESULT} 0 PARENT_SCOPE)
-		return()
-	endif()
-	if (${ver_next} VERSION_GREATER ${MAX_VERSION})
-		set(${RESULT} 0 PARENT_SCOPE)
-		return()
-	endif()
-	set(${RESULT} 1 PARENT_SCOPE)
-	return()
-endfunction(version_supported)
+option(CONVERT_TO_MASTER "performs a conversion to the current master version" OFF)
 
 # disabled by default:
 set(BUILD_13 0)
@@ -200,7 +201,10 @@ elseif (${MIN_VERSION} EQUAL 1.5)
 	set(BUILD_15 1)
 elseif (${MIN_VERSION} EQUAL 1.6)
 	set(BUILD_CONVERT_V5 1)
+elseif (${MIN_VERSION} EQUAL 1.7)
+	set(BUILD_CONVERT_V5 1)
 endif()
+
 
 add_executable(check_license EXCLUDE_FROM_ALL utils/check_license/check-license.c)
 
@@ -712,6 +716,123 @@ if(BUILD_CONVERT_V5)
 
 	build_libpmemobj_16()
 endif(BUILD_CONVERT_V5)
+
+######################################### PMDK master sources
+if(BUILD_MASTER)
+	set(pmdk_master 1.7)
+
+	# this is commit hash from PMDK master - it should be updated if necessary
+	get_pmdk(74fea55f17ccd5db68c055331b3cd8003bd466c0 7aeada7463fa9607c84ac32977ef1609640c3c564cdf71079e04bd7d86907688 ${pmdk_master})
+
+	set(SOURCES_master
+		${pmdk_master}/src/libpmemobj/alloc_class.c
+		${pmdk_master}/src/libpmemobj/bucket.c
+		${pmdk_master}/src/libpmemobj/critnib.c
+		${pmdk_master}/src/libpmemobj/ctl_debug.c
+		${pmdk_master}/src/libpmemobj/container_ravl.c
+		${pmdk_master}/src/libpmemobj/container_seglists.c
+		${pmdk_master}/src/libpmemobj/heap.c
+		${pmdk_master}/src/libpmemobj/lane.c
+		${pmdk_master}/src/libpmemobj/libpmemobj.c
+		${pmdk_master}/src/libpmemobj/list.c
+		${pmdk_master}/src/libpmemobj/memblock.c
+		${pmdk_master}/src/libpmemobj/memops.c
+		${pmdk_master}/src/libpmemobj/obj.c
+		${pmdk_master}/src/libpmemobj/palloc.c
+		${pmdk_master}/src/libpmemobj/pmalloc.c
+		${pmdk_master}/src/libpmemobj/ravl.c
+		${pmdk_master}/src/libpmemobj/recycler.c
+		${pmdk_master}/src/libpmemobj/stats.c
+		${pmdk_master}/src/libpmemobj/sync.c
+		${pmdk_master}/src/libpmemobj/tx.c
+		${pmdk_master}/src/libpmemobj/ulog.c
+
+		${pmdk_master}/src/common/alloc.c
+		${pmdk_master}/src/common/badblock.c
+		${pmdk_master}/src/common/ctl.c
+		${pmdk_master}/src/common/ctl_cow.c
+		${pmdk_master}/src/common/ctl_fallocate.c
+		${pmdk_master}/src/common/ctl_prefault.c
+		${pmdk_master}/src/common/ctl_sds.c
+		${pmdk_master}/src/common/file.c
+		${pmdk_master}/src/common/mmap.c
+		${pmdk_master}/src/common/os_dimm_none.c
+		${pmdk_master}/src/common/out.c
+		${pmdk_master}/src/common/pool_hdr.c
+		${pmdk_master}/src/common/set.c
+		${pmdk_master}/src/common/shutdown_state.c
+		${pmdk_master}/src/common/util.c
+		${pmdk_master}/src/common/uuid.c
+		)
+
+	if(WIN32)
+		set(SOURCES_master ${SOURCES_master}
+			${pmdk_master}/src/libpmemobj/libpmemobj_main.c
+			${pmdk_master}/src/common/badblock_none.c
+			${pmdk_master}/src/common/file_windows.c
+			${pmdk_master}/src/common/fs_windows.c
+			${pmdk_master}/src/common/mmap_windows.c
+			${pmdk_master}/src/common/os_deep_windows.c
+			${pmdk_master}/src/common/os_windows.c
+			${pmdk_master}/src/common/os_thread_windows.c
+			${pmdk_master}/src/common/util_windows.c
+			${pmdk_master}/src/common/uuid_windows.c
+			)
+	else()
+		set(SOURCES_master ${SOURCES_master}
+			${pmdk_master}/src/common/badblock_ndctl.c
+			${pmdk_master}/src/common/extent_linux.c
+			${pmdk_master}/src/common/file_posix.c
+			${pmdk_master}/src/common/fs_posix.c
+			${pmdk_master}/src/common/mmap_posix.c
+			${pmdk_master}/src/common/os_deep_linux.c
+			${pmdk_master}/src/common/os_posix.c
+			${pmdk_master}/src/common/os_thread_posix.c
+			${pmdk_master}/src/common/util_posix.c
+			${pmdk_master}/src/common/uuid_linux.c
+			)
+	endif()
+
+	function(build_libpmemobj_17)
+		if(MSVC)
+			FILE(READ ${pmdk_master}/src/libpmemobj/libpmemobj.def DEFFILE)
+			string(REPLACE "libpmemobj" "pmemobj_17" DEFFILE "${DEFFILE}")
+			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_17.def "${DEFFILE}")
+			add_library(pmemobj_17 SHARED ${SOURCES_master} ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_17.def)
+			target_compile_options(pmemobj_17 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${pmdk_master}/src/windows/include/platform.h")
+		else()
+			add_library(pmemobj_17 SHARED ${SOURCES_master})
+			disable_optimization(pmemobj_17)
+		endif()
+
+		target_compile_definitions(pmemobj_17 PRIVATE SRCVERSION="${pmdk_master}")
+		target_compile_definitions(pmemobj_17 PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_17 PRIVATE _PMEMOBJ_INTRNL)
+
+		target_include_directories(pmemobj_17 PRIVATE ${pmdk_master}/src/include)
+		target_include_directories(pmemobj_17 PRIVATE ${pmdk_master}/src/libpmemobj)
+		target_include_directories(pmemobj_17 PRIVATE ${pmdk_master}/src/common)
+		target_include_directories(pmemobj_17 PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(WIN32)
+			target_include_directories(pmemobj_17 PRIVATE ${pmdk_master}/src/windows/include/)
+			target_include_directories(pmemobj_17 PRIVATE include/)
+		endif()
+
+		target_link_libraries(pmemobj_17 PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_17 PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_17 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+
+		if(NOT MSVC)
+			FILE(READ ${pmdk_master}/src/libpmemobj/libpmemobj.link.in LINKFILE)
+			string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
+			FILE(WRITE ${pmdk_master}/src/libpmemobj/libpmemobj.link "${LINKFILE}")
+			target_link_libraries(pmemobj_17 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/${pmdk_master}/src/libpmemobj/libpmemobj.link)
+		endif()
+	endfunction(build_libpmemobj_17)
+
+	build_libpmemobj_17()
+endif()
 
 ###################################################### 1.5
 if(BUILD_15)
