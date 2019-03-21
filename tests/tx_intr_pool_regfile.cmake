@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@ function(prepare_files)
 		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
 				${DIR}/pool${bin_version}a 16)
 		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
-				${DIR}/pool${bin_version}c 16)
+				${DIR}/pool${bin_version}c 32)
 	endforeach()
 
 endfunction()

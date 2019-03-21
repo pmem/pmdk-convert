@@ -31,28 +31,65 @@
 
 include(${SRC_DIR}/helpers.cmake)
 
-# prepare poolsets on regular file for testing for each version of PMDK
-function(prepare_files)
-	setup()
+function(test)
+	check_open(${DIR}/pool15 "1.5 1.6")
 
-	foreach(version ${VERSIONS})
-		string(REPLACE "." "" bin_version ${version})
+	# 1.5 -> 1.6
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.6 ${DIR}/pool15 -X fail-safety)
 
-		file(WRITE ${DIR}/pool${bin_version}a
-			"PMEMPOOLSET
-16M ${DIR}/part${bin_version}a")
-		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
-				${DIR}/pool${bin_version}a)
-		
-		file(WRITE ${DIR}/pool${bin_version}c
-			"PMEMPOOLSET
-32M ${DIR}/part${bin_version}c")
-		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/create_${bin_version}
-			${DIR}/pool${bin_version}c)
-	endforeach()
+	check_open(${DIR}/pool15 "1.5 1.6")
+endfunction(test)
 
-endfunction()
+# single file pool
+setup()
 
-test_intr_tx(prepare_files)
+execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15 16)
+
+test()
+
+# single file poolset
+setup()
+
+file(WRITE ${DIR}/pool15 "PMEMPOOLSET\n16M ${DIR}/part15\n")
+
+execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15)
+
+test()
+
+# multi file poolset
+setup()
+
+file(WRITE ${DIR}/pool15 "PMEMPOOLSET\n16M ${DIR}/part15_1\n16M ${DIR}/part15_2\n")
+
+execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15)
+
+test()
+
+# poolset with local replica
+setup()
+
+file(WRITE ${DIR}/pool15 "PMEMPOOLSET\n16M ${DIR}/part15_rep1\nREPLICA\n16M ${DIR}/part15_rep2\n")
+execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15)
+
+test()
+
+# multi file poolset with local replica and SINGLEHDR option
+
+setup()
+
+file(WRITE ${DIR}/pool15
+	"PMEMPOOLSET\n"
+	"OPTION SINGLEHDR\n"
+	"16M ${DIR}/part15_part1_rep1\n"
+	"16M ${DIR}/part15_part2_rep1\n"
+	"REPLICA\n"
+	"16M ${DIR}/part15_part1_rep2\n"
+	"16M ${DIR}/part15_part2_rep2\n")
+
+execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15)
+test()
+
+# invalid pool
+setup()
 
 cleanup()
