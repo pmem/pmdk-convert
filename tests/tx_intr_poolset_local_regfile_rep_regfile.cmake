@@ -48,9 +48,9 @@ REPLICA
 			${DIR}/pool${bin_version}a)
 
 		file(WRITE ${DIR}/pool${bin_version}c "PMEMPOOLSET
-16M ${DIR}/part${bin_version}c_rep1
+32M ${DIR}/part${bin_version}c_rep1
 REPLICA
-16M ${DIR}/part${bin_version}c_rep2")
+32M ${DIR}/part${bin_version}c_rep2")
 
 		execute(0 ${TEST_DIR}/create_${bin_version}
 			${DIR}/pool${bin_version}c)

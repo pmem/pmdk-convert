@@ -42,7 +42,7 @@ function(prepare_files)
 			${DIR}/pool${bin_version}a 16)
 
 		execute(0 ${TEST_DIR}/create_${bin_version}
-			${DIR}/pool${bin_version}c 16)
+			${DIR}/pool${bin_version}c 32)
 	endforeach()
 
 endfunction()
