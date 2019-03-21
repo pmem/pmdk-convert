@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -69,7 +69,7 @@ execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 7) # UNSUPPORTED_FR
 execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to 1.7) # UNSUPPORTED_TO
 execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to-layout 7) # UNSUPPORTED_TO
 
-execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.5 --to 1.4) # BACKWARD_CONVERSION
+execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.6 --to 1.4) # BACKWARD_CONVERSION
 execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 5 --to-layout 4) # BACKWARD_CONVERSION
 
 file(WRITE ${DIR}/empty_file "")

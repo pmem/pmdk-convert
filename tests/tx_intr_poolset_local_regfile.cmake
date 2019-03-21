@@ -47,7 +47,8 @@ function(prepare_files)
 
 		file(WRITE ${DIR}/pool${bin_version}c
 			"PMEMPOOLSET
-16M ${DIR}/part${bin_version}c")
+32M ${DIR}/part${bin_version}c")
+
 		execute(0 ${TEST_DIR}/create_${bin_version}
 			${DIR}/pool${bin_version}c)
 	endforeach()
