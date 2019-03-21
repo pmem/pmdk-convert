@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,7 +44,11 @@ function(test)
 
 	# 1.4 -> 1.5
 	execute(0 ${EXE_DIR}/pmdk-convert --to=1.5 ${DIR}/pool12 -X fail-safety)
-	check_open(${DIR}/pool12 "1.5")
+	check_open(${DIR}/pool12 "1.5 1.6")
+
+	# 1.5 -> 1.6
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.6 ${DIR}/pool12 -X fail-safety)
+	check_open(${DIR}/pool12 "1.5 1.6")
 endfunction(test)
 
 # single file pool
