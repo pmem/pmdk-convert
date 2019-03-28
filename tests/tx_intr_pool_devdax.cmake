@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,10 +57,10 @@ function(test_devdax test_intr_tx_devdax)
 		if(curr_version VERSION_GREATER "1.1")
 			test_intr_tx_devdax(prepare_files ${curr_version} ${next_version})
 		endif()
-		
+
 		MATH(EXPR index "${index} + 1")
 	endwhile()
-	
+
 	unlock_devdax()
 endfunction()
 

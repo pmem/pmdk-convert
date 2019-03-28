@@ -470,7 +470,7 @@ if(BUILD_CONVERT_V5)
 			$<TARGET_FILE:libpmempool-convert>
 			$<TARGET_FILE_DIR:pmempool-convert>)
 	endif()
-	
+
 	test("compare_replicas" compare_replicas)
 endif()
 
@@ -569,7 +569,7 @@ if(NOT WIN32)
 		test("tx_intr_poolset_local_2devdaxes" tx_intr_poolset_local_2devdaxes)
 		test("tx_intr_poolset_local_devdax_rep_devdax"
 			tx_intr_poolset_local_devdax_rep_devdax)
-		test("tx_intr_poolset_local_2devdaxes_rep_2regfiles" 
+		test("tx_intr_poolset_local_2devdaxes_rep_2regfiles"
 			tx_intr_poolset_local_2devdaxes_rep_2regfiles)
 		test("tx_intr_poolset_local_2regfiles_rep_2devdaxes"
 			tx_intr_poolset_local_2regfiles_rep_2devdaxes)
