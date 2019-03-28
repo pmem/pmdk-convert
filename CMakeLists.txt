@@ -246,6 +246,10 @@ add_check_whitespace(src)
 add_check_whitespace(other
 	${CMAKE_SOURCE_DIR}/utils/check_license/*.sh
 	${CMAKE_SOURCE_DIR}/README.md
+	${CMAKE_SOURCE_DIR}/CMakeLists.txt
+	${CMAKE_SOURCE_DIR}/tests/CMakeLists.txt
+	${CMAKE_SOURCE_DIR}/*.cmake
+	${CMAKE_SOURCE_DIR}/tests/*.cmake
 	#			${CMAKE_SOURCE_DIR}/utils/*.sh
 	#			${CMAKE_SOURCE_DIR}/*.spec
 	#			${CMAKE_SOURCE_DIR}/debian/*
