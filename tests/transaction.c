@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -131,7 +131,6 @@ sc0_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	trap = 1;
-
 	TX_BEGIN(pop) {
 		TX_ADD(rt);
 		D_RW(rt)->value[0] = TEST_VALUE;
@@ -587,16 +586,28 @@ main(int argc, char *argv[])
 	if (argc != 4)
 		printf("usage: %s file [c|va|vc] scenario", argv[0]);
 
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+#else
 	const char *path = argv[1];
+#endif
+
 	int prepare_pool = argv[2][0] == 'c';
 	int verify_abort = argv[2][1] == 'a';
 	int sc = atoi(argv[3]);
 
 	PMEMobjpool *pop = NULL;
+#ifdef _WIN32
+	if ((pop = pmemobj_openW(wargv[1], NULL)) == NULL) {
+			printf("failed to open pool\n");
+			exit(24);
+	}
+#else
 	if ((pop = pmemobj_open(path, NULL)) == NULL) {
 			printf("failed to open pool\n");
 			exit(24);
 	}
+#endif
 
 	if (prepare_pool)
 		scenarios[sc].create(pop);
