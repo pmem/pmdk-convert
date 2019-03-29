@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@ set(DIR ${PARENT_DIR}/😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋${TEST_NAME})
 # convert the version list to the array
 string(REPLACE " " ";" VERSIONS ${VERSIONS})
 
-if (WIN32)
+if(WIN32)
 	set(EXE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../${CONFIG})
 	set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/../tests/${CONFIG})
 else()
@@ -108,6 +108,30 @@ function(execute expectation name)
 	execute_arg("" ${expectation} ${name} ${ARGN})
 endfunction()
 
+
+function(execute_cdb SRC_VERSION SCENARIO)
+	set(CDB_PRE_COMMIT_COMMAND "bm pmemobj_${SRC_VERSION}!tx_pre_commit \"
+	.if ( poi (transaction_${SRC_VERSION}!trap) == 1 ) {} .else {gc}\"\;g\;q")
+	set(CDB_POST_COMMIT_COMMAND "bm pmemobj_${SRC_VERSION}!tx_post_commit \"
+	.if ( poi (transaction_${SRC_VERSION}!trap) == 1 ) {} .else {gc}\"\;g\;q")
+
+	if(TESTS_USE_FORCED_PMEM)
+		set(ENV{PMEM_IS_PMEM_FORCE} 1)
+	endif()
+	execute_process(COMMAND ${CDB_PATH}/cdb.exe -c ${CDB_PRE_COMMIT_COMMAND}
+			${TEST_DIR}/transaction_${SRC_VERSION}
+			${DIR}/pool${SRC_VERSION}a c ${SCENARIO}
+			RESULT_VARIABLE CDB_RET)
+	execute_process(COMMAND ${CDB_PATH}/cdb.exe -c ${CDB_POST_COMMIT_COMMAND}
+			${TEST_DIR}/transaction_${SRC_VERSION}
+			${DIR}/pool${SRC_VERSION}c c ${SCENARIO}
+			RESULT_VARIABLE CDB_RET)
+
+	if(TESTS_USE_FORCED_PMEM)
+		unset(ENV{PMEM_IS_PMEM_FORCE})
+	endif()
+endfunction()
+
 function(test_intr_tx prepare_files)
 	set(curr_scenario 0)
 	set(last_scenario 9)
@@ -136,27 +160,43 @@ function(test_intr_tx prepare_files)
 
 			lock_tx_intr()
 
-			execute(0 gdb --batch
-				--command=${SRC_DIR}/trip_on_pre_commit.gdb
-				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
-				${DIR}/pool${curr_bin_version}a c ${curr_scenario})
-			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
-				--to=${next_version} ${DIR}/pool${curr_bin_version}a
-				-X fail-safety ${mutex})
-			execute(0
-				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
-				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+			if(WIN32)
+				execute_cdb(${curr_bin_version} ${curr_scenario})
+				execute(0 ${EXE_DIR}/pmdk-convert
+					${DIR}/pool${curr_bin_version}a
+					-X fail-safety)
+				execute(0
+					${TEST_DIR}/transaction_${next_bin_version}
+					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+				execute(0 ${EXE_DIR}/pmdk-convert
+					${DIR}/pool${curr_bin_version}c
+					-X fail-safety)
+				execute(0
+					${TEST_DIR}/transaction_${next_bin_version}
+					${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+			else()
+				execute(0 gdb --batch
+					--command=${SRC_DIR}/trip_on_pre_commit.gdb
+					--args ${TEST_DIR}/transaction_${curr_bin_version}
+					${DIR}/pool${curr_bin_version}a c ${curr_scenario})
+				execute(0 ${EXE_DIR}/pmdk-convert
+					--to=${next_version} ${DIR}/pool${curr_bin_version}a
+					-X fail-safety ${mutex})
+				execute(0
+					${TEST_DIR}/transaction_${next_bin_version}
+					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
 
-			execute(0 gdb --batch
-				--command=${SRC_DIR}/trip_on_post_commit.gdb
-				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
-				${DIR}/pool${curr_bin_version}c c ${curr_scenario})
-			execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
-				--to=${next_version} ${DIR}/pool${curr_bin_version}c
-				-X fail-safety ${mutex})
-			execute(0
-				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
-				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+				execute(0 gdb --batch
+					--command=${SRC_DIR}/trip_on_post_commit.gdb
+					--args ${TEST_DIR}/transaction_${curr_bin_version}
+					${DIR}/pool${curr_bin_version}c c ${curr_scenario})
+				execute(0 ${EXE_DIR}/pmdk-convert
+					--to=${next_version} ${DIR}/pool${curr_bin_version}c
+					-X fail-safety ${mutex})
+				execute(0
+					${TEST_DIR}/transaction_${next_bin_version}
+					${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+			endif()
 
 			unlock_tx_intr()
 
@@ -204,24 +244,24 @@ function(test_intr_tx_devdax prepare_files curr_version next_version)
 
 		execute(0 gdb --batch
 				--command=${SRC_DIR}/trip_on_pre_commit.gdb
-				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				--args ${TEST_DIR}/transaction_${curr_bin_version}
 				${pool_file} c ${curr_scenario})
-		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
+		execute(0 ${EXE_DIR}/pmdk-convert
 				--to=${next_version} ${pool_file} -X fail-safety)
 		execute(0
-				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
+				${TEST_DIR}/transaction_${next_bin_version}
 				${pool_file} va ${curr_scenario})
 
 		prepare_files(${curr_bin_version})
 
 		execute(0 gdb --batch
 				--command=${SRC_DIR}/trip_on_post_commit.gdb
-				--args ${CMAKE_CURRENT_BINARY_DIR}/transaction_${curr_bin_version}
+				--args ${TEST_DIR}/transaction_${curr_bin_version}
 				${pool_file} c ${curr_scenario})
-		execute(0 ${CMAKE_CURRENT_BINARY_DIR}/../pmdk-convert
+		execute(0 ${EXE_DIR}/pmdk-convert
 				--to=${next_version} ${pool_file} -X fail-safety)
 		execute(0
-				${CMAKE_CURRENT_BINARY_DIR}/transaction_${next_bin_version}
+				${TEST_DIR}/transaction_${next_bin_version}
 				${pool_file} vc ${curr_scenario})
 
 		unlock_tx_intr()

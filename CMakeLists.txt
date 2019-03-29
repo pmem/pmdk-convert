@@ -32,7 +32,7 @@
 include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
 
 cmake_minimum_required(VERSION 3.3)
-project(pmdk-convert C)
+project(pmdk-convert C CXX)
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 5)
