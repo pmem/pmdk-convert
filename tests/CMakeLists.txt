@@ -40,10 +40,15 @@ set(DEVICE_DAX_PATHS "" CACHE STRING
 	"for tests that require raw dax devices without a file system. Some tests might require two DAX devices.
 	Example: '/dev/dax1.0 /dev/dax2.0'")
 
+if(WIN32)
+	set(CDB_PATH "" CACHE PATH "requied for windows tests with cdb debugger")
+endif()
+
 set(GLOBAL_TEST_ARGS
 	-DPARENT_DIR=${TEST_DIR}/
 	-DTESTS_USE_FORCED_PMEM=${TESTS_USE_FORCED_PMEM}
-	-DDEVICE_DAX_PATHS=${DEVICE_DAX_PATHS})
+	-DDEVICE_DAX_PATHS=${DEVICE_DAX_PATHS}
+	-DCDB_PATH=${CDB_PATH})
 
 # convert the DEVICE_DAX_PATHS list to the array
 if(DEVICE_DAX_PATHS)
@@ -72,6 +77,17 @@ function(test name file)
 		ENVIRONMENT "LC_ALL=C;PATH=$ENV{PATH}")
 endfunction()
 
+# Finding cdb executable debugger file and setting path to it
+function(set_cdb_executable)
+	if(EXISTS ${CDB_PATH})
+		find_program(CDB_EXE cdb.exe ${CDB_PATH})
+		if(NOT CDB_EXE)
+			message(WARNING "CDB Debugger not found!")
+		endif()
+	else()
+		unset(CDB_EXE)
+	endif()
+endfunction()
 if(WIN32)
 	set(OPEN_SOURCE openW.c)
 	set(CREATE_SOURCE createW.c)
@@ -506,36 +522,63 @@ if(NOT WIN32)
 		target_link_libraries(transaction_13 PRIVATE libpmem-convert)
 		target_link_libraries(transaction_13 PRIVATE pmemobj_13)
 	endif()
+endif()
 
-	if(BUILD_CONVERT_V4)
-		add_executable(transaction_14 transaction.c)
-		disable_optimization(transaction_14)
-		target_include_directories(transaction_14 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/src/include)
-		target_link_libraries(transaction_14 PRIVATE libpmem-convert)
-		target_link_libraries(transaction_14 PRIVATE pmemobj_14)
+if(BUILD_CONVERT_V4)
+	add_executable(transaction_14 transaction.c)
+	disable_optimization(transaction_14)
+	target_include_directories(transaction_14  PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.4/src/include)
+	target_link_libraries(transaction_14 PRIVATE libpmem-convert)
+	target_link_libraries(transaction_14 PRIVATE pmemobj_14)
+	if(MSVC)
+		# project has to be compile as c++ project so we need to change the flag
+		SET_SOURCE_FILES_PROPERTIES(transaction.c PROPERTIES LANGUAGE CXX)
+		# on windows dll and executable must be in the same dir
+		add_custom_command(TARGET transaction_14 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:pmemobj_14>
+			$<TARGET_FILE_DIR:transaction_14>)
+
+		add_custom_command(TARGET transaction_14 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE_DIR:pmemobj_14>/libpmem-convert.dll
+			$<TARGET_FILE_DIR:transaction_14>)
 	endif()
+endif()
 
-	if(BUILD_CONVERT_V5)
-		add_executable(transaction_15 transaction.c)
-		disable_optimization(transaction_15)
-		target_include_directories(transaction_15 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/include)
-		target_link_libraries(transaction_15 PRIVATE libpmem-convert)
-		target_link_libraries(transaction_15 PRIVATE pmemobj_15)
+if(BUILD_CONVERT_V5)
+	add_executable(transaction_15 transaction.c)
+	disable_optimization(transaction_15)
+	target_include_directories(transaction_15 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.5/src/include)
+	target_link_libraries(transaction_15 PRIVATE libpmem-convert)
+	target_link_libraries(transaction_15 PRIVATE pmemobj_15)
+	if(MSVC)
+		# project has to be compile as c++ project so we need to change the flag
+		SET_SOURCE_FILES_PROPERTIES(transaction.c PROPERTIES LANGUAGE CXX)
+		# on windows dll and executable must be in the same dir
+		add_custom_command(TARGET transaction_15 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:pmemobj_15>
+			$<TARGET_FILE_DIR:transaction_15>)
+
+		add_custom_command(TARGET transaction_15 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE_DIR:pmemobj_15>/libpmem-convert.dll
+			$<TARGET_FILE_DIR:transaction_15>)
 	endif()
 endif()
 
 test("cli_test" cli)
 
-if(NOT WIN32)
-	add_executable(clean_pool clean.c)
-	target_include_directories(clean_pool PRIVATE ${LIBPMEMPOOL_INCLUDE_DIRS})
-	target_link_libraries(clean_pool PRIVATE ${LIBPMEMPOOL_LIBRARIES})
+add_executable(clean_pool clean.c)
+target_include_directories(clean_pool PRIVATE ${LIBPMEMPOOL_INCLUDE_DIRS})
+target_link_libraries(clean_pool PRIVATE ${LIBPMEMPOOL_LIBRARIES})
+file(WRITE ${TEST_DIR}/../tx_intr.lock "")
 
+if(NOT WIN32)
 	if(DEVICE_DAX_PATHS)
 		file(WRITE ${TEST_DIR}/../devdax.lock "")
 	endif()
-
-	file(WRITE ${TEST_DIR}/../tx_intr.lock "")
 
 	test("tx_intr_pool_regfile" tx_intr_pool_regfile)
 	test("tx_intr_poolset_local_2regfiles" tx_intr_poolset_local_2regfiles)
@@ -573,5 +616,25 @@ if(NOT WIN32)
 			tx_intr_poolset_local_2devdaxes_rep_2regfiles)
 		test("tx_intr_poolset_local_2regfiles_rep_2devdaxes"
 			tx_intr_poolset_local_2regfiles_rep_2devdaxes)
+	endif()
+else()
+	if(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+		set_cdb_executable()
+		if(CDB_EXE)
+			test("tx_intr_pool_regfile" tx_intr_pool_regfile)
+			test("tx_intr_poolset_local_2regfiles" tx_intr_poolset_local_2regfiles)
+			test("tx_intr_poolset_local_regfile" tx_intr_poolset_local_regfile)
+			test("tx_intr_poolset_local_regfile_rep_regfile" tx_intr_poolset_local_regfile_rep_regfile)
+		else()
+			test("tx_intr_pool_regfile_SKIP_BECAUSE_OF_NO_CDB_DEBUGGER" skip_test)
+			test("tx_intr_poolset_local_2regfiles_SKIP_BECAUSE_OF_NO_CDB_DEBUGGER" skip_test)
+			test("tx_intr_poolset_local_regfile_SKIP_BECAUSE_OF_NO_CDB_DEBUGGER" skip_test)
+			test("tx_intr_poolset_local_regfile_rep_regfile_SKIP_BECAUSE_OF_NO_CDB_DEBUGGER" skip_test)
+		endif()
+	else()
+		test("tx_intr_pool_regfile_SKIP_BECAUSE_OF_NO_DEBUG_BUILD_TYPE" skip_test)
+		test("tx_intr_poolset_local_2regfiles_SKIP_BECAUSE_OF_NO_DEBUG_BUILD_TYPE" skip_test)
+		test("tx_intr_poolset_local_regfile_SKIP_BECAUSE_OF_NO_DEBUG_BUILD_TYPE" skip_test)
+		test("tx_intr_poolset_local_regfile_rep_regfile_SKIP_BECAUSE_OF_NO_DEBUG_BUILD_TYPE" skip_test)
 	endif()
 endif()

@@ -24,6 +24,9 @@ before_build:
         -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake
         -DCMAKE_INSTALL_PREFIX=c:/install/pmdk-convert
         -DCMAKE_SYSTEM_VERSION="10.0.26624"
+        -DTESTS_USE_FORCED_PMEM=ON
+        -DCMAKE_BUILD_TYPE=%CONFIGURATION%
+        -DCDB_PATH="c:/Program Files (x86)/Windows Kits/10/Debuggers/x64/"
 
 build_script:
 - msbuild build/ALL_BUILD.vcxproj /property:Configuration=%CONFIGURATION%
