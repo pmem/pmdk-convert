@@ -469,7 +469,7 @@ static void
 print_usage()
 {
 	printf(
-		"Usage: pmdk-covert [--version] [--help] [--no-warning] --from=<version> --to=<version> <pool>\n");
+		"Usage: pmdk-convert [--version] [--help] [--no-warning] --from=<version> --to=<version> <pool>\n");
 }
 
 /*
