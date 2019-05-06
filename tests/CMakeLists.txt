@@ -407,6 +407,8 @@ if(BUILD_CONVERT_V5)
 			$<TARGET_FILE_DIR:pmemspoil>)
 	endif()
 
+	test("spoiled_pool_hdr" spoiled_pool_hdr)
+
 	set(PMEMPOOL_SOURCES
 		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/pmempool.c
 		${CMAKE_SOURCE_DIR}/nvml-1.5/src/tools/pmempool/check.c
