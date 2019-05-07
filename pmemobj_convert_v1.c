@@ -40,9 +40,9 @@
 #include "libpmem.h"
 
 #include "pmemobj_convert.h"
-#include "nvml-1.0/src/include/libpmemobj.h"
-#include "nvml-1.0/src/tools/pmempool/common.h"
-#include "nvml-1.0/src/tools/pmempool/output.h"
+#include "libpmemobj.h"
+#include "common.h"
+#include "output.h"
 
 /*
  * outv_err_vargs -- print error message
