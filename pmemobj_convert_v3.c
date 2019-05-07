@@ -41,10 +41,10 @@
 #include "libpmem.h"
 
 #include "pmemobj_convert.h"
-#include "nvml-1.2/src/include/libpmemobj.h"
-#include "nvml-1.2/src/common/set.h"
-#include "nvml-1.2/src/tools/pmempool/common.h"
-#include "nvml-1.2/src/tools/pmempool/output.h"
+#include "libpmemobj.h"
+#include "set.h"
+#include "common.h"
+#include "output.h"
 
 /*
  * outv_err_vargs -- print error message

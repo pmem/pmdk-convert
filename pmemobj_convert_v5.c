@@ -32,7 +32,7 @@
 
 #include <errno.h>
 
-#include "nvml-1.6/src/include/libpmemobj.h"
+#include "libpmemobj.h"
 #include "pmemobj_convert.h"
 
 /*
