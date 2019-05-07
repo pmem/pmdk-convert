@@ -303,25 +303,51 @@ function(uncompress file)
 	endif()
 endfunction()
 
+function(get_pmdk ver hash dstdir)
+	set(pkg ${CMAKE_SOURCE_DIR}/${ver}.tar.gz)
+
+	if (EXISTS ${pkg})
+		file(SHA256 ${pkg} pkg_hash)
+		if (NOT ${pkg_hash} STREQUAL ${hash})
+			message(STATUS "Hash for version ${ver} doesn't match the expected value.")
+			if (EXISTS ${CMAKE_SOURCE_DIR}/${dstdir})
+				message(STATUS "Removing ${CMAKE_SOURCE_DIR}/${dstdir}.")
+				file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/${dstdir})
+			endif()
+			message(STATUS "Removing ${pkg}.")
+			file(REMOVE ${pkg})
+		endif()
+	endif()
+
+	if (NOT EXISTS ${pkg})
+		if (EXISTS ${CMAKE_SOURCE_DIR}/${dstdir})
+			message(STATUS "Removing ${CMAKE_SOURCE_DIR}/${dstdir}.")
+			file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/${dstdir})
+		endif()
+
+		message(STATUS "Downloading ${ver}.tar.gz")
+		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${ver}.tar.gz ${CMAKE_SOURCE_DIR}/${ver}.tar.gz
+			EXPECTED_HASH SHA256=${hash})
+		message(STATUS "Downloading ${ver}.tar.gz DONE")
+	endif()
+
+	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${dstdir})
+		message(STATUS "Uncompressing ${ver}.tar.gz")
+		uncompress(${ver}.tar.gz)
+		message(STATUS "Uncompressing ${ver}.tar.gz DONE")
+
+		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${ver} ${CMAKE_SOURCE_DIR}/${dstdir})
+	endif()
+endfunction()
+
 # convert V5 and PMDK 1.6
 if(BUILD_CONVERT_V5)
 	set(NVML16 1.6)
 
-	set(pkg nvml-${NVML16}.tar.gz)
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
-		message(STATUS "Downloading NVML ${NVML16}")
-		# This hash commit comes from PMDK stable-1.6 branch after pmemobj_next recursion fix.
-		# An actual hash commit has a stable SHA256 - this is why we cannot just download stable-1.6.
-		# XXX: This needs to be change to 1.6.1 after PMDK 1.6.1 release.
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/cf5d532da36893334b7ec8db0a2b296151733d0e.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=16e7f672d8944ad853261b8f90a7d8e807ab2109d058b517775af2f19b1e859f)
-		message(STATUS "Downloading NVML ${NVML16} done")
-	endif()
-
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.6)
-		uncompress(${pkg})
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-cf5d532da36893334b7ec8db0a2b296151733d0e ${CMAKE_SOURCE_DIR}/nvml-1.6)
-	endif()
+	# This hash commit comes from PMDK stable-1.6 branch after pmemobj_next recursion fix.
+	# An actual hash commit has a stable SHA256 - this is why we cannot just download stable-1.6.
+	# XXX: This needs to be changed to 1.6.1 after PMDK 1.6.1 release.
+	get_pmdk(cf5d532da36893334b7ec8db0a2b296151733d0e 16e7f672d8944ad853261b8f90a7d8e807ab2109d058b517775af2f19b1e859f nvml-1.6)
 
 ######################################### libpmem
 	set(LIBPMEM_SOURCES
@@ -680,18 +706,7 @@ endif(BUILD_CONVERT_V5)
 if(BUILD_15)
 	set(NVML15 1.5.1)
 
-	set(pkg nvml-${NVML15}.tar.gz)
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
-		message(STATUS "Downloading NVML ${NVML15}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML15}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=501f27e341248e206c8632d7c12007dc7690583f90e081569d6d5786fa3bf1f1)
-		message(STATUS "Downloading NVML ${NVML15} done")
-	endif()
-
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.5)
-		uncompress(${pkg})
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML15} ${CMAKE_SOURCE_DIR}/nvml-1.5)
-	endif()
+	get_pmdk(${NVML15} 501f27e341248e206c8632d7c12007dc7690583f90e081569d6d5786fa3bf1f1 nvml-1.5)
 
 	set(SOURCES_15
 		nvml-1.5/src/libpmemobj/alloc_class.c
@@ -799,18 +814,7 @@ if(BUILD_CONVERT_V4)
 
 	set(NVML14 1.4.2)
 
-	set(pkg nvml-${NVML14}.tar.gz)
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
-		message(STATUS "Downloading NVML ${NVML14}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML14}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=df7e658e75d28cd80f6d2ff7b9fc9ae2885d52f8923fdbacecfd46215115fb4c)
-		message(STATUS "Downloading NVML ${NVML14} done")
-	endif()
-
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.4)
-		uncompress(${pkg})
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML14} ${CMAKE_SOURCE_DIR}/nvml-1.4)
-	endif()
+	get_pmdk(${NVML14} df7e658e75d28cd80f6d2ff7b9fc9ae2885d52f8923fdbacecfd46215115fb4c nvml-1.4)
 
 	set(SOURCES_14
 		nvml-1.4/src/libpmemobj/alloc_class.c
@@ -967,19 +971,7 @@ if(BUILD_13)
 
 	set(NVML13 1.3.1)
 
-	set(pkg nvml-${NVML13}.tar.gz)
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
-		message(STATUS "Downloading NVML ${NVML13}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML13}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=0e2a3edbd72e56074c07455f20db4dd981c915c46932efa7902e2d4cbff072c9)
-		message(STATUS "Downloading NVML ${NVML13} done")
-	endif()
-
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.3)
-		uncompress(${pkg})
-
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML13} ${CMAKE_SOURCE_DIR}/nvml-1.3)
-	endif()
+	get_pmdk(${NVML13} 0e2a3edbd72e56074c07455f20db4dd981c915c46932efa7902e2d4cbff072c9 nvml-1.3)
 
 	set(SOURCES_13
 		nvml-1.3/src/libpmemobj/alloc_class.c
@@ -1079,19 +1071,7 @@ if(BUILD_CONVERT_V3)
 
 	set(NVML12 1.2.3)
 
-	set(pkg nvml-${NVML12}.tar.gz)
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
-		message(STATUS "Downloading NVML ${NVML12}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML12}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=7a2c03661a122079906f700d053f9260f9814d18d49218c1b5a8332b17023fc7)
-		message(STATUS "Downloading NVML ${NVML12} done")
-	endif()
-
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.2)
-		uncompress(${pkg})
-
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML12} ${CMAKE_SOURCE_DIR}/nvml-1.2)
-	endif()
+	get_pmdk(${NVML12} 7a2c03661a122079906f700d053f9260f9814d18d49218c1b5a8332b17023fc7 nvml-1.2)
 
 	set(SOURCES_12
 		nvml-1.2/src/libpmemobj/bucket.c
@@ -1176,19 +1156,7 @@ if(BUILD_CONVERT_V2)
 
 	set(NVML11 1.1)
 
-	set(pkg nvml-${NVML11}.tar.gz)
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
-		message(STATUS "Downloading NVML ${NVML11}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML11}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=2d51a356bf0bd61b0259844894223305d5d825af68d51a07aa1d2bc926b65c43)
-		message(STATUS "Downloading NVML ${NVML11} done")
-	endif()
-
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.1)
-		uncompress(${pkg})
-
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML11} ${CMAKE_SOURCE_DIR}/nvml-1.1)
-	endif()
+	get_pmdk(${NVML11} 2d51a356bf0bd61b0259844894223305d5d825af68d51a07aa1d2bc926b65c43 nvml-1.1)
 
 	set(SOURCES_11
 		nvml-1.1/src/libpmemobj/bucket.c
@@ -1267,19 +1235,7 @@ if(BUILD_CONVERT_V1)
 
 	set(NVML10 1.0)
 
-	set(pkg nvml-${NVML10}.tar.gz)
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
-		message(STATUS "Downloading NVML ${NVML10}")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML10}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=e9c9ed72168047f65fae72808933bfeafd965ed3237ab3fbfb199c362bf5b773)
-		message(STATUS "Downloading NVML ${NVML10} done")
-	endif()
-
-	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/nvml-1.0)
-		uncompress(${pkg})
-
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${NVML10} ${CMAKE_SOURCE_DIR}/nvml-1.0)
-	endif()
+	get_pmdk(${NVML10} e9c9ed72168047f65fae72808933bfeafd965ed3237ab3fbfb199c362bf5b773 nvml-1.0)
 
 	set(SOURCES_10
 		nvml-1.0/src/libpmemobj/bucket.c
