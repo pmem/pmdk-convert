@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 #ifndef _WIN32
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -103,6 +104,9 @@ static const struct {
 #endif
 #if CHECK_VERSION(15)
 	{15, 5},
+#endif
+#if CHECK_VERSION(16)
+	{16, 5},
 #endif
 };
 
