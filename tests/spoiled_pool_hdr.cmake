@@ -40,6 +40,10 @@ list(LENGTH VERSIONS num)
 math(EXPR last_position "${num} - 1")
 list(GET VERSIONS ${last_position} newest_version)
 string(REPLACE "." "" last_bin_version ${newest_version})
+
+# first PMDK version with the newest layout
+set(BEGIN_LATEST_LAYOUT 1.5)
+
 execute(0 ${TEST_DIR}/create_${last_bin_version} ${DIR}/poolTest${last_bin_version} 16)
 execute_process(COMMAND ${TEST_DIR}/pmempool-convert info ${DIR}/poolTest${last_bin_version}
 	OUTPUT_VARIABLE out RESULT_VARIABLE ret ERROR_VARIABLE err_msg)
@@ -69,8 +73,10 @@ while(index LESS num)
 		execute(2 ${TEST_DIR}/open_${bin_version} ${DIR}/pool${bin_version})
 
 		# pmdk-convert skips all checks when from==to, so there's no point in checking that
-		if(NOT(${curr_version} EQUAL ${newest_version}))
+		if(${curr_version} VERSION_LESS ${BEGIN_LATEST_LAYOUT})
 			execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/pool${bin_version} -X fail-safety -X 1.2-pmemmutex --from ${curr_version})
+		else()
+			execute(0 ${EXE_DIR}/pmdk-convert ${DIR}/pool${bin_version} -X fail-safety -X 1.2-pmemmutex --from ${curr_version})
 		endif()
 	endif()
 
