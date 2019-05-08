@@ -419,7 +419,7 @@ if(BUILD_CONVERT_V5)
 
 		# remove lib prefix from library name
 		set_target_properties(libpmem-convert PROPERTIES PREFIX "")
-		target_compile_definitions(libpmem-convert PRIVATE SRCVERSION="${VER16}")
+		target_compile_definitions(libpmem-convert PRIVATE SRCVERSION="${MAX_STABLE}")
 		target_compile_definitions(libpmem-convert PRIVATE PMDK_UTF8_API)
 		target_compile_definitions(libpmem-convert PRIVATE _PMEMOBJ_INTRNL)
 		target_compile_definitions(libpmem-convert PRIVATE SSE2_AVAILABLE=0)
@@ -525,7 +525,7 @@ if(BUILD_CONVERT_V5)
 		endif()
 		target_link_libraries(libpmempool-convert PRIVATE libpmem-convert)
 
-		target_compile_definitions(libpmempool-convert PRIVATE SRCVERSION="${MAX_VERSION}")
+		target_compile_definitions(libpmempool-convert PRIVATE SRCVERSION="${MAX_STABLE}")
 		target_compile_definitions(libpmempool-convert PRIVATE PMDK_UTF8_API)
 
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/include)
