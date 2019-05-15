@@ -347,7 +347,7 @@ if(BUILD_CONVERT_V5)
 	# This hash commit comes from PMDK stable-1.6 branch after pmemobj_next recursion fix.
 	# An actual hash commit has a stable SHA256 - this is why we cannot just download stable-1.6.
 	# XXX: This needs to be changed to 1.6.1 after PMDK 1.6.1 release.
-	get_pmdk(cf5d532da36893334b7ec8db0a2b296151733d0e 16e7f672d8944ad853261b8f90a7d8e807ab2109d058b517775af2f19b1e859f ${VER16})
+	get_pmdk(cf5d532da36893334b7ec8db0a2b296151733d0e e3dba8ef871f6aef2a6571c4cd3fccaf38c5b9552ba8c8c833efc79e6f029d46 ${VER16})
 
 	function(build_libpmem_convert)
 		set(LIBPMEM_SOURCES
