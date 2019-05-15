@@ -38,6 +38,7 @@ set -e
 
 mkdir /opt/pmdk
 
+
 wget https://github.com/pmem/pmdk/archive/cf5d532da36893334b7ec8db0a2b296151733d0e.tar.gz -O /opt/pmdk/cf5d532da36893334b7ec8db0a2b296151733d0e.tar.gz
 wget https://github.com/pmem/pmdk/archive/1.5.1.tar.gz -O /opt/pmdk/1.5.1.tar.gz
 wget https://github.com/pmem/pmdk/archive/1.4.2.tar.gz -O /opt/pmdk/1.4.2.tar.gz
