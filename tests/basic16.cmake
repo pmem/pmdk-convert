@@ -32,47 +32,43 @@
 include(${SRC_DIR}/helpers.cmake)
 
 function(test)
-	check_open(${DIR}/pool15 "1.5 1.6")
-
-	# 1.5 -> 1.6
-	execute(0 ${EXE_DIR}/pmdk-convert --to=1.6 ${DIR}/pool15 -X fail-safety)
-	check_open(${DIR}/pool15 "1.5 1.6")
+	check_open(${DIR}/pool16 "1.5 1.6")
 
 	# 1.6 -> 1.7
-	execute(0 ${EXE_DIR}/pmdk-convert --to=1.7 ${DIR}/pool15 -X fail-safety)
-	check_open(${DIR}/pool15 "1.7")
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.7 ${DIR}/pool16 -X fail-safety)
+	check_open(${DIR}/pool16 "1.7")
 endfunction(test)
 
 # single file pool
 setup()
 
-execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15 16)
+execute(0 ${TEST_DIR}/create_16 ${DIR}/pool16 16)
 
 test()
 
 # single file poolset
 setup()
 
-file(WRITE ${DIR}/pool15 "PMEMPOOLSET\n16M ${DIR}/part15\n")
+file(WRITE ${DIR}/pool16 "PMEMPOOLSET\n16M ${DIR}/part16\n")
 
-execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15)
+execute(0 ${TEST_DIR}/create_16 ${DIR}/pool16)
 
 test()
 
 # multi file poolset
 setup()
 
-file(WRITE ${DIR}/pool15 "PMEMPOOLSET\n16M ${DIR}/part15_1\n16M ${DIR}/part15_2\n")
+file(WRITE ${DIR}/pool16 "PMEMPOOLSET\n16M ${DIR}/part16_1\n16M ${DIR}/part16_2\n")
 
-execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15)
+execute(0 ${TEST_DIR}/create_16 ${DIR}/pool16)
 
 test()
 
 # poolset with local replica
 setup()
 
-file(WRITE ${DIR}/pool15 "PMEMPOOLSET\n16M ${DIR}/part15_rep1\nREPLICA\n16M ${DIR}/part15_rep2\n")
-execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15)
+file(WRITE ${DIR}/pool16 "PMEMPOOLSET\n16M ${DIR}/part16_rep1\nREPLICA\n16M ${DIR}/part16_rep2\n")
+execute(0 ${TEST_DIR}/create_16 ${DIR}/pool16)
 
 test()
 
@@ -80,16 +76,16 @@ test()
 
 setup()
 
-file(WRITE ${DIR}/pool15
+file(WRITE ${DIR}/pool16
 	"PMEMPOOLSET\n"
 	"OPTION SINGLEHDR\n"
-	"16M ${DIR}/part15_part1_rep1\n"
-	"16M ${DIR}/part15_part2_rep1\n"
+	"16M ${DIR}/part16_part1_rep1\n"
+	"16M ${DIR}/part16_part2_rep1\n"
 	"REPLICA\n"
-	"16M ${DIR}/part15_part1_rep2\n"
-	"16M ${DIR}/part15_part2_rep2\n")
+	"16M ${DIR}/part16_part1_rep2\n"
+	"16M ${DIR}/part16_part2_rep2\n")
 
-execute(0 ${TEST_DIR}/create_15 ${DIR}/pool15)
+execute(0 ${TEST_DIR}/create_16 ${DIR}/pool16)
 test()
 
 # invalid pool

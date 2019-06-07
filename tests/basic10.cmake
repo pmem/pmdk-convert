@@ -57,6 +57,10 @@ function(test)
 	# 1.5 -> 1.6
 	execute(0 ${EXE_DIR}/pmdk-convert --to=1.6 ${DIR}/pool10 -X fail-safety)
 	check_open(${DIR}/pool10 "1.5 1.6")
+
+	# 1.6 -> 1.7
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.7 ${DIR}/pool10 -X fail-safety)
+	check_open(${DIR}/pool10 "1.7")
 endfunction(test)
 
 # single file pool
