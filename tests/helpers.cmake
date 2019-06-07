@@ -163,13 +163,13 @@ function(test_intr_tx prepare_files)
 			if(WIN32)
 				execute_cdb(${curr_bin_version} ${curr_scenario})
 				execute(0 ${EXE_DIR}/pmdk-convert
-					${DIR}/pool${curr_bin_version}a
+					--to=${next_version} ${DIR}/pool${curr_bin_version}a
 					-X fail-safety)
 				execute(0
 					${TEST_DIR}/transaction_${next_bin_version}
 					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
 				execute(0 ${EXE_DIR}/pmdk-convert
-					${DIR}/pool${curr_bin_version}c
+					--to=${next_version} ${DIR}/pool${curr_bin_version}c
 					-X fail-safety)
 				execute(0
 					${TEST_DIR}/transaction_${next_bin_version}

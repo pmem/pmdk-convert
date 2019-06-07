@@ -59,8 +59,8 @@ else()
 	set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
 endif()
 
-set(MAX_VERSION 1.6)
-set(MAX_STABLE 1.6)
+set(MAX_VERSION 1.7)
+set(MAX_STABLE 1.7)
 
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" MIN_VERSION_MAJOR "${MIN_VERSION}")
 STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" MIN_VERSION_MINOR "${MIN_VERSION}")
@@ -172,6 +172,7 @@ if (${MIN_VERSION} EQUAL 1.0)
 	set(BUILD_13 1)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
+	set(BUILD_CONVERT_V6 1)
 	set(BUILD_15 1)
 elseif (${MIN_VERSION} EQUAL 1.1)
 	set(BUILD_CONVERT_V2 1)
@@ -186,20 +187,27 @@ elseif (${MIN_VERSION} EQUAL 1.2)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
+	set(BUILD_CONVERT_V6 1)
 elseif (${MIN_VERSION} EQUAL 1.3)
 	set(BUILD_13 1)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
+	set(BUILD_CONVERT_V6 1)
 elseif (${MIN_VERSION} EQUAL 1.4)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
+	set(BUILD_CONVERT_V6 1)
 elseif (${MIN_VERSION} EQUAL 1.5)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
+	set(BUILD_CONVERT_V6 1)
 elseif (${MIN_VERSION} EQUAL 1.6)
 	set(BUILD_CONVERT_V5 1)
+	set(BUILD_CONVERT_V6 1)
+elseif (${MIN_VERSION} EQUAL 1.7)
+	set(BUILD_CONVERT_V6 1)
 endif()
 
 add_executable(check_license EXCLUDE_FROM_ALL utils/check_license/check-license.c)
@@ -340,14 +348,14 @@ function(get_pmdk ver hash dstdir)
 	endif()
 endfunction()
 
-# convert V5 and PMDK 1.6
-if(BUILD_CONVERT_V5)
-	set(VER16 1.6)
+# convert V6 and PMDK 1.7
+if(BUILD_CONVERT_V6)
+	set(VER17 1.7)
 
-	# This hash commit comes from PMDK stable-1.6 branch after pmemobj_next recursion fix.
-	# An actual hash commit has a stable SHA256 - this is why we cannot just download stable-1.6.
-	# XXX: This needs to be changed to 1.6.1 after PMDK 1.6.1 release.
-	get_pmdk(cf5d532da36893334b7ec8db0a2b296151733d0e e3dba8ef871f6aef2a6571c4cd3fccaf38c5b9552ba8c8c833efc79e6f029d46 ${VER16})
+	# This hash commit comes from PMDK stable-1.6 branch and it pretends 1.7 release.
+	# This is pmdk after https://github.com/pmem/pmdk/pull/3750 merge.
+	# XXX: This needs to be changed to 1.7 after PMDK 1.7 release.
+	get_pmdk(a2b44276e9d46629513aa14456ef44c5f2a6b4c1 fbdb86b0a25f46414be42922ca9ee706bcbee217913497d99d44b97a2a455fb8 ${VER17})
 
 	function(build_libpmem_convert)
 		set(LIBPMEM_SOURCES
@@ -549,6 +557,180 @@ if(BUILD_CONVERT_V5)
 	set(LIBPMEMPOOL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/include)
 	set(LIBPMEMPOOL_LIBRARIES libpmempool-convert)
 
+	set(SOURCES_17
+		${VER17}/src/libpmemobj/alloc_class.c
+		${VER17}/src/libpmemobj/bucket.c
+		${VER17}/src/libpmemobj/critnib.c
+		${VER17}/src/libpmemobj/ctl_debug.c
+		${VER17}/src/libpmemobj/container_ravl.c
+		${VER17}/src/libpmemobj/container_seglists.c
+		${VER17}/src/libpmemobj/heap.c
+		${VER17}/src/libpmemobj/lane.c
+		${VER17}/src/libpmemobj/libpmemobj.c
+		${VER17}/src/libpmemobj/list.c
+		${VER17}/src/libpmemobj/memblock.c
+		${VER17}/src/libpmemobj/memops.c
+		${VER17}/src/libpmemobj/obj.c
+		${VER17}/src/libpmemobj/palloc.c
+		${VER17}/src/libpmemobj/pmalloc.c
+		${VER17}/src/libpmemobj/ravl.c
+		${VER17}/src/libpmemobj/recycler.c
+		${VER17}/src/libpmemobj/stats.c
+		${VER17}/src/libpmemobj/sync.c
+		${VER17}/src/libpmemobj/tx.c
+		${VER17}/src/libpmemobj/ulog.c
+
+		${VER17}/src/common/alloc.c
+		${VER17}/src/common/badblock.c
+		${VER17}/src/common/ctl.c
+		${VER17}/src/common/ctl_cow.c
+		${VER17}/src/common/ctl_fallocate.c
+		${VER17}/src/common/ctl_prefault.c
+		${VER17}/src/common/ctl_sds.c
+		${VER17}/src/common/file.c
+		${VER17}/src/common/mmap.c
+		${VER17}/src/common/os_dimm_none.c
+		${VER17}/src/common/out.c
+		${VER17}/src/common/pool_hdr.c
+		${VER17}/src/common/set.c
+		${VER17}/src/common/shutdown_state.c
+		${VER17}/src/common/util.c
+		${VER17}/src/common/uuid.c
+		)
+
+	if(WIN32)
+		set(SOURCES_17 ${SOURCES_17}
+			${VER17}/src/libpmemobj/libpmemobj_main.c
+			${VER17}/src/common/badblock_none.c
+			${VER17}/src/common/file_windows.c
+			${VER17}/src/common/fs_windows.c
+			${VER17}/src/common/mmap_windows.c
+			${VER17}/src/common/os_deep_windows.c
+			${VER17}/src/common/os_windows.c
+			${VER17}/src/common/os_thread_windows.c
+			${VER17}/src/common/util_windows.c
+			${VER17}/src/common/uuid_windows.c
+			)
+	else()
+		set(SOURCES_17 ${SOURCES_17}
+			${VER17}/src/common/badblock_ndctl.c
+			${VER17}/src/common/extent_linux.c
+			${VER17}/src/common/file_posix.c
+			${VER17}/src/common/fs_posix.c
+			${VER17}/src/common/mmap_posix.c
+			${VER17}/src/common/os_deep_linux.c
+			${VER17}/src/common/os_posix.c
+			${VER17}/src/common/os_thread_posix.c
+			${VER17}/src/common/util_posix.c
+			${VER17}/src/common/uuid_linux.c
+			)
+	endif()
+
+	function(build_convert_v6)
+		if(WIN32)
+			set(CONVERT_V6_SOURCES ${VER17}/src/windows/getopt/getopt.c)
+		endif()
+
+		add_library(pmemobj_convert_v6_o OBJECT ${SOURCES_17} ${CONVERT_V6_SOURCES}
+			pmemobj_convert_v6.c
+			${VER17}/src/libpmemblk/btt.c
+			${VER17}/src/tools/pmempool/common.c
+			${VER17}/src/tools/pmempool/output.c)
+
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SRCVERSION="${VER17}")
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE _PMEMOBJ_INTRNL)
+
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/include)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/libpmemobj)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/libpmemlog)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/libpmemblk)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/common)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(MSVC)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/windows/include/)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/windows/getopt/)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE include/)
+			target_compile_options(pmemobj_convert_v6_o PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER17}/src/windows/include/platform.h")
+		endif()
+
+		if(MSVC)
+			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o> ${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_v6.def)
+		else()
+			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o>)
+			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
+		endif()
+
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+		if(NOT MSVC)
+			# strip unneeded symbols, requires -fdata-sections -ffunction-sections
+			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--gc-sections)
+		endif()
+
+		set_target_properties(pmemobj_convert_v6_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v6)
+		# remove lib prefix from library name
+		set_target_properties(pmemobj_convert_v6_shared PROPERTIES PREFIX "")
+	endfunction(build_convert_v6)
+
+	build_convert_v6()
+
+	install(TARGETS pmemobj_convert_v6_shared
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+	function(build_libpmemobj_17)
+		if(MSVC)
+			FILE(READ ${VER17}/src/libpmemobj/libpmemobj.def DEFFILE)
+			string(REPLACE "libpmemobj" "pmemobj_17" DEFFILE "${DEFFILE}")
+			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_17.def "${DEFFILE}")
+			add_library(pmemobj_17 SHARED ${SOURCES_17} ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_17.def)
+			target_compile_options(pmemobj_17 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER17}/src/windows/include/platform.h")
+		else()
+			add_library(pmemobj_17 SHARED ${SOURCES_17})
+			disable_optimization(pmemobj_17)
+		endif()
+
+		target_compile_definitions(pmemobj_17 PRIVATE SRCVERSION="${VER17}")
+		target_compile_definitions(pmemobj_17 PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_17 PRIVATE _PMEMOBJ_INTRNL)
+
+		target_include_directories(pmemobj_17 PRIVATE ${VER17}/src/include)
+		target_include_directories(pmemobj_17 PRIVATE ${VER17}/src/libpmemobj)
+		target_include_directories(pmemobj_17 PRIVATE ${VER17}/src/common)
+		target_include_directories(pmemobj_17 PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(WIN32)
+			target_include_directories(pmemobj_17 PRIVATE ${VER17}/src/windows/include/)
+			target_include_directories(pmemobj_17 PRIVATE include/)
+		endif()
+
+		target_link_libraries(pmemobj_17 PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_17 PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_17 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+
+		if(NOT MSVC)
+			FILE(READ ${MAX_STABLE}/src/libpmemobj/libpmemobj.link.in LINKFILE)
+			string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
+			FILE(WRITE ${MAX_STABLE}/src/libpmemobj/libpmemobj.link "${LINKFILE}")
+			target_link_libraries(pmemobj_17 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/${VER17}/src/libpmemobj/libpmemobj.link)
+		endif()
+	endfunction(build_libpmemobj_17)
+
+	build_libpmemobj_17()
+
+endif(BUILD_CONVERT_V6)
+
+# convert V5 and PMDK 1.6
+if(BUILD_CONVERT_V5)
+	set(VER16 1.6)
+
+	# This hash commit comes from PMDK stable-1.6 branch after pmemobj_next recursion fix.
+	# An actual hash commit has a stable SHA256 - this is why we cannot just download stable-1.6.
+	# XXX: This needs to be changed to 1.6.1 after PMDK 1.6.1 release.
+	get_pmdk(cf5d532da36893334b7ec8db0a2b296151733d0e e3dba8ef871f6aef2a6571c4cd3fccaf38c5b9552ba8c8c833efc79e6f029d46 ${VER16})
+
 	set(SOURCES_16
 		${VER16}/src/libpmemobj/alloc_class.c
 		${VER16}/src/libpmemobj/bucket.c
@@ -638,6 +820,7 @@ if(BUILD_CONVERT_V5)
 		target_include_directories(pmemobj_convert_v5_o PRIVATE ${VER16}/src/libpmemlog)
 		target_include_directories(pmemobj_convert_v5_o PRIVATE ${VER16}/src/libpmemblk)
 		target_include_directories(pmemobj_convert_v5_o PRIVATE ${VER16}/src/common)
+		target_include_directories(pmemobj_convert_v5_o PRIVATE ${VER16}/src/tools/pmempool)
 		target_include_directories(pmemobj_convert_v5_o PRIVATE ${PMEM_INCLUDE_DIRS})
 
 		if(MSVC)
@@ -703,9 +886,9 @@ if(BUILD_CONVERT_V5)
 		target_link_libraries(pmemobj_16 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 		if(NOT MSVC)
-			FILE(READ ${MAX_STABLE}/src/libpmemobj/libpmemobj.link.in LINKFILE)
+			FILE(READ ${VER16}/src/libpmemobj/libpmemobj.link.in LINKFILE)
 			string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
-			FILE(WRITE ${MAX_STABLE}/src/libpmemobj/libpmemobj.link "${LINKFILE}")
+			FILE(WRITE ${VER16}/src/libpmemobj/libpmemobj.link "${LINKFILE}")
 			target_link_libraries(pmemobj_16 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/${VER16}/src/libpmemobj/libpmemobj.link)
 		endif()
 	endfunction(build_libpmemobj_16)
