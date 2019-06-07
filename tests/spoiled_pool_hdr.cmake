@@ -42,7 +42,7 @@ list(GET VERSIONS ${last_position} newest_version)
 string(REPLACE "." "" last_bin_version ${newest_version})
 
 # first PMDK version with the newest layout
-set(BEGIN_LATEST_LAYOUT 1.5)
+set(BEGIN_LATEST_LAYOUT 1.7)
 
 execute(0 ${TEST_DIR}/create_${last_bin_version} ${DIR}/poolTest${last_bin_version} 16)
 execute_process(COMMAND ${TEST_DIR}/pmempool-convert info ${DIR}/poolTest${last_bin_version}

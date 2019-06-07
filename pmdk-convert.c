@@ -108,6 +108,9 @@ static const struct {
 #if CHECK_VERSION(16)
 	{16, 5},
 #endif
+#if CHECK_VERSION(17)
+	{17, 6},
+#endif
 };
 
 #ifndef WIN32
