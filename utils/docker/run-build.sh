@@ -139,10 +139,10 @@ elif [ $PACKAGE_MANAGER = "rpm" ]; then
 fi
 
 cp ./tests/create_10 /tmp
-cp ./tests/open_15 /tmp
+cp ./tests/open_17 /tmp
 cp ./libpmem-convert.so /tmp
 cp ./libpmemobj_10.so /tmp
-cp ./libpmemobj_15.so /tmp
+cp ./libpmemobj_17.so /tmp
 
 cd ..
 rm -rf build
@@ -156,7 +156,7 @@ LD_LIBRARY_PATH=/tmp:$LD_LIBRARY_PATH /tmp/create_10 /tmp/pool 16
 echo "Converting 1.0 pool to the latest version"
 pmdk-convert -X fail-safety -X 1.2-pmemmutex /tmp/pool
 echo "Checking pool works with the latest version"
-LD_LIBRARY_PATH=/tmp:$LD_LIBRARY_PATH /tmp/open_15 /tmp/pool
+LD_LIBRARY_PATH=/tmp:$LD_LIBRARY_PATH /tmp/open_17 /tmp/pool
 echo "OK"
 
 # -----------------------------------------
