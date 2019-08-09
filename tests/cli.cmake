@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,6 +32,8 @@
 include(${SRC_DIR}/helpers.cmake)
 
 list(GET VERSIONS 1 VER)
+list(LENGTH VERSIONS LEN)
+MATH(EXPR LEN "${LEN}-1")
 string(REPLACE "." "" BIN_VER ${VER})
 
 # argument parsing
@@ -56,12 +58,16 @@ execute(10 ${EXE_DIR}/pmdk-convert --from 1.0 --to 1.1) # NO_POOL
 
 file(WRITE ${DIR}/not_a_pool "This is not a pool\n")
 execute(11 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool) # POOL_DETECTION
-execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool --from ${VER} -X fail-safety) # CONVERT_FAILED
+if(LEN GREATER 1) # below test case requires more than one supported versions
+	execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool --from ${VER} -X fail-safety) # CONVERT_FAILED
+endif()
 
 file(WRITE ${DIR}/pool "PMEMPOOLSET\n16M ${DIR}/part_a\n16M ${DIR}/part_b\n")
 execute(0 ${TEST_DIR}/create_${BIN_VER} ${DIR}/pool)
 execute(11 ${EXE_DIR}/pmdk-convert ${DIR}/part_a) # POOL_DETECTION
-execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/part_b --from ${VER} -X fail-safety) # CONVERT_FAILED
+if(LEN GREATER 1) # below test case requires more than one supported versions
+	execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/part_b --from ${VER} -X fail-safety) # CONVERT_FAILED
+endif()
 
 execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.7) # UNSUPPORTED_FROM
 execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 7) # UNSUPPORTED_FROM
@@ -69,11 +75,14 @@ execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 7) # UNSUPPORTED_FR
 execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to 1.7) # UNSUPPORTED_TO
 execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to-layout 7) # UNSUPPORTED_TO
 
-execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.5 --to 1.4) # BACKWARD_CONVERSION
-execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 5 --to-layout 4) # BACKWARD_CONVERSION
+if(LEN GREATER 1) # below test cases require more than one supported versions
+	list(GET VERSIONS ${LEN} NEWEST_VER)
+	execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from ${NEWEST_VER} --to ${VER}) # BACKWARD_CONVERSION
+	execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 5 --to-layout 4) # BACKWARD_CONVERSION
 
-file(WRITE ${DIR}/empty_file "")
-execute_arg(${DIR}/empty_file 25 ${EXE_DIR}/pmdk-convert ${DIR}/pool) # STDIN_EOF
+	file(WRITE ${DIR}/empty_file "")
+	execute_arg(${DIR}/empty_file 25 ${EXE_DIR}/pmdk-convert ${DIR}/pool) # STDIN_EOF
+endif()
 
 file(WRITE ${DIR}/yes "Yy\n")
 execute_arg(${DIR}/yes 0 ${EXE_DIR}/pmdk-convert ${DIR}/pool)
