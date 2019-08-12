@@ -470,8 +470,13 @@ if(BUILD_CONVERT_V5)
 			$<TARGET_FILE:libpmempool-convert>
 			$<TARGET_FILE_DIR:pmempool-convert>)
 	endif()
-	
-	test("compare_replicas" compare_replicas)
+
+	if(BUILD_CONVERT_V4)
+		test("compare_replicas" compare_replicas)
+	else()
+		test("compare_replica_SKIP_BECAUSE_OF_REQUIRES_AT_LEAST_TWO_SUPPORTED_PMDK_VERSIONS"
+			skip_test)
+	endif()
 endif()
 
 if(NOT WIN32)
