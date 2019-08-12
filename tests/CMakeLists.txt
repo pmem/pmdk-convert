@@ -499,7 +499,7 @@ if(NOT WIN32)
 		target_link_libraries(transaction_12 PRIVATE pmemobj_12)
 	endif()
 
-	if(BUILD_CONVERT_V4)
+	if(BUILD_13)
 		add_executable(transaction_13 transaction.c)
 		disable_optimization(transaction_13)
 		target_include_directories(transaction_13 PRIVATE ${CMAKE_SOURCE_DIR}/nvml-1.3/src/include)
