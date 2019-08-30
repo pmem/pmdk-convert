@@ -36,7 +36,7 @@ project(pmdk-convert C CXX)
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 6)
-set(VERSION_PATCH 0)
+set(VERSION_PATCH 2)
 set(VERSION_PRERELEASE rc0)
 
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
@@ -728,12 +728,9 @@ endif(BUILD_CONVERT_V6)
 
 # convert V5 and PMDK 1.6
 if(BUILD_CONVERT_V5)
-	set(VER16 1.6)
+	set(VER16 1.6.1)
 
-	# This hash commit comes from PMDK stable-1.6 branch after pmemobj_next recursion fix.
-	# An actual hash commit has a stable SHA256 - this is why we cannot just download stable-1.6.
-	# XXX: This needs to be changed to 1.6.1 after PMDK 1.6.1 release.
-	get_pmdk(cf5d532da36893334b7ec8db0a2b296151733d0e e3dba8ef871f6aef2a6571c4cd3fccaf38c5b9552ba8c8c833efc79e6f029d46 ${VER16})
+	get_pmdk(${VER16} f263c8301f86ddf8bc5e020909ac52350baedba5c169a1a3a7786df64f129446 ${VER16})
 
 	set(SOURCES_16
 		${VER16}/src/libpmemobj/alloc_class.c
