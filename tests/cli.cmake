@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,8 +31,11 @@
 
 include(${SRC_DIR}/helpers.cmake)
 
-list(GET VERSIONS 1 VER)
-string(REPLACE "." "" BIN_VER ${VER})
+list(LENGTH VERSIONS NUM_OF_PMDK_VERSIONS)
+math(EXPR NUM_OF_PMDK_VERSIONS "${NUM_OF_PMDK_VERSIONS} - 1")
+list(GET VERSIONS 1 OLDEST_VER)
+list(GET VERSIONS ${NUM_OF_PMDK_VERSIONS} NEWEST_VER)
+string(REPLACE "." "" BIN_VER ${OLDEST_VER})
 
 # argument parsing
 setup()
@@ -56,12 +59,12 @@ execute(10 ${EXE_DIR}/pmdk-convert --from 1.0 --to 1.1) # NO_POOL
 
 file(WRITE ${DIR}/not_a_pool "This is not a pool\n")
 execute(11 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool) # POOL_DETECTION
-execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool --from ${VER} -X fail-safety) # CONVERT_FAILED
+execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/not_a_pool --from ${OLDEST_VER} -X fail-safety) # CONVERT_FAILED
 
 file(WRITE ${DIR}/pool "PMEMPOOLSET\n16M ${DIR}/part_a\n16M ${DIR}/part_b\n")
 execute(0 ${TEST_DIR}/create_${BIN_VER} ${DIR}/pool)
 execute(11 ${EXE_DIR}/pmdk-convert ${DIR}/part_a) # POOL_DETECTION
-execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/part_b --from ${VER} -X fail-safety) # CONVERT_FAILED
+execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/part_b --from ${OLDEST_VER} -X fail-safety) # CONVERT_FAILED
 
 execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.7) # UNSUPPORTED_FROM
 execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 7) # UNSUPPORTED_FROM
@@ -69,7 +72,7 @@ execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 7) # UNSUPPORTED_FR
 execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to 1.7) # UNSUPPORTED_TO
 execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to-layout 7) # UNSUPPORTED_TO
 
-execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.5 --to 1.4) # BACKWARD_CONVERSION
+execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from ${NEWEST_VER} --to ${OLDEST_VER}) # BACKWARD_CONVERSION
 execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 5 --to-layout 4) # BACKWARD_CONVERSION
 
 file(WRITE ${DIR}/empty_file "")

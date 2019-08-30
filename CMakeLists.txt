@@ -61,6 +61,10 @@ endif()
 
 set(MAX_VERSION 1.5)
 
+if(MIN_VERSION VERSION_GREATER_EQUAL MAX_VERSION)
+	message(FATAL_ERROR "ERROR: Minimum PMDK version cannot be greater than or equal to maximum PMDK version")
+endif()
+
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" MIN_VERSION_MAJOR "${MIN_VERSION}")
 STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" MIN_VERSION_MINOR "${MIN_VERSION}")
 
