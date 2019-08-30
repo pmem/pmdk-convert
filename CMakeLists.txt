@@ -274,13 +274,13 @@ function(uncompress file)
 endfunction()
 
 if(BUILD_CONVERT_V5)
-	set(NVML15 1.5.2-rc1)
+	set(NVML15 1.5.2)
 
 	set(pkg nvml-${NVML15}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML15}")
 		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML15}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=c7f07357e0eb9ed72cf2a3a1f84ba5a965f8f44618f4eca6e28de661443db669)
+			EXPECTED_HASH SHA256=a72691971a98b8472b26271f19d69e6c9b849c1ca42124ea2e2bd8c3fcdff1b1)
 		message(STATUS "Downloading NVML ${NVML15} done")
 	endif()
 
@@ -626,13 +626,13 @@ endif(BUILD_CONVERT_V5)
 ###################################################### 1.4
 if(BUILD_CONVERT_V4)
 
-	set(NVML14 1.4.3-rc1)
+	set(NVML14 1.4.3)
 
 	set(pkg nvml-${NVML14}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML14}")
 		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML14}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=feea8ed8ef5eeb552fac82844d5a13150afeb97d4e29778ee7e10abaf17727ad)
+			EXPECTED_HASH SHA256=93a8ba7383fa02dfd176d50aff56ace6bbac86bbaf26b8b1949ee703a4ec3a31)
 		message(STATUS "Downloading NVML ${NVML14} done")
 	endif()
 
@@ -794,13 +794,13 @@ endif(BUILD_CONVERT_V4)
 ###################################################### 1.3 (tests only)
 if(BUILD_13)
 
-	set(NVML13 1.3.3-rc1)
+	set(NVML13 1.3.3)
 
 	set(pkg nvml-${NVML13}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML13}")
 		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML13}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=86085c99b0eb988abb0378ddb30a1f14094a44162570161cc89e859e279d801d)
+			EXPECTED_HASH SHA256=5d46497bb151e6a36e801aed45bfef0d068c55cb2267329053e7489e01742f47)
 		message(STATUS "Downloading NVML ${NVML13} done")
 	endif()
 
@@ -906,13 +906,13 @@ endif(BUILD_13)
 
 if(BUILD_CONVERT_V3)
 
-	set(NVML12 1.2.4-rc1)
+	set(NVML12 1.2.4)
 
 	set(pkg nvml-${NVML12}.tar.gz)
 	if(NOT EXISTS ${CMAKE_SOURCE_DIR}/${pkg})
 		message(STATUS "Downloading NVML ${NVML12}")
 		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${NVML12}.tar.gz ${CMAKE_SOURCE_DIR}/${pkg}
-			EXPECTED_HASH SHA256=54fea88fd06740687e960abece4e2007010bcca8a69b3f3742add89c54adc88b)
+			EXPECTED_HASH SHA256=aa57b4d969a7582ad5897b5e979b3f2a4015ace7777388227826a65dbf626edd)
 		message(STATUS "Downloading NVML ${NVML12} done")
 	endif()
 
