@@ -1,4 +1,11 @@
-Fri Feb 22 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+Fri Aug 30 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.5.2
+
+	This release improves compatibility with newer kernels with
+	respect to Device DAX detection.
+
+Fri Feb 22 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.5.1
 
