@@ -60,7 +60,7 @@ else()
 endif()
 
 set(MAX_VERSION 1.7)
-set(MAX_STABLE 1.7)
+set(MAX_STABLE 1.7-rc1)
 
 if(MIN_VERSION VERSION_GREATER_EQUAL MAX_VERSION)
 	message(FATAL_ERROR "ERROR: Minimum PMDK version cannot be greater than or equal to maximum PMDK version")
@@ -338,8 +338,13 @@ function(get_pmdk ver hash dstdir)
 		endif()
 
 		message(STATUS "Downloading ${ver}.tar.gz")
-		file(DOWNLOAD https://github.com/pmem/pmdk/archive/${ver}.tar.gz ${CMAKE_SOURCE_DIR}/${ver}.tar.gz
-			EXPECTED_HASH SHA256=${hash})
+		if (${ver} STREQUAL "1.0" OR ${ver} STREQUAL "1.1")
+			file(DOWNLOAD https://github.com/pmem/pmdk/archive/${ver}.tar.gz ${CMAKE_SOURCE_DIR}/${ver}.tar.gz
+				EXPECTED_HASH SHA256=${hash})
+		else()
+			file(DOWNLOAD https://github.com/pmem/pmdk/releases/download/${ver}/pmdk-${ver}.tar.gz ${CMAKE_SOURCE_DIR}/${ver}.tar.gz
+				EXPECTED_HASH SHA256=${hash})
+		endif()
 		message(STATUS "Downloading ${ver}.tar.gz DONE")
 	endif()
 
@@ -354,12 +359,9 @@ endfunction()
 
 
 if(BUILD_CONVERT_V6)
-	set(VER17 1.7)
+	set(VER17 1.7-rc1)
 
-	# This hash commit comes from PMDK master branch and it pretends to be 1.7 release.
-	# This is pmdk after https://github.com/pmem/pmdk/pull/3750 merge.
-	# XXX: This needs to be changed to 1.7 after PMDK 1.7 release.
-	get_pmdk(a2b44276e9d46629513aa14456ef44c5f2a6b4c1 fbdb86b0a25f46414be42922ca9ee706bcbee217913497d99d44b97a2a455fb8 ${VER17})
+	get_pmdk(${VER17} 0f283c85edcbd4adc85d00a4ecf6f2cc7caf7981b6e4d5b62bff98d0bd783abc ${VER17})
 
 	function(build_libpmem_convert)
 		set(LIBPMEM_SOURCES
@@ -1533,9 +1535,9 @@ endif(BUILD_CONVERT_V1)
 ###################################################### everything else
 function(build_pmdk_convert)
 	if (WIN32)
-		add_executable(pmdk-convert pmdk-convert.c ${MAX_VERSION}/src/windows/getopt/getopt.c)
-		target_include_directories(pmdk-convert PRIVATE ${MAX_VERSION}/src/windows/getopt/)
-		target_include_directories(pmdk-convert PRIVATE ${MAX_VERSION}/src/windows/include/)
+		add_executable(pmdk-convert pmdk-convert.c ${MAX_STABLE}/src/windows/getopt/getopt.c)
+		target_include_directories(pmdk-convert PRIVATE ${MAX_STABLE}/src/windows/getopt/)
+		target_include_directories(pmdk-convert PRIVATE ${MAX_STABLE}/src/windows/include/)
 	else()
 		add_executable(pmdk-convert pmdk-convert.c)
 	endif()
