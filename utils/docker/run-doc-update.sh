@@ -45,7 +45,7 @@ git config --local user.email "pmem-bot@intel.com"
 
 git checkout master
 git remote update
-git rebase upstream/master
+git reset --hard upstream/master
 
 mkdir build
 cd build
