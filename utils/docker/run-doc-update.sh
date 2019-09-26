@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ git config --local user.email "pmem-bot@intel.com"
 
 git checkout master
 git remote update
-git rebase upstream/master
+git reset --hard upstream/master
 
 mkdir build
 cd build
@@ -54,7 +54,7 @@ cd ..
 
 # Build & PR groff
 make md2man -C ./build
-git add -A
+git add -A ./doc
 git commit -m "doc: automatic master docs update" && true
 git push -f ${ORIGIN} master
 
