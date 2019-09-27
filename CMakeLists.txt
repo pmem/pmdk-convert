@@ -60,7 +60,7 @@ else()
 endif()
 
 set(MAX_VERSION 1.7)
-set(MAX_STABLE 1.7-rc1)
+set(MAX_STABLE 1.7-rc2)
 
 if(MIN_VERSION VERSION_GREATER_EQUAL MAX_VERSION)
 	message(FATAL_ERROR "ERROR: Minimum PMDK version cannot be greater than or equal to maximum PMDK version")
@@ -359,9 +359,9 @@ endfunction()
 
 
 if(BUILD_CONVERT_V6)
-	set(VER17 1.7-rc1)
+	set(VER17 1.7-rc2)
 
-	get_pmdk(${VER17} 0f283c85edcbd4adc85d00a4ecf6f2cc7caf7981b6e4d5b62bff98d0bd783abc ${VER17})
+	get_pmdk(${VER17} c0443fc52275645dcf3c477ab2ad05d7f8d6d5039db40c57f15f18564517a73c ${VER17})
 
 	function(build_libpmem_convert)
 		set(LIBPMEM_SOURCES
