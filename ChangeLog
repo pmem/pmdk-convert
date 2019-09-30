@@ -1,3 +1,9 @@
+Mon Sep 30 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.7
+
+	This release adds support for PMDK 1.7.
+
 Fri Aug 30 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.5.2

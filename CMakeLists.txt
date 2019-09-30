@@ -35,9 +35,9 @@ cmake_minimum_required(VERSION 3.3)
 project(pmdk-convert C CXX)
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 6)
-set(VERSION_PATCH 2)
-set(VERSION_PRERELEASE rc0)
+set(VERSION_MINOR 7)
+set(VERSION_PATCH 0)
+#set(VERSION_PRERELEASE rc0)
 
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
 if (VERSION_PATCH GREATER 0)
@@ -60,7 +60,7 @@ else()
 endif()
 
 set(MAX_VERSION 1.7)
-set(MAX_STABLE 1.7-rc2)
+set(MAX_STABLE 1.7)
 
 if(MIN_VERSION VERSION_GREATER_EQUAL MAX_VERSION)
 	message(FATAL_ERROR "ERROR: Minimum PMDK version cannot be greater than or equal to maximum PMDK version")
@@ -359,9 +359,9 @@ endfunction()
 
 
 if(BUILD_CONVERT_V6)
-	set(VER17 1.7-rc2)
+	set(VER17 1.7)
 
-	get_pmdk(${VER17} c0443fc52275645dcf3c477ab2ad05d7f8d6d5039db40c57f15f18564517a73c ${VER17})
+	get_pmdk(${VER17} 865ce1b422bc83109cb4a63dcff8fd1077eea3617e668faf6a043208d8be03ca ${VER17})
 
 	function(build_libpmem_convert)
 		set(LIBPMEM_SOURCES
@@ -1547,6 +1547,10 @@ function(build_pmdk_convert)
 	target_compile_definitions(pmdk-convert PRIVATE MIN_VERSION_MINOR=${MIN_VERSION_MINOR})
 	target_compile_definitions(pmdk-convert PRIVATE MAX_VERSION_MAJOR=${MAX_VERSION_MAJOR})
 	target_compile_definitions(pmdk-convert PRIVATE MAX_VERSION_MINOR=${MAX_VERSION_MINOR})
+	target_compile_definitions(pmdk-convert PRIVATE VERSION_MAJOR=${VERSION_MAJOR})
+	target_compile_definitions(pmdk-convert PRIVATE VERSION_MINOR=${VERSION_MINOR})
+	target_compile_definitions(pmdk-convert PRIVATE VERSION_PATCH=${VERSION_PATCH})
+	target_compile_definitions(pmdk-convert PRIVATE VERSION_PRERELEASE="${VERSION_PRERELEASE}")
 	target_link_libraries(pmdk-convert PRIVATE ${CMAKE_DL_LIBS})
 	target_link_libraries(pmdk-convert PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 endfunction()

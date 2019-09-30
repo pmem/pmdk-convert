@@ -485,7 +485,15 @@ print_usage()
 static void
 print_version()
 {
-	printf("pmdk-convert 1.4\n");
+	printf("pmdk-convert %d.%d", VERSION_MAJOR, VERSION_MINOR);
+
+	if (VERSION_PATCH)
+		printf(".%d", VERSION_PATCH);
+
+	if (strlen(VERSION_PRERELEASE) > 0)
+		printf("-%s", VERSION_PRERELEASE);
+
+	printf("\n");
 }
 
 /*
