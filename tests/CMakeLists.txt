@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -117,8 +117,11 @@ endif()
 if(BUILD_CONVERT_V5)
 	set(VERSIONS "${VERSIONS} 1.6")
 endif()
-if(BUILD_CONVERT_V6)
+if(BUILD_17)
 	set(VERSIONS "${VERSIONS} 1.7")
+endif()
+if(BUILD_CONVERT_V6)
+	set(VERSIONS "${VERSIONS} 1.8")
 endif()
 
 if(BUILD_CONVERT_V1)
@@ -256,7 +259,7 @@ if(BUILD_CONVERT_V5)
 	endif()
 endif()
 
-if(BUILD_CONVERT_V6)
+if(BUILD_17)
 	add_executable(create_17 ${CREATE_SOURCE})
 	target_include_directories(create_17 PRIVATE ${CMAKE_SOURCE_DIR}/${VER17}/src/include)
 	target_link_libraries(create_17 PRIVATE libpmem-convert)
@@ -278,6 +281,31 @@ if(BUILD_CONVERT_V6)
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 			$<TARGET_FILE_DIR:pmemobj_17>/libpmem-convert.dll
 			$<TARGET_FILE_DIR:open_17>)
+	endif()
+endif()
+
+if(BUILD_CONVERT_V6)
+	add_executable(create_18 ${CREATE_SOURCE})
+	target_include_directories(create_18 PRIVATE ${CMAKE_SOURCE_DIR}/${VER18}/src/include)
+	target_link_libraries(create_18 PRIVATE libpmem-convert)
+	target_link_libraries(create_18 PRIVATE pmemobj_18)
+
+	add_executable(open_18 ${OPEN_SOURCE})
+	target_include_directories(open_18 PRIVATE ${CMAKE_SOURCE_DIR}/${VER18}/src/include)
+	target_link_libraries(open_18 PRIVATE libpmem-convert)
+	target_link_libraries(open_18 PRIVATE pmemobj_18)
+
+	if(WIN32)
+		# on windows dll and executable must be in the same dir
+		add_custom_command(TARGET open_18 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:pmemobj_18>
+			$<TARGET_FILE_DIR:open_18>)
+
+		add_custom_command(TARGET open_18 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE_DIR:pmemobj_18>/libpmem-convert.dll
+			$<TARGET_FILE_DIR:open_18>)
 	endif()
 
 	set(COMMON_SOURCES
@@ -326,7 +354,7 @@ if(BUILD_CONVERT_V6)
 			)
 	endif()
 
-	function(build_libpmemblk_17)
+	function(build_libpmemblk_18)
 		set(BLK_SOURCES
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk/blk.c
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk/btt.c
@@ -342,31 +370,31 @@ if(BUILD_CONVERT_V6)
 
 		if(MSVC)
 			FILE(READ ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk/libpmemblk.def DEFFILE)
-			string(REPLACE "libpmemblk" "pmemblk_17" DEFFILE "${DEFFILE}")
-			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemblk_17.def "${DEFFILE}")
-			add_library(pmemblk_17 SHARED ${BLK_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/pmemblk_17.def)
-			target_compile_options(pmemblk_17 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER17}/src/windows/include/platform.h")
+			string(REPLACE "libpmemblk" "pmemblk_18" DEFFILE "${DEFFILE}")
+			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemblk_18.def "${DEFFILE}")
+			add_library(pmemblk_18 SHARED ${BLK_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/pmemblk_18.def)
+			target_compile_options(pmemblk_18 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER18}/src/windows/include/platform.h")
 		else()
-			add_library(pmemblk_17 SHARED ${BLK_SOURCES})
+			add_library(pmemblk_18 SHARED ${BLK_SOURCES})
 		endif()
 
-		target_compile_definitions(pmemblk_17 PRIVATE SRCVERSION="${MAX_STABLE}")
-		target_compile_definitions(pmemblk_17 PRIVATE PMDK_UTF8_API)
-		target_compile_definitions(pmemblk_17 PRIVATE _PMEMBLK_INTRNL)
+		target_compile_definitions(pmemblk_18 PRIVATE SRCVERSION="${MAX_STABLE}")
+		target_compile_definitions(pmemblk_18 PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemblk_18 PRIVATE _PMEMBLK_INTRNL)
 
-		target_include_directories(pmemblk_17 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/include)
-		target_include_directories(pmemblk_17 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk)
-		target_include_directories(pmemblk_17 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/common)
-		target_include_directories(pmemblk_17 PRIVATE ${PMEM_INCLUDE_DIRS})
+		target_include_directories(pmemblk_18 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/include)
+		target_include_directories(pmemblk_18 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk)
+		target_include_directories(pmemblk_18 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/common)
+		target_include_directories(pmemblk_18 PRIVATE ${PMEM_INCLUDE_DIRS})
 
 		if(WIN32)
-			target_include_directories(pmemblk_17 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/windows/include/)
-			target_include_directories(pmemblk_17 PRIVATE ${CMAKE_SOURCE_DIR}/include/)
+			target_include_directories(pmemblk_18 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/windows/include/)
+			target_include_directories(pmemblk_18 PRIVATE ${CMAKE_SOURCE_DIR}/include/)
 		endif()
 
-		target_link_libraries(pmemblk_17 PRIVATE libpmem-convert)
-		target_link_libraries(pmemblk_17 PRIVATE ${CMAKE_DL_LIBS})
-		target_link_libraries(pmemblk_17 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+		target_link_libraries(pmemblk_18 PRIVATE libpmem-convert)
+		target_link_libraries(pmemblk_18 PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemblk_18 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 		if(NOT MSVC)
 			FILE(READ ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk/libpmemblk.link.in LINKFILE)
@@ -376,13 +404,13 @@ if(BUILD_CONVERT_V6)
 				string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
 			endif()
 			FILE(WRITE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk/libpmemblk.link "${LINKFILE}")
-			target_link_libraries(pmemblk_17 PRIVATE -Wl,--version-script=${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk/libpmemblk.link)
+			target_link_libraries(pmemblk_18 PRIVATE -Wl,--version-script=${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemblk/libpmemblk.link)
 		endif()
-	endfunction(build_libpmemblk_17)
+	endfunction(build_libpmemblk_18)
 
-	build_libpmemblk_17()
+	build_libpmemblk_18()
 
-	function(build_libpmemlog_17)
+	function(build_libpmemlog_18)
 		set(LOG_SOURCES
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog/libpmemlog.c
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog/log.c
@@ -397,31 +425,31 @@ if(BUILD_CONVERT_V6)
 
 		if(MSVC)
 			FILE(READ ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog/libpmemlog.def DEFFILE)
-			string(REPLACE "libpmemlog" "pmemlog_17" DEFFILE "${DEFFILE}")
-			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemlog_17.def "${DEFFILE}")
-			add_library(pmemlog_17 SHARED ${LOG_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/pmemlog_17.def)
-			target_compile_options(pmemlog_17 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/windows/include/platform.h")
+			string(REPLACE "libpmemlog" "pmemlog_18" DEFFILE "${DEFFILE}")
+			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemlog_18.def "${DEFFILE}")
+			add_library(pmemlog_18 SHARED ${LOG_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/pmemlog_18.def)
+			target_compile_options(pmemlog_18 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/windows/include/platform.h")
 		else()
-			add_library(pmemlog_17 SHARED ${LOG_SOURCES})
+			add_library(pmemlog_18 SHARED ${LOG_SOURCES})
 		endif()
 
-		target_compile_definitions(pmemlog_17 PRIVATE SRCVERSION="${MAX_STABLE}")
-		target_compile_definitions(pmemlog_17 PRIVATE PMDK_UTF8_API)
-		target_compile_definitions(pmemlog_17 PRIVATE _PMEMLOG_INTRNL)
+		target_compile_definitions(pmemlog_18 PRIVATE SRCVERSION="${MAX_STABLE}")
+		target_compile_definitions(pmemlog_18 PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemlog_18 PRIVATE _PMEMLOG_INTRNL)
 
-		target_include_directories(pmemlog_17 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/include)
-		target_include_directories(pmemlog_17 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog)
-		target_include_directories(pmemlog_17 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/common)
-		target_include_directories(pmemlog_17 PRIVATE ${PMEM_INCLUDE_DIRS})
+		target_include_directories(pmemlog_18 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/include)
+		target_include_directories(pmemlog_18 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog)
+		target_include_directories(pmemlog_18 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/common)
+		target_include_directories(pmemlog_18 PRIVATE ${PMEM_INCLUDE_DIRS})
 
 		if(WIN32)
-			target_include_directories(pmemlog_17 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/windows/include/)
-			target_include_directories(pmemlog_17 PRIVATE ${CMAKE_SOURCE_DIR}/include/)
+			target_include_directories(pmemlog_18 PRIVATE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/windows/include/)
+			target_include_directories(pmemlog_18 PRIVATE ${CMAKE_SOURCE_DIR}/include/)
 		endif()
 
-		target_link_libraries(pmemlog_17 PRIVATE libpmem-convert)
-		target_link_libraries(pmemlog_17 PRIVATE ${CMAKE_DL_LIBS})
-		target_link_libraries(pmemlog_17 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+		target_link_libraries(pmemlog_18 PRIVATE libpmem-convert)
+		target_link_libraries(pmemlog_18 PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemlog_18 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 		if(NOT MSVC)
 			FILE(READ ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog/libpmemlog.link.in LINKFILE)
@@ -431,11 +459,11 @@ if(BUILD_CONVERT_V6)
 				string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
 			endif()
 			FILE(WRITE ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog/libpmemlog.link "${LINKFILE}")
-			target_link_libraries(pmemlog_17 PRIVATE -Wl,--version-script=${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog/libpmemlog.link)
+			target_link_libraries(pmemlog_18 PRIVATE -Wl,--version-script=${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmemlog/libpmemlog.link)
 		endif()
-	endfunction(build_libpmemlog_17)
+	endfunction(build_libpmemlog_18)
 
-	build_libpmemlog_17()
+	build_libpmemlog_18()
 
 	function(build_pmemspoil)
 		set(PMEMSPOIL_SOURCES
@@ -478,7 +506,7 @@ if(BUILD_CONVERT_V6)
 
 		target_link_libraries(pmemspoil PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 		target_link_libraries(pmemspoil PRIVATE libpmem-convert)
-		target_link_libraries(pmemspoil PRIVATE pmemobj_17)
+		target_link_libraries(pmemspoil PRIVATE pmemobj_18)
 
 		if(WIN32)
 			# on windows dll and executable must be in the same dir
@@ -563,9 +591,9 @@ if(BUILD_CONVERT_V6)
 		target_link_libraries(pmempool-convert PRIVATE ${CMAKE_DL_LIBS})
 		target_link_libraries(pmempool-convert PRIVATE libpmem-convert)
 		target_link_libraries(pmempool-convert PRIVATE libpmempool-convert)
-		target_link_libraries(pmempool-convert PRIVATE pmemobj_17)
-		target_link_libraries(pmempool-convert PRIVATE pmemblk_17)
-		target_link_libraries(pmempool-convert PRIVATE pmemlog_17)
+		target_link_libraries(pmempool-convert PRIVATE pmemobj_18)
+		target_link_libraries(pmempool-convert PRIVATE pmemblk_18)
+		target_link_libraries(pmempool-convert PRIVATE pmemlog_18)
 
 		if(WIN32)
 			# on windows dll and executable must be in the same dir
@@ -639,12 +667,20 @@ if(BUILD_CONVERT_V5)
 	target_link_libraries(transaction_16 PRIVATE pmemobj_16)
 endif()
 
-if(BUILD_CONVERT_V6)
+if(BUILD_17)
 	add_executable(transaction_17 transaction.c)
 	disable_optimization(transaction_17)
 	target_include_directories(transaction_17 PRIVATE ${CMAKE_SOURCE_DIR}/${VER17}/src/include)
 	target_link_libraries(transaction_17 PRIVATE libpmem-convert)
 	target_link_libraries(transaction_17 PRIVATE pmemobj_17)
+endif()
+
+if(BUILD_CONVERT_V6)
+	add_executable(transaction_18 transaction.c)
+	disable_optimization(transaction_18)
+	target_include_directories(transaction_18 PRIVATE ${CMAKE_SOURCE_DIR}/${VER18}/src/include)
+	target_link_libraries(transaction_18 PRIVATE libpmem-convert)
+	target_link_libraries(transaction_18 PRIVATE pmemobj_18)
 endif()
 
 if(MSVC)
@@ -682,15 +718,15 @@ if(MSVC)
 		# project has to be compile as c++ project so we need to change the flag
 		SET_SOURCE_FILES_PROPERTIES(transaction.c PROPERTIES LANGUAGE CXX)
 		# on windows dll and executable must be in the same dir
-		add_custom_command(TARGET transaction_17 POST_BUILD
+		add_custom_command(TARGET transaction_18 POST_BUILD
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			$<TARGET_FILE:pmemobj_17>
-			$<TARGET_FILE_DIR:transaction_17>)
+			$<TARGET_FILE:pmemobj_18>
+			$<TARGET_FILE_DIR:transaction_18>)
 
-		add_custom_command(TARGET transaction_17 POST_BUILD
+		add_custom_command(TARGET transaction_18 POST_BUILD
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			$<TARGET_FILE_DIR:pmemobj_17>/libpmem-convert.dll
-			$<TARGET_FILE_DIR:transaction_17>)
+			$<TARGET_FILE_DIR:pmemobj_18>/libpmem-convert.dll
+			$<TARGET_FILE_DIR:transaction_18>)
 	endif()
 endif()
 

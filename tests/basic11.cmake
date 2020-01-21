@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -56,7 +56,11 @@ function(test)
 
 	# 1.6 -> 1.7
 	execute(0 ${EXE_DIR}/pmdk-convert --to=1.7 ${DIR}/pool11 -X fail-safety)
-	check_open(${DIR}/pool11 "1.7")
+	check_open(${DIR}/pool11 "1.7 1.8")
+
+	# 1.7 -> 1.8
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.8 ${DIR}/pool11 -X fail-safety)
+	check_open(${DIR}/pool11 "1.7 1.8")
 endfunction(test)
 
 # single file pool
@@ -70,7 +74,6 @@ test()
 setup()
 
 file(WRITE ${DIR}/pool11 "PMEMPOOLSET\n16M ${DIR}/part11\n")
-
 execute(0 ${TEST_DIR}/create_11 ${DIR}/pool11)
 
 test()
@@ -79,7 +82,6 @@ test()
 setup()
 
 file(WRITE ${DIR}/pool11 "PMEMPOOLSET\n16M ${DIR}/part11_1\n16M ${DIR}/part11_2\n")
-
 execute(0 ${TEST_DIR}/create_11 ${DIR}/pool11)
 
 test()

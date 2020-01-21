@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,9 +35,9 @@ cmake_minimum_required(VERSION 3.3)
 project(pmdk-convert C CXX)
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 7)
+set(VERSION_MINOR 8)
 set(VERSION_PATCH 0)
-#set(VERSION_PRERELEASE rc0)
+set(VERSION_PRERELEASE rc1)
 
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
 if (VERSION_PATCH GREATER 0)
@@ -59,8 +59,8 @@ else()
 	set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
 endif()
 
-set(MAX_VERSION 1.7)
-set(MAX_STABLE 1.7)
+set(MAX_VERSION 1.8)
+set(MAX_STABLE 1.8-rc1)
 
 if(MIN_VERSION VERSION_GREATER_EQUAL MAX_VERSION)
 	message(FATAL_ERROR "ERROR: Minimum PMDK version cannot be greater than or equal to maximum PMDK version")
@@ -168,6 +168,7 @@ endfunction(version_supported)
 # disabled by default:
 set(BUILD_13 0)
 set(BUILD_15 0)
+set(BUILD_17 0)
 
 if (${MIN_VERSION} EQUAL 1.0)
 	set(BUILD_CONVERT_V1 1)
@@ -178,6 +179,7 @@ if (${MIN_VERSION} EQUAL 1.0)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_15 1)
+	set(BUILD_17 1)
 elseif (${MIN_VERSION} EQUAL 1.1)
 	set(BUILD_CONVERT_V2 1)
 	set(BUILD_CONVERT_V3 1)
@@ -185,6 +187,8 @@ elseif (${MIN_VERSION} EQUAL 1.1)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
+	set(BUILD_CONVERT_V6 1)
+	set(BUILD_17 1)
 elseif (${MIN_VERSION} EQUAL 1.2)
 	set(BUILD_CONVERT_V3 1)
 	set(BUILD_13 1)
@@ -192,25 +196,33 @@ elseif (${MIN_VERSION} EQUAL 1.2)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
+	set(BUILD_17 1)
 elseif (${MIN_VERSION} EQUAL 1.3)
 	set(BUILD_13 1)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
+	set(BUILD_17 1)
 elseif (${MIN_VERSION} EQUAL 1.4)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
+	set(BUILD_17 1)
 elseif (${MIN_VERSION} EQUAL 1.5)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
+	set(BUILD_17 1)
 elseif (${MIN_VERSION} EQUAL 1.6)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_CONVERT_V6 1)
+	set(BUILD_17 1)
 elseif (${MIN_VERSION} EQUAL 1.7)
+	set(BUILD_CONVERT_V6 1)
+	set(BUILD_17 1)
+elseif (${MIN_VERSION} EQUAL 1.8)
 	set(BUILD_CONVERT_V6 1)
 endif()
 
@@ -358,10 +370,11 @@ function(get_pmdk ver hash dstdir)
 endfunction()
 
 
+# convert V6 and PMDK 1.8
 if(BUILD_CONVERT_V6)
-	set(VER17 1.7)
+	set(VER18 1.8-rc1)
 
-	get_pmdk(${VER17} 865ce1b422bc83109cb4a63dcff8fd1077eea3617e668faf6a043208d8be03ca ${VER17})
+	get_pmdk(${VER18} 7de2a469781cb8376719591d3ef9c654b20cb843fcd237e0aab65e47cf8a5f39 ${VER18})
 
 	function(build_libpmem_convert)
 		set(LIBPMEM_SOURCES
@@ -563,6 +576,177 @@ if(BUILD_CONVERT_V6)
 	set(LIBPMEMPOOL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/include)
 	set(LIBPMEMPOOL_LIBRARIES libpmempool-convert)
 
+	set(SOURCES_18
+		${VER18}/src/libpmemobj/alloc_class.c
+		${VER18}/src/libpmemobj/bucket.c
+		${VER18}/src/libpmemobj/critnib.c
+		${VER18}/src/libpmemobj/ctl_debug.c
+		${VER18}/src/libpmemobj/container_ravl.c
+		${VER18}/src/libpmemobj/container_seglists.c
+		${VER18}/src/libpmemobj/heap.c
+		${VER18}/src/libpmemobj/lane.c
+		${VER18}/src/libpmemobj/libpmemobj.c
+		${VER18}/src/libpmemobj/list.c
+		${VER18}/src/libpmemobj/memblock.c
+		${VER18}/src/libpmemobj/memops.c
+		${VER18}/src/libpmemobj/obj.c
+		${VER18}/src/libpmemobj/palloc.c
+		${VER18}/src/libpmemobj/pmalloc.c
+		${VER18}/src/libpmemobj/ravl.c
+		${VER18}/src/libpmemobj/recycler.c
+		${VER18}/src/libpmemobj/stats.c
+		${VER18}/src/libpmemobj/sync.c
+		${VER18}/src/libpmemobj/tx.c
+		${VER18}/src/libpmemobj/ulog.c
+
+		${VER18}/src/common/alloc.c
+		${VER18}/src/common/badblock.c
+		${VER18}/src/common/ctl.c
+		${VER18}/src/common/ctl_cow.c
+		${VER18}/src/common/ctl_fallocate.c
+		${VER18}/src/common/ctl_prefault.c
+		${VER18}/src/common/ctl_sds.c
+		${VER18}/src/common/file.c
+		${VER18}/src/common/mmap.c
+		${VER18}/src/common/os_dimm_none.c
+		${VER18}/src/common/out.c
+		${VER18}/src/common/pool_hdr.c
+		${VER18}/src/common/set.c
+		${VER18}/src/common/shutdown_state.c
+		${VER18}/src/common/util.c
+		${VER18}/src/common/uuid.c
+		)
+
+	if(WIN32)
+		set(SOURCES_18 ${SOURCES_18}
+			${VER18}/src/libpmemobj/libpmemobj_main.c
+			${VER18}/src/common/badblock_none.c
+			${VER18}/src/common/file_windows.c
+			${VER18}/src/common/fs_windows.c
+			${VER18}/src/common/mmap_windows.c
+			${VER18}/src/common/os_deep_windows.c
+			${VER18}/src/common/os_windows.c
+			${VER18}/src/common/os_thread_windows.c
+			${VER18}/src/common/util_windows.c
+			${VER18}/src/common/uuid_windows.c
+			)
+	else()
+		set(SOURCES_18 ${SOURCES_18}
+			${VER18}/src/common/badblock_ndctl.c
+			${VER18}/src/common/extent_linux.c
+			${VER18}/src/common/file_posix.c
+			${VER18}/src/common/fs_posix.c
+			${VER18}/src/common/mmap_posix.c
+			${VER18}/src/common/os_deep_linux.c
+			${VER18}/src/common/os_posix.c
+			${VER18}/src/common/os_thread_posix.c
+			${VER18}/src/common/util_posix.c
+			${VER18}/src/common/uuid_linux.c
+			)
+	endif()
+
+	function(build_convert_v6)
+		if(WIN32)
+			set(CONVERT_V6_SOURCES ${VER18}/src/windows/getopt/getopt.c)
+		endif()
+
+		add_library(pmemobj_convert_v6_o OBJECT ${SOURCES_18} ${CONVERT_V6_SOURCES}
+			pmemobj_convert_v6.c
+			${VER18}/src/libpmemblk/btt.c
+			${VER18}/src/tools/pmempool/common.c
+			${VER18}/src/tools/pmempool/output.c)
+
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SRCVERSION="${VER18}")
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE _PMEMOBJ_INTRNL)
+
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/include)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/libpmemobj)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/libpmemlog)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/libpmemblk)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/common)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(MSVC)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/windows/include/)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/windows/getopt/)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE include/)
+			target_compile_options(pmemobj_convert_v6_o PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER18}/src/windows/include/platform.h")
+		endif()
+
+		if(MSVC)
+			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o> ${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_v6.def)
+		else()
+			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o>)
+			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
+		endif()
+
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+		if(NOT MSVC)
+			# strip unneeded symbols, requires -fdata-sections -ffunction-sections
+			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--gc-sections)
+		endif()
+
+		set_target_properties(pmemobj_convert_v6_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v6)
+		# remove lib prefix from library name
+		set_target_properties(pmemobj_convert_v6_shared PROPERTIES PREFIX "")
+	endfunction(build_convert_v6)
+
+	build_convert_v6()
+
+	install(TARGETS pmemobj_convert_v6_shared
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+	function(build_libpmemobj_18)
+		if(MSVC)
+			FILE(READ ${VER18}/src/libpmemobj/libpmemobj.def DEFFILE)
+			string(REPLACE "libpmemobj" "pmemobj_18" DEFFILE "${DEFFILE}")
+			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_18.def "${DEFFILE}")
+			add_library(pmemobj_18 SHARED ${SOURCES_18} ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_18.def)
+			target_compile_options(pmemobj_18 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER18}/src/windows/include/platform.h")
+		else()
+			add_library(pmemobj_18 SHARED ${SOURCES_18})
+			disable_optimization(pmemobj_18)
+		endif()
+
+		target_compile_definitions(pmemobj_18 PRIVATE SRCVERSION="${VER18}")
+		target_compile_definitions(pmemobj_18 PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_18 PRIVATE _PMEMOBJ_INTRNL)
+
+		target_include_directories(pmemobj_18 PRIVATE ${VER18}/src/include)
+		target_include_directories(pmemobj_18 PRIVATE ${VER18}/src/libpmemobj)
+		target_include_directories(pmemobj_18 PRIVATE ${VER18}/src/common)
+		target_include_directories(pmemobj_18 PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(WIN32)
+			target_include_directories(pmemobj_18 PRIVATE ${VER18}/src/windows/include/)
+			target_include_directories(pmemobj_18 PRIVATE include/)
+		endif()
+
+		target_link_libraries(pmemobj_18 PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_18 PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_18 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+
+		if(NOT MSVC)
+			FILE(READ ${VER18}/src/libpmemobj/libpmemobj.link.in LINKFILE)
+			string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
+			FILE(WRITE ${VER18}/src/libpmemobj/libpmemobj.link "${LINKFILE}")
+			target_link_libraries(pmemobj_18 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/${VER18}/src/libpmemobj/libpmemobj.link)
+		endif()
+	endfunction(build_libpmemobj_18)
+
+	build_libpmemobj_18()
+
+endif(BUILD_CONVERT_V6)
+
+###################################################### 1.7
+if(BUILD_17)
+	set(VER17 1.7)
+
+	get_pmdk(${VER17} 865ce1b422bc83109cb4a63dcff8fd1077eea3617e668faf6a043208d8be03ca ${VER17})
+
 	set(SOURCES_17
 		${VER17}/src/libpmemobj/alloc_class.c
 		${VER17}/src/libpmemobj/bucket.c
@@ -632,60 +816,6 @@ if(BUILD_CONVERT_V6)
 			)
 	endif()
 
-	function(build_convert_v6)
-		if(WIN32)
-			set(CONVERT_V6_SOURCES ${VER17}/src/windows/getopt/getopt.c)
-		endif()
-
-		add_library(pmemobj_convert_v6_o OBJECT ${SOURCES_17} ${CONVERT_V6_SOURCES}
-			pmemobj_convert_v6.c
-			${VER17}/src/libpmemblk/btt.c
-			${VER17}/src/tools/pmempool/common.c
-			${VER17}/src/tools/pmempool/output.c)
-
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SRCVERSION="${VER17}")
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE PMDK_UTF8_API)
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE _PMEMOBJ_INTRNL)
-
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/include)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/libpmemobj)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/libpmemlog)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/libpmemblk)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/common)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${PMEM_INCLUDE_DIRS})
-
-		if(MSVC)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/windows/include/)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER17}/src/windows/getopt/)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE include/)
-			target_compile_options(pmemobj_convert_v6_o PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER17}/src/windows/include/platform.h")
-		endif()
-
-		if(MSVC)
-			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o> ${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_v6.def)
-		else()
-			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o>)
-			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
-		endif()
-
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE libpmem-convert)
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_DL_LIBS})
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-		if(NOT MSVC)
-			# strip unneeded symbols, requires -fdata-sections -ffunction-sections
-			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--gc-sections)
-		endif()
-
-		set_target_properties(pmemobj_convert_v6_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v6)
-		# remove lib prefix from library name
-		set_target_properties(pmemobj_convert_v6_shared PROPERTIES PREFIX "")
-	endfunction(build_convert_v6)
-
-	build_convert_v6()
-
-	install(TARGETS pmemobj_convert_v6_shared
-		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
-
 	function(build_libpmemobj_17)
 		if(MSVC)
 			FILE(READ ${VER17}/src/libpmemobj/libpmemobj.def DEFFILE)
@@ -725,8 +855,9 @@ if(BUILD_CONVERT_V6)
 	endfunction(build_libpmemobj_17)
 
 	build_libpmemobj_17()
+endif()
 
-endif(BUILD_CONVERT_V6)
+###################################################### 1.7
 
 # convert V5 and PMDK 1.6
 if(BUILD_CONVERT_V5)

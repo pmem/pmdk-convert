@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,6 +110,9 @@ static const struct {
 #endif
 #if CHECK_VERSION(17)
 	{17, 6},
+#endif
+#if CHECK_VERSION(18)
+	{18, 6},
 #endif
 };
 
