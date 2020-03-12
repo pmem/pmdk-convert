@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -60,7 +60,8 @@ function(test_devdax test_intr_tx_devdax)
 		list(GET VERSIONS ${next} next_version)
 
 		# Multi DAX devices are supported from PMDK version 1.3
-		if(curr_version VERSION_GREATER "1.2")
+		# PMDK version 1.3 is bugged, the test for this version is disabled
+		if(curr_version VERSION_GREATER "1.3")
 			test_intr_tx_devdax(prepare_files ${curr_version} ${next_version})
 		endif()
 
