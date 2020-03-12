@@ -651,6 +651,7 @@ if(BUILD_CONVERT_V4)
 	target_include_directories(transaction_14 PRIVATE ${CMAKE_SOURCE_DIR}/${VER14}/src/include)
 	target_link_libraries(transaction_14 PRIVATE libpmem-convert)
 	target_link_libraries(transaction_14 PRIVATE pmemobj_14)
+	set(transaction_14 PRIVATE -DWORKAROUND=ON)
 endif()
 
 if(BUILD_15)

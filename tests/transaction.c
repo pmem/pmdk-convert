@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -401,6 +401,18 @@ sc7_create(PMEMobjpool *pop)
 {
 	/* allocate until OOM and count allocs */
 	int nallocs = 0;
+
+	/*
+	 * In PMDK 1.4 the allocator divides the pool
+	 * into pieces differently after releasing all objects
+	 */
+#ifndef WORKAROUND
+	TX_BEGIN(pop) {
+		for(;;) {
+			(void) TX_NEW(struct foo);
+		}
+	} TX_END
+#endif
 
 	TX_BEGIN(pop) {
 		for (;;) {
