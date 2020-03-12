@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -401,6 +401,22 @@ sc7_create(PMEMobjpool *pop)
 {
 	/* allocate until OOM and count allocs */
 	int nallocs = 0;
+
+#ifndef PMDK_1_4
+	/*
+	 * For PMDK 1.4 the assumption that you can
+	 * allocate the same number of objects you have
+	 * freed is not true.
+	 * The workaround for this issue is to
+	 * 'warm-up' the allocator. After this,
+	 * the behaviour is as expected.
+	 */
+	TX_BEGIN(pop) {
+		for(;;) {
+			(void) TX_NEW(struct foo);
+		}
+	} TX_END
+#endif
 
 	TX_BEGIN(pop) {
 		for (;;) {
