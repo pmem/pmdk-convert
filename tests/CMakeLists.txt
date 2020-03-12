@@ -642,6 +642,7 @@ if(NOT WIN32)
 		target_include_directories(transaction_13 PRIVATE ${CMAKE_SOURCE_DIR}/${VER13}/src/include)
 		target_link_libraries(transaction_13 PRIVATE libpmem-convert)
 		target_link_libraries(transaction_13 PRIVATE pmemobj_13)
+		target_compile_definitions(transaction_13 PRIVATE PMDK_1_3)
 	endif()
 endif()
 
