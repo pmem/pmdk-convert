@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,7 +57,10 @@ function(test_devdax test_intr_tx_devdax)
 		list(GET VERSIONS ${next} next_version)
 
 		# DAX devices are supported from PMDK version 1.2
-		if(curr_version VERSION_GREATER "1.1")
+		# but libpmemobj allocator behaves differently than it behaves
+		# on newer versions. From libpmemobj allocator in version > 1.3
+		# behaves consistently so they may share a common test scenario.
+		if(curr_version VERSION_GREATER "1.3")
 			test_intr_tx_devdax(prepare_files ${curr_version} ${next_version})
 		endif()
 
