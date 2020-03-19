@@ -198,8 +198,6 @@ elseif (${MIN_VERSION} EQUAL 1.8)
 	set(BUILD_CONVERT_V6 1)
 endif()
 
-add_executable(check_license EXCLUDE_FROM_ALL utils/check_license/check-license.c)
-
 # Generates cstyle-$name target and attaches it as a dependency of global
 # "cstyle" target. This target verifies C style of files in current source dir.
 # If more arguments are used, then they are used as files to be checked
@@ -247,8 +245,7 @@ add_custom_target(check-whitespace)
 add_custom_target(check-license
 	COMMAND ${CMAKE_SOURCE_DIR}/utils/check_license/check-headers.sh
 	${CMAKE_SOURCE_DIR}
-	${CMAKE_BINARY_DIR}/check_license
-	${CMAKE_SOURCE_DIR}/LICENSE
+	BSD-3-Clause
 	-a)
 add_custom_target(md2man
 	COMMAND ${CMAKE_SOURCE_DIR}/utils/md2man/md2man.sh
@@ -262,12 +259,8 @@ if (NOT WIN32)
 		DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 endif()
 
-add_dependencies(check-license check_license)
-
 add_cstyle(main)
-add_cstyle(check_license ${CMAKE_SOURCE_DIR}/utils/check_license/*.c)
 
-add_check_whitespace(check_license ${CMAKE_SOURCE_DIR}/utils/check_license/*.c)
 add_check_whitespace(src)
 add_check_whitespace(other
 	${CMAKE_SOURCE_DIR}/utils/check_license/*.sh
