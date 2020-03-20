@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 cmake_minimum_required(VERSION 3.3)
 set(DIR ${PARENT_DIR}/😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋${TEST_NAME})
@@ -157,7 +157,6 @@ function(test_intr_tx prepare_files)
 				execute(0
 					${TEST_DIR}/transaction_${next_bin_version}
 					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-
 				execute(0 gdb --batch
 					--command=${SRC_DIR}/trip_on_post_commit.gdb
 					--args ${TEST_DIR}/transaction_${curr_bin_version}
@@ -203,8 +202,16 @@ function(unlock_tx_intr)
 endfunction()
 
 function(test_intr_tx_devdax prepare_files curr_version next_version)
-	set(curr_scenario 0)
-	set(last_scenario 9)
+	# libpmemobj allocator behaves differently than it behaves
+	# on newer versions. From libpmemobj allocator in version > 1.3
+	# behaves consistently so they may share a common scenario.
+	if(NOT curr_version GREATER "1.4")
+		set(curr_scenario 0)
+		set(last_scenario 7)
+	else()
+		set(curr_scenario 0)
+		set(last_scenario 9)
+	endif()
 
 	while(NOT curr_scenario GREATER last_scenario)
 		string(REPLACE "." "" curr_bin_version ${curr_version})
