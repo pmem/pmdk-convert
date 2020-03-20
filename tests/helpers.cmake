@@ -104,75 +104,70 @@ function(execute_cdb SRC_VERSION SCENARIO)
 	endif()
 endfunction()
 
-function(test_intr_tx prepare_files)
-	set(curr_scenario 0)
-	set(last_scenario 9)
-
-	list(LENGTH VERSIONS num)
-	math(EXPR num "${num} - 1")
+function(test_intr_tx prepare_files curr_version next_version)
+	# libpmemobj allocator behaves differently than it behaves
+	# on newer versions. From libpmemobj allocator in version > 1.3
+	# behaves consistently so they may share a common scenario.
+	if(NOT curr_version GREATER "1.4")
+		set(curr_scenario 0)
+		set(last_scenario 7)
+	else()
+		set(curr_scenario 0)
+		set(last_scenario 9)
+	endif()
 
 	while(NOT curr_scenario GREATER last_scenario)
-		prepare_files()
-		set(index 1)
+		string(REPLACE "." "" curr_bin_version ${curr_version})
+		string(REPLACE "." "" next_bin_version ${next_version})
 
-		while(index LESS num)
-			list(GET VERSIONS ${index} curr_version)
+		prepare_files(${curr_bin_version})
 
-			math(EXPR next "${index} + 1")
-			list(GET VERSIONS ${next} next_version)
-
-			string(REPLACE "." "" curr_bin_version ${curr_version})
-			string(REPLACE "." "" next_bin_version ${next_version})
-
-			if(next_version EQUAL "1.2")
-				set(mutex "-X;1.2-pmemmutex")
-			else()
-				unset(mutex)
-			endif()
+		if(next_version EQUAL "1.2")
+			set(mutex "-X;1.2-pmemmutex")
+		else()
+			unset(mutex)
+		endif()
 
 			lock_tx_intr()
 
-			if(WIN32)
-				execute_cdb(${curr_bin_version} ${curr_scenario})
-				execute(0 ${EXE_DIR}/pmdk-convert
-					--to=${next_version} ${DIR}/pool${curr_bin_version}a
-					-X fail-safety)
-				execute(0
-					${TEST_DIR}/transaction_${next_bin_version}
-					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-				execute(0 ${EXE_DIR}/pmdk-convert
-					--to=${next_version} ${DIR}/pool${curr_bin_version}c
-					-X fail-safety)
-				execute(0
-					${TEST_DIR}/transaction_${next_bin_version}
-					${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
-			else()
-				execute(0 gdb --batch
-					--command=${SRC_DIR}/trip_on_pre_commit.gdb
-					--args ${TEST_DIR}/transaction_${curr_bin_version}
-					${DIR}/pool${curr_bin_version}a c ${curr_scenario})
-				execute(0 ${EXE_DIR}/pmdk-convert
-					--to=${next_version} ${DIR}/pool${curr_bin_version}a
-					-X fail-safety ${mutex})
-				execute(0
-					${TEST_DIR}/transaction_${next_bin_version}
-					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-				execute(0 gdb --batch
-					--command=${SRC_DIR}/trip_on_post_commit.gdb
-					--args ${TEST_DIR}/transaction_${curr_bin_version}
-					${DIR}/pool${curr_bin_version}c c ${curr_scenario})
-				execute(0 ${EXE_DIR}/pmdk-convert
-					--to=${next_version} ${DIR}/pool${curr_bin_version}c
-					-X fail-safety ${mutex})
-				execute(0
-					${TEST_DIR}/transaction_${next_bin_version}
-					${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
-			endif()
+		if(WIN32)
+			execute_cdb(${curr_bin_version} ${curr_scenario})
+			execute(0 ${EXE_DIR}/pmdk-convert
+				--to=${next_version} ${DIR}/pool${curr_bin_version}a
+				-X fail-safety)
+			execute(0
+				${TEST_DIR}/transaction_${next_bin_version}
+				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+			execute(0 ${EXE_DIR}/pmdk-convert
+				--to=${next_version} ${DIR}/pool${curr_bin_version}c
+				-X fail-safety)
+			execute(0
+				${TEST_DIR}/transaction_${next_bin_version}
+				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+		else()
+			execute(0 gdb --batch
+				--command=${SRC_DIR}/trip_on_pre_commit.gdb
+				--args ${TEST_DIR}/transaction_${curr_bin_version}
+				${DIR}/pool${curr_bin_version}a c ${curr_scenario})
+			execute(0 ${EXE_DIR}/pmdk-convert
+				--to=${next_version} ${DIR}/pool${curr_bin_version}a
+				-X fail-safety ${mutex})
+			execute(0
+				${TEST_DIR}/transaction_${next_bin_version}
+				${DIR}/pool${curr_bin_version}a va ${curr_scenario})
+			execute(0 gdb --batch
+				--command=${SRC_DIR}/trip_on_post_commit.gdb
+				--args ${TEST_DIR}/transaction_${curr_bin_version}
+				${DIR}/pool${curr_bin_version}c c ${curr_scenario})
+			execute(0 ${EXE_DIR}/pmdk-convert
+				--to=${next_version} ${DIR}/pool${curr_bin_version}c
+				-X fail-safety ${mutex})
+			execute(0
+				${TEST_DIR}/transaction_${next_bin_version}
+				${DIR}/pool${curr_bin_version}c vc ${curr_scenario})
+		endif()
 
-			unlock_tx_intr()
-
-			MATH(EXPR index "${index} + 1")
-		endwhile()
+		unlock_tx_intr()
 
 		MATH(EXPR curr_scenario "${curr_scenario} + 1")
 	endwhile()
