@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * transaction.c -- unit test for pool conversion
@@ -365,117 +365,10 @@ sc6_verify_commit(PMEMobjpool *pop)
 }
 
 /*
- * sc7_create -- small alloc undo
+ * sc7_create -- multiple small and large set undo
  */
 static void
 sc7_create(PMEMobjpool *pop)
-{
-	/* allocate until OOM and count allocs */
-	int nallocs = 0;
-
-	TX_BEGIN(pop) {
-		for (;;) {
-			(void) TX_NEW(struct foo);
-			nallocs++;
-		}
-	} TX_END
-
-	trap = 1;
-	/* allocate all possible objects */
-	TX_BEGIN(pop) {
-		for (int i = 0; i < nallocs; ++i) {
-			(void) TX_NEW(struct foo);
-		}
-	} TX_ONABORT {
-		exit(0);
-	} TX_END
-}
-
-static void
-sc7_verify_abort(PMEMobjpool *pop)
-{
-	int nallocs = 0;
-
-	TOID(struct foo) f;
-	POBJ_FOREACH_TYPE(pop, f) {
-		nallocs++;
-	}
-
-	if (nallocs != 0)
-		exit(15);
-}
-
-static void
-sc7_verify_commit(PMEMobjpool *pop)
-{
-	int nallocs = 0;
-
-	TOID(struct foo) f;
-	POBJ_FOREACH_TYPE(pop, f) {
-		nallocs++;
-	}
-
-	if (nallocs == 0)
-		exit(16);
-}
-
-/*
- * sc8_create -- large alloc undo
- */
-static void
-sc8_create(PMEMobjpool *pop)
-{
-	/* allocate until OOM and count allocs */
-	int nallocs = 0;
-
-	TX_BEGIN(pop) {
-		for (;;) {
-			(void) TX_NEW(struct bar);
-			nallocs++;
-		}
-	} TX_END
-
-	trap = 1;
-	/* allocate all possible objects */
-	TX_BEGIN(pop) {
-		for (int i = 0; i < nallocs; ++i) {
-			(void) TX_NEW(struct bar);
-		}
-	} TX_ONABORT {
-		exit(0);
-	} TX_END
-}
-
-static void
-sc8_verify_abort(PMEMobjpool *pop)
-{
-	TX_BEGIN(pop) {
-		TOID(struct bar) f = TX_NEW(struct bar);
-		(void) f;
-	} TX_ONABORT {
-		exit(0);
-	} TX_END
-}
-
-static void
-sc8_verify_commit(PMEMobjpool *pop)
-{
-	int nallocs = 0;
-
-	TOID(struct bar) f;
-	POBJ_FOREACH_TYPE(pop, f) {
-		nallocs++;
-	}
-
-	if (nallocs == 0)
-		exit(17);
-}
-
-/*
- * sc9_create -- multiply small and large set undo
- */
-static void
-sc9_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	POBJ_ZALLOC(pop, &D_RW(rt)->bar, struct bar,
@@ -499,7 +392,7 @@ sc9_create(PMEMobjpool *pop)
 }
 
 static void
-sc9_verify_abort(PMEMobjpool *pop)
+sc7_verify_abort(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
@@ -515,7 +408,7 @@ sc9_verify_abort(PMEMobjpool *pop)
 }
 
 static void
-sc9_verify_commit(PMEMobjpool *pop)
+sc7_verify_commit(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 
@@ -530,6 +423,113 @@ sc9_verify_commit(PMEMobjpool *pop)
 	for (int i = 0; i < TEST_NVALUES; ++i)
 		if (D_RW(rt)->value[i] != 2 * TEST_RECURSION_NUM * TEST_VALUE)
 			exit(23);
+}
+
+/*
+ * sc8_create -- small alloc undo
+ */
+static void
+sc8_create(PMEMobjpool *pop)
+{
+	/* allocate until OOM and count allocs */
+	int nallocs = 0;
+
+	TX_BEGIN(pop) {
+		for (;;) {
+			(void) TX_NEW(struct foo);
+			nallocs++;
+		}
+	} TX_END
+
+	trap = 1;
+	/* allocate all possible objects */
+	TX_BEGIN(pop) {
+		for (int i = 0; i < nallocs; ++i) {
+			(void) TX_NEW(struct foo);
+		}
+	} TX_ONABORT {
+		exit(0);
+	} TX_END
+}
+
+static void
+sc8_verify_abort(PMEMobjpool *pop)
+{
+	int nallocs = 0;
+
+	TOID(struct foo) f;
+	POBJ_FOREACH_TYPE(pop, f) {
+		nallocs++;
+	}
+
+	if (nallocs != 0)
+		exit(15);
+}
+
+static void
+sc8_verify_commit(PMEMobjpool *pop)
+{
+	int nallocs = 0;
+
+	TOID(struct foo) f;
+	POBJ_FOREACH_TYPE(pop, f) {
+		nallocs++;
+	}
+
+	if (nallocs == 0)
+		exit(16);
+}
+
+/*
+ * sc9_create -- large alloc undo
+ */
+static void
+sc9_create(PMEMobjpool *pop)
+{
+	/* allocate until OOM and count allocs */
+	int nallocs = 0;
+
+	TX_BEGIN(pop) {
+		for (;;) {
+			(void) TX_NEW(struct bar);
+			nallocs++;
+		}
+	} TX_END
+
+	trap = 1;
+	/* allocate all possible objects */
+	TX_BEGIN(pop) {
+		for (int i = 0; i < nallocs; ++i) {
+			(void) TX_NEW(struct bar);
+		}
+	} TX_ONABORT {
+		exit(0);
+	} TX_END
+}
+
+static void
+sc9_verify_abort(PMEMobjpool *pop)
+{
+	TX_BEGIN(pop) {
+		TOID(struct bar) f = TX_NEW(struct bar);
+		(void) f;
+	} TX_ONABORT {
+		exit(0);
+	} TX_END
+}
+
+static void
+sc9_verify_commit(PMEMobjpool *pop)
+{
+	int nallocs = 0;
+
+	TOID(struct bar) f;
+	POBJ_FOREACH_TYPE(pop, f) {
+		nallocs++;
+	}
+
+	if (nallocs == 0)
+		exit(17);
 }
 
 typedef void (*scenario_func)(PMEMobjpool *pop);
