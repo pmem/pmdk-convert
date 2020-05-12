@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 cmake_minimum_required(VERSION 3.3)
 set(DIR ${PARENT_DIR}/😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋${TEST_NAME})
@@ -105,24 +105,33 @@ function(execute_cdb SRC_VERSION SCENARIO)
 endfunction()
 
 function(test_intr_tx prepare_files)
-	set(curr_scenario 0)
-	set(last_scenario 9)
-
 	list(LENGTH VERSIONS num)
 	math(EXPR num "${num} - 1")
 
-	while(NOT curr_scenario GREATER last_scenario)
-		prepare_files()
-		set(index 1)
+	set(index 1)
 
-		while(index LESS num)
-			list(GET VERSIONS ${index} curr_version)
+	while(index LESS num)
+		list(GET VERSIONS ${index} curr_version)
 
-			math(EXPR next "${index} + 1")
-			list(GET VERSIONS ${next} next_version)
+		math(EXPR next "${index} + 1")
+		list(GET VERSIONS ${next} next_version)
 
-			string(REPLACE "." "" curr_bin_version ${curr_version})
-			string(REPLACE "." "" next_bin_version ${next_version})
+		string(REPLACE "." "" curr_bin_version ${curr_version})
+		string(REPLACE "." "" next_bin_version ${next_version})
+
+		# A libpmemobj allocator version <= 1.3 behaves differently
+		# than its newer versions. The libpmemobj allocator 1.4 and above
+		# behaves consistently so they may share common test scenarios.
+		if(curr_version LESS_EQUAL "1.3")
+			set(curr_scenario 0)
+			set(last_scenario 7)
+		else()
+			set(curr_scenario 0)
+			set(last_scenario 9)
+		endif()
+
+		while(NOT curr_scenario GREATER last_scenario)
+			prepare_files(${curr_bin_version})
 
 			if(next_version EQUAL "1.2")
 				set(mutex "-X;1.2-pmemmutex")
@@ -157,7 +166,6 @@ function(test_intr_tx prepare_files)
 				execute(0
 					${TEST_DIR}/transaction_${next_bin_version}
 					${DIR}/pool${curr_bin_version}a va ${curr_scenario})
-
 				execute(0 gdb --batch
 					--command=${SRC_DIR}/trip_on_post_commit.gdb
 					--args ${TEST_DIR}/transaction_${curr_bin_version}
@@ -172,10 +180,10 @@ function(test_intr_tx prepare_files)
 
 			unlock_tx_intr()
 
-			MATH(EXPR index "${index} + 1")
+			MATH(EXPR curr_scenario "${curr_scenario} + 1")
 		endwhile()
 
-		MATH(EXPR curr_scenario "${curr_scenario} + 1")
+		MATH(EXPR index "${index} + 1")
 	endwhile()
 endfunction()
 
@@ -203,8 +211,16 @@ function(unlock_tx_intr)
 endfunction()
 
 function(test_intr_tx_devdax prepare_files curr_version next_version)
-	set(curr_scenario 0)
-	set(last_scenario 9)
+	# A libpmemobj allocator version <= 1.3 behaves differently
+	# than its newer versions. The libpmemobj allocator 1.4 and above
+	# behaves consistently so they may share common test scenarios.
+	if(curr_version LESS_EQUAL "1.3")
+		set(curr_scenario 0)
+		set(last_scenario 7)
+	else()
+		set(curr_scenario 0)
+		set(last_scenario 9)
+	endif()
 
 	while(NOT curr_scenario GREATER last_scenario)
 		string(REPLACE "." "" curr_bin_version ${curr_version})
