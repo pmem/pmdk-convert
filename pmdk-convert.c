@@ -85,6 +85,9 @@ static const struct {
 #if CHECK_VERSION(18)
 	{18, 6},
 #endif
+#if CHECK_VERSION(19)
+	{19, 6},
+#endif
 };
 
 #ifndef WIN32

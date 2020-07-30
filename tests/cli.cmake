@@ -38,10 +38,10 @@ execute(0 ${TEST_DIR}/create_${BIN_VER} ${DIR}/pool)
 execute(11 ${EXE_DIR}/pmdk-convert ${DIR}/part_a) # POOL_DETECTION
 execute(15 ${EXE_DIR}/pmdk-convert ${DIR}/part_b --from ${OLDEST_VER} -X fail-safety) # CONVERT_FAILED
 
-execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 1.9) # UNSUPPORTED_FROM
+execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from 2.0) # UNSUPPORTED_FROM
 execute(12 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from-layout 7) # UNSUPPORTED_FROM
 
-execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to 1.9) # UNSUPPORTED_TO
+execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to 2.0) # UNSUPPORTED_TO
 execute(13 ${EXE_DIR}/pmdk-convert ${DIR}/pool --to-layout 7) # UNSUPPORTED_TO
 
 execute(14 ${EXE_DIR}/pmdk-convert ${DIR}/pool --from ${NEWEST_VER} --to ${OLDEST_VER}) # BACKWARD_CONVERSION

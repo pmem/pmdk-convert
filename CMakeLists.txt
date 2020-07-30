@@ -7,9 +7,9 @@ cmake_minimum_required(VERSION 3.3)
 project(pmdk-convert C CXX)
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 8)
+set(VERSION_MINOR 9)
 set(VERSION_PATCH 0)
-set(VERSION_PRERELEASE rc2)
+#set(VERSION_PRERELEASE rc2)
 
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
 if (VERSION_PATCH GREATER 0)
@@ -31,8 +31,8 @@ else()
 	set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
 endif()
 
-set(MAX_VERSION 1.8)
-set(MAX_STABLE 1.8-rc2)
+set(MAX_VERSION 1.9)
+set(MAX_STABLE 1.9)
 
 if(MIN_VERSION VERSION_GREATER_EQUAL MAX_VERSION)
 	message(FATAL_ERROR "ERROR: Minimum PMDK version cannot be greater than or equal to maximum PMDK version")
@@ -141,6 +141,7 @@ endfunction(version_supported)
 set(BUILD_13 0)
 set(BUILD_15 0)
 set(BUILD_17 0)
+set(BUILD_18 0)
 
 if (${MIN_VERSION} EQUAL 1.0)
 	set(BUILD_CONVERT_V1 1)
@@ -152,6 +153,7 @@ if (${MIN_VERSION} EQUAL 1.0)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_15 1)
 	set(BUILD_17 1)
+	set(BUILD_18 1)
 elseif (${MIN_VERSION} EQUAL 1.1)
 	set(BUILD_CONVERT_V2 1)
 	set(BUILD_CONVERT_V3 1)
@@ -161,6 +163,7 @@ elseif (${MIN_VERSION} EQUAL 1.1)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_17 1)
+	set(BUILD_18 1)
 elseif (${MIN_VERSION} EQUAL 1.2)
 	set(BUILD_CONVERT_V3 1)
 	set(BUILD_13 1)
@@ -169,6 +172,7 @@ elseif (${MIN_VERSION} EQUAL 1.2)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_17 1)
+	set(BUILD_18 1)
 elseif (${MIN_VERSION} EQUAL 1.3)
 	set(BUILD_13 1)
 	set(BUILD_CONVERT_V4 1)
@@ -176,25 +180,33 @@ elseif (${MIN_VERSION} EQUAL 1.3)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_17 1)
+	set(BUILD_18 1)
 elseif (${MIN_VERSION} EQUAL 1.4)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_17 1)
+	set(BUILD_18 1)
 elseif (${MIN_VERSION} EQUAL 1.5)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_17 1)
+	set(BUILD_18 1)
 elseif (${MIN_VERSION} EQUAL 1.6)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_17 1)
+	set(BUILD_18 1)
 elseif (${MIN_VERSION} EQUAL 1.7)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_17 1)
+	set(BUILD_18 1)
 elseif (${MIN_VERSION} EQUAL 1.8)
+	set(BUILD_CONVERT_V6 1)
+	set(BUILD_18 1)
+elseif (${MIN_VERSION} EQUAL 1.9)
 	set(BUILD_CONVERT_V6 1)
 endif()
 
@@ -335,33 +347,45 @@ function(get_pmdk ver hash dstdir)
 endfunction()
 
 
-# convert V6 and PMDK 1.8
+# convert V6 and PMDK 1.9
 if(BUILD_CONVERT_V6)
-	set(VER18 1.8-rc2)
+	set(VER19 1.9)
 
-	get_pmdk(${VER18} 28744691cc6286bb1d927dc3a46464be0c61ffa1453f2a492eb5e5e3250fb47a ${VER18})
+	get_pmdk(${VER19} 956186faa3feb0156f58da5578143cce22501b9b4a00133a490f997594cb466f ${VER19})
 
 	function(build_libpmem_convert)
 		set(LIBPMEM_SOURCES
-			${MAX_STABLE}/src/common/alloc.c
+			${MAX_STABLE}/src/core/alloc.c
+			${MAX_STABLE}/src/core/out.c
+			${MAX_STABLE}/src/core/util.c
+			${MAX_STABLE}/src/common/bad_blocks.c
 			${MAX_STABLE}/src/common/file.c
 			${MAX_STABLE}/src/common/mmap.c
-			${MAX_STABLE}/src/common/out.c
-			${MAX_STABLE}/src/common/util.c
+			${MAX_STABLE}/src/common/ravl.c
 			${MAX_STABLE}/src/libpmem/libpmem.c
-			${MAX_STABLE}/src/libpmem/memops_generic.c
 			${MAX_STABLE}/src/libpmem/pmem.c
+			${MAX_STABLE}/src/libpmem2/pmem2_utils.c
+			${MAX_STABLE}/src/libpmem2/badblocks.c
+			${MAX_STABLE}/src/libpmem2/badblocks_none.c
+			${MAX_STABLE}/src/libpmem2/deep_flush_other.c
+			${MAX_STABLE}/src/libpmem2/memops_generic.c
+			${MAX_STABLE}/src/libpmem2/source.c
+			${MAX_STABLE}/src/libpmem2/usc_none.c
+			${MAX_STABLE}/src/libpmem2/persist.c
+			${MAX_STABLE}/src/libpmem2/ravl_interval.c
+			${MAX_STABLE}/src/libpmem2/region_namespace_none.c
+			${MAX_STABLE}/src/libpmem2/map.c
 			)
 		if (CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64
 			OR CMAKE_SYSTEM_PROCESSOR STREQUAL amd64
 			OR CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64)
 			set(LIBPMEM_SOURCES ${LIBPMEM_SOURCES}
-				${MAX_STABLE}/src/libpmem/x86_64/init.c
-				${MAX_STABLE}/src/libpmem/x86_64/cpu.c
+				${MAX_STABLE}/src/libpmem2/x86_64/init.c
+				${MAX_STABLE}/src/libpmem2/x86_64/cpu.c
 				)
 		elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
 			set(LIBPMEM_SOURCES ${LIBPMEM_SOURCES}
-				${MAX_STABLE}/src/libpmem/aarch64/init.c
+				${MAX_STABLE}/src/libpmem2/aarch64/init.c
 				)
 		else()
 			message(FATAL_ERROR "Unknown architecture ${CMAKE_SYSTEM_PROCESSOR}")
@@ -371,27 +395,34 @@ if(BUILD_CONVERT_V6)
 			set(LIBPMEM_SOURCES ${LIBPMEM_SOURCES}
 				${MAX_STABLE}/src/libpmem/libpmem_main.c
 				${MAX_STABLE}/src/libpmem/pmem_windows.c
+				${MAX_STABLE}/src/libpmem2/auto_flush_windows.c
+				${MAX_STABLE}/src/libpmem2/source_windows.c
+				${MAX_STABLE}/src/libpmem2/persist_windows.c
+				${MAX_STABLE}/src/libpmem2/pmem2_utils_other.c
 				${MAX_STABLE}/src/windows/win_mmap.c
 				${MAX_STABLE}/src/common/file_windows.c
-				${MAX_STABLE}/src/common/fs_windows.c
 				${MAX_STABLE}/src/common/mmap_windows.c
-				${MAX_STABLE}/src/common/os_auto_flush_windows.c
 				${MAX_STABLE}/src/common/os_deep_windows.c
-				${MAX_STABLE}/src/common/os_windows.c
-				${MAX_STABLE}/src/common/os_thread_windows.c
-				${MAX_STABLE}/src/common/util_windows.c
+				${MAX_STABLE}/src/core/fs_windows.c
+				${MAX_STABLE}/src/core/os_windows.c
+				${MAX_STABLE}/src/core/os_thread_windows.c
+				${MAX_STABLE}/src/core/util_windows.c
 				)
 		else()
 			set(LIBPMEM_SOURCES ${LIBPMEM_SOURCES}
 				${MAX_STABLE}/src/libpmem/pmem_posix.c
+				${MAX_STABLE}/src/libpmem2/auto_flush_linux.c
+				${MAX_STABLE}/src/libpmem2/pmem2_utils_linux.c
+				${MAX_STABLE}/src/libpmem2/pmem2_utils_none.c
+				${MAX_STABLE}/src/libpmem2/persist_posix.c
+				${MAX_STABLE}/src/libpmem2/source_posix.c
 				${MAX_STABLE}/src/common/file_posix.c
-				${MAX_STABLE}/src/common/fs_posix.c
 				${MAX_STABLE}/src/common/mmap_posix.c
-				${MAX_STABLE}/src/common/os_auto_flush_linux.c
 				${MAX_STABLE}/src/common/os_deep_linux.c
-				${MAX_STABLE}/src/common/os_posix.c
-				${MAX_STABLE}/src/common/os_thread_posix.c
-				${MAX_STABLE}/src/common/util_posix.c
+				${MAX_STABLE}/src/core/fs_posix.c
+				${MAX_STABLE}/src/core/os_posix.c
+				${MAX_STABLE}/src/core/os_thread_posix.c
+				${MAX_STABLE}/src/core/util_posix.c
 				)
 		endif()
 
@@ -420,7 +451,9 @@ if(BUILD_CONVERT_V6)
 
 		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/include)
 		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/common)
+		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/core)
 		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/libpmem)
+		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/libpmem2)
 
 		if(MSVC)
 			target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/windows/include/)
@@ -461,44 +494,57 @@ if(BUILD_CONVERT_V6)
 
 			${MAX_STABLE}/src/libpmemblk/btt.c
 
-			${MAX_STABLE}/src/common/alloc.c
-			${MAX_STABLE}/src/common/badblock.c
+			${MAX_STABLE}/src/core/alloc.c
+			${MAX_STABLE}/src/core/out.c
+			${MAX_STABLE}/src/core/util.c
+			${MAX_STABLE}/src/common/bad_blocks.c
 			${MAX_STABLE}/src/common/file.c
 			${MAX_STABLE}/src/common/mmap.c
 			${MAX_STABLE}/src/common/pool_hdr.c
-			${MAX_STABLE}/src/common/out.c
-			${MAX_STABLE}/src/common/os_dimm_none.c
 			${MAX_STABLE}/src/common/set.c
+			${MAX_STABLE}/src/common/set_badblocks.c
 			${MAX_STABLE}/src/common/shutdown_state.c
-			${MAX_STABLE}/src/common/util.c
 			${MAX_STABLE}/src/common/uuid.c
+			${MAX_STABLE}/src/libpmem2/region_namespace_none.c
+			${MAX_STABLE}/src/libpmem2/usc_none.c
+			${MAX_STABLE}/src/libpmem2/badblocks_none.c
+			${MAX_STABLE}/src/libpmem2/badblocks.c
+			${MAX_STABLE}/src/libpmem2/pmem2_utils.c
+			${MAX_STABLE}/src/libpmem2/source.c
 			)
 
 		if(WIN32)
 			set(LIBPMEMPOOL_SOURCES ${LIBPMEMPOOL_SOURCES}
 				${MAX_STABLE}/src/libpmempool/libpmempool_main.c
-				${MAX_STABLE}/src/common/badblock_none.c
 				${MAX_STABLE}/src/common/file_windows.c
-				${MAX_STABLE}/src/common/fs_windows.c
 				${MAX_STABLE}/src/common/mmap_windows.c
 				${MAX_STABLE}/src/common/os_deep_windows.c
-				${MAX_STABLE}/src/common/os_thread_windows.c
-				${MAX_STABLE}/src/common/os_windows.c
-				${MAX_STABLE}/src/common/util_windows.c
 				${MAX_STABLE}/src/common/uuid_windows.c
+				${MAX_STABLE}/src/core/fs_windows.c
+				${MAX_STABLE}/src/core/os_thread_windows.c
+				${MAX_STABLE}/src/core/os_windows.c
+				${MAX_STABLE}/src/core/util_windows.c
+				${MAX_STABLE}/src/libpmem2/source_windows.c
+				${MAX_STABLE}/src/libpmem2/deep_flush_windows.c
+				${MAX_STABLE}/src/libpmem2/pmem2_utils_other.c
+				${MAX_STABLE}/src/libpmem2/persist_windows.c
 				)
 		else()
 			set(LIBPMEMPOOL_SOURCES ${LIBPMEMPOOL_SOURCES}
-				${MAX_STABLE}/src/common/badblock_ndctl.c
-				${MAX_STABLE}/src/common/extent_linux.c
 				${MAX_STABLE}/src/common/file_posix.c
-				${MAX_STABLE}/src/common/fs_posix.c
 				${MAX_STABLE}/src/common/mmap_posix.c
 				${MAX_STABLE}/src/common/os_deep_linux.c
-				${MAX_STABLE}/src/common/os_posix.c
-				${MAX_STABLE}/src/common/os_thread_posix.c
-				${MAX_STABLE}/src/common/util_posix.c
 				${MAX_STABLE}/src/common/uuid_linux.c
+				${MAX_STABLE}/src/core/fs_posix.c
+				${MAX_STABLE}/src/core/os_posix.c
+				${MAX_STABLE}/src/core/os_thread_posix.c
+				${MAX_STABLE}/src/core/util_posix.c
+				${MAX_STABLE}/src/libpmem2/extent_linux.c
+				${MAX_STABLE}/src/libpmem2/source_posix.c
+				${MAX_STABLE}/src/libpmem2/deep_flush_linux.c
+				${MAX_STABLE}/src/libpmem2/pmem2_utils_linux.c
+				${MAX_STABLE}/src/libpmem2/pmem2_utils_none.c
+				${MAX_STABLE}/src/libpmem2/persist_posix.c
 				)
 		endif()
 
@@ -522,6 +568,7 @@ if(BUILD_CONVERT_V6)
 
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/include)
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/common)
+		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/core)
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/libpmempool)
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/libpmemblk)
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/libpmemlog)
@@ -540,6 +587,221 @@ if(BUILD_CONVERT_V6)
 
 	set(LIBPMEMPOOL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/include)
 	set(LIBPMEMPOOL_LIBRARIES libpmempool-convert)
+
+	set(SOURCES_19
+		${VER19}/src/libpmemobj/alloc_class.c
+		${VER19}/src/libpmemobj/bucket.c
+		${VER19}/src/libpmemobj/critnib.c
+		${VER19}/src/libpmemobj/ctl_debug.c
+		${VER19}/src/libpmemobj/container_ravl.c
+		${VER19}/src/libpmemobj/container_seglists.c
+		${VER19}/src/libpmemobj/heap.c
+		${VER19}/src/libpmemobj/lane.c
+		${VER19}/src/libpmemobj/libpmemobj.c
+		${VER19}/src/libpmemobj/list.c
+		${VER19}/src/libpmemobj/memblock.c
+		${VER19}/src/libpmemobj/memops.c
+		${VER19}/src/libpmemobj/obj.c
+		${VER19}/src/libpmemobj/palloc.c
+		${VER19}/src/libpmemobj/pmalloc.c
+		${VER19}/src/libpmemobj/recycler.c
+		${VER19}/src/libpmemobj/stats.c
+		${VER19}/src/libpmemobj/sync.c
+		${VER19}/src/libpmemobj/tx.c
+		${VER19}/src/libpmemobj/ulog.c
+
+		${VER19}/src/core/alloc.c
+		${VER19}/src/core/out.c
+		${VER19}/src/core/util.c
+		${VER19}/src/common/bad_blocks.c
+		${VER19}/src/common/ctl.c
+		${VER19}/src/common/ctl_cow.c
+		${VER19}/src/common/ctl_fallocate.c
+		${VER19}/src/common/ctl_prefault.c
+		${VER19}/src/common/ctl_sds.c
+		${VER19}/src/common/file.c
+		${VER19}/src/common/mmap.c
+		${VER19}/src/common/pool_hdr.c
+		${VER19}/src/common/ravl.c
+		${VER19}/src/common/set.c
+		${VER19}/src/common/set_badblocks.c
+		${VER19}/src/common/shutdown_state.c
+		${VER19}/src/common/uuid.c
+		${VER19}/src/libpmem2/badblocks.c
+		${VER19}/src/libpmem2/badblocks_none.c
+		${VER19}/src/libpmem2/deep_flush_other.c
+		${VER19}/src/libpmem2/map.c
+		${VER19}/src/libpmem2/memops_generic.c
+		${VER19}/src/libpmem2/pmem2_utils.c
+		${VER19}/src/libpmem2/persist.c
+		${VER19}/src/libpmem2/ravl_interval.c
+		${VER19}/src/libpmem2/region_namespace_none.c
+		${VER19}/src/libpmem2/source.c
+		${VER19}/src/libpmem2/usc_none.c
+		)
+
+	if(WIN32)
+		set(SOURCES_19 ${SOURCES_19}
+			${VER19}/src/libpmemobj/libpmemobj_main.c
+			${VER19}/src/common/file_windows.c
+			${VER19}/src/common/mmap_windows.c
+			${VER19}/src/common/os_deep_windows.c
+			${VER19}/src/common/uuid_windows.c
+			${VER19}/src/core/fs_windows.c
+			${VER19}/src/core/os_windows.c
+			${VER19}/src/core/os_thread_windows.c
+			${VER19}/src/core/util_windows.c
+			${VER19}/src/libpmem2/persist_windows.c
+			${VER19}/src/libpmem2/pmem2_utils_other.c
+			${VER19}/src/libpmem2/source_windows.c
+			)
+	else()
+		set(SOURCES_19 ${SOURCES_19}
+			${VER19}/src/common/file_posix.c
+			${VER19}/src/common/mmap_posix.c
+			${VER19}/src/common/os_deep_linux.c
+			${VER19}/src/common/uuid_linux.c
+			${VER19}/src/core/fs_posix.c
+			${VER19}/src/core/os_posix.c
+			${VER19}/src/core/os_thread_posix.c
+			${VER19}/src/core/util_posix.c
+			${VER19}/src/libpmem2/extent_linux.c
+			${VER19}/src/libpmem2/persist_posix.c
+			${VER19}/src/libpmem2/pmem2_utils_linux.c
+			${VER19}/src/libpmem2/pmem2_utils_none.c
+			${VER19}/src/libpmem2/source_posix.c
+			)
+	endif()
+	if (CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64
+		OR CMAKE_SYSTEM_PROCESSOR STREQUAL amd64
+		OR CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64)
+		set(SOURCES_19 ${SOURCES_19}
+			${VER19}/src/libpmem2/x86_64/init.c
+			${VER19}/src/libpmem2/x86_64/cpu.c
+			)
+	elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
+		set(SOURCES_19 ${SOURCES_19}
+			${VER19}/src/libpmem2/aarch64/init.c
+			)
+	else()
+		message(FATAL_ERROR "Unknown architecture ${CMAKE_SYSTEM_PROCESSOR}")
+	endif()
+
+	function(build_convert_v6)
+		if(WIN32)
+			set(CONVERT_V6_SOURCES ${VER19}/src/windows/getopt/getopt.c)
+		endif()
+
+		add_library(pmemobj_convert_v6_o OBJECT ${SOURCES_19} ${CONVERT_V6_SOURCES}
+			pmemobj_convert_v6.c
+			${VER19}/src/libpmemblk/btt.c
+			${VER19}/src/tools/pmempool/common.c
+			${VER19}/src/tools/pmempool/output.c)
+
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SRCVERSION="${VER19}")
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE _PMEMOBJ_INTRNL)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SSE2_AVAILABLE=0)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE AVX_AVAILABLE=0)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE AVX512F_AVAILABLE=0)
+
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/include)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/libpmemobj)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/libpmemlog)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/libpmemblk)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/libpmem2)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/common)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/core)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(MSVC)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/windows/include/)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER19}/src/windows/getopt/)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE include/)
+			target_compile_options(pmemobj_convert_v6_o PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER19}/src/windows/include/platform.h")
+		endif()
+
+		if(MSVC)
+			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o> ${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_v6.def)
+		else()
+			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o>)
+			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
+		endif()
+
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+		if(NOT MSVC)
+			# strip unneeded symbols, requires -fdata-sections -ffunction-sections
+			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--gc-sections)
+		endif()
+
+		set_target_properties(pmemobj_convert_v6_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v6)
+		# remove lib prefix from library name
+		set_target_properties(pmemobj_convert_v6_shared PROPERTIES PREFIX "")
+	endfunction(build_convert_v6)
+
+	build_convert_v6()
+
+	install(TARGETS pmemobj_convert_v6_shared
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+	function(build_libpmemobj_19)
+		if(MSVC)
+			FILE(READ ${VER19}/src/libpmemobj/libpmemobj.def DEFFILE)
+			string(REPLACE "libpmemobj" "pmemobj_19" DEFFILE "${DEFFILE}")
+			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_19.def "${DEFFILE}")
+			add_library(pmemobj_19 SHARED ${SOURCES_19} ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_19.def)
+			target_compile_options(pmemobj_19 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER19}/src/windows/include/platform.h")
+		else()
+			add_library(pmemobj_19 SHARED ${SOURCES_19})
+			disable_optimization(pmemobj_19)
+		endif()
+
+		target_compile_definitions(pmemobj_19 PRIVATE SRCVERSION="${VER19}")
+		target_compile_definitions(pmemobj_19 PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_19 PRIVATE _PMEMOBJ_INTRNL)
+
+		target_include_directories(pmemobj_19 PRIVATE ${VER19}/src/include)
+		target_include_directories(pmemobj_19 PRIVATE ${VER19}/src/libpmemobj)
+		target_include_directories(pmemobj_19 PRIVATE ${VER19}/src/libpmem2)
+		target_include_directories(pmemobj_19 PRIVATE ${VER19}/src/common)
+		target_include_directories(pmemobj_19 PRIVATE ${VER19}/src/core)
+		target_include_directories(pmemobj_19 PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(WIN32)
+			target_include_directories(pmemobj_19 PRIVATE ${VER19}/src/windows/include/)
+			target_include_directories(pmemobj_19 PRIVATE include/)
+		endif()
+
+		target_link_libraries(pmemobj_19 PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_19 PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_19 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+		target_compile_definitions(pmemobj_19 PRIVATE SSE2_AVAILABLE=0)
+		target_compile_definitions(pmemobj_19 PRIVATE AVX_AVAILABLE=0)
+		target_compile_definitions(pmemobj_19 PRIVATE AVX512F_AVAILABLE=0)
+
+		if(NOT MSVC)
+			FILE(READ ${VER19}/src/libpmemobj/libpmemobj.link.in LINKFILE)
+			string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
+			FILE(WRITE ${VER19}/src/libpmemobj/libpmemobj.link "${LINKFILE}")
+			target_link_libraries(pmemobj_19 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/${VER19}/src/libpmemobj/libpmemobj.link)
+		endif()
+
+		target_compile_definitions(libpmem-convert PRIVATE SSE2_AVAILABLE=0)
+		target_compile_definitions(libpmem-convert PRIVATE AVX_AVAILABLE=0)
+		target_compile_definitions(libpmem-convert PRIVATE AVX512F_AVAILABLE=0)
+	endfunction(build_libpmemobj_19)
+
+	build_libpmemobj_19()
+
+endif(BUILD_CONVERT_V6)
+
+###################################################### 1.8
+if(BUILD_18)
+	set(VER18 1.8)
+
+	get_pmdk(${VER18} afa8d3dd94e704637681331a8c06e31e02f96cfd8bcad82a9d6a9ec7f7775bf8 ${VER18})
 
 	set(SOURCES_18
 		${VER18}/src/libpmemobj/alloc_class.c
@@ -610,60 +872,6 @@ if(BUILD_CONVERT_V6)
 			)
 	endif()
 
-	function(build_convert_v6)
-		if(WIN32)
-			set(CONVERT_V6_SOURCES ${VER18}/src/windows/getopt/getopt.c)
-		endif()
-
-		add_library(pmemobj_convert_v6_o OBJECT ${SOURCES_18} ${CONVERT_V6_SOURCES}
-			pmemobj_convert_v6.c
-			${VER18}/src/libpmemblk/btt.c
-			${VER18}/src/tools/pmempool/common.c
-			${VER18}/src/tools/pmempool/output.c)
-
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SRCVERSION="${VER18}")
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE PMDK_UTF8_API)
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE _PMEMOBJ_INTRNL)
-
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/include)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/libpmemobj)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/libpmemlog)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/libpmemblk)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/common)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${PMEM_INCLUDE_DIRS})
-
-		if(MSVC)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/windows/include/)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER18}/src/windows/getopt/)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE include/)
-			target_compile_options(pmemobj_convert_v6_o PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER18}/src/windows/include/platform.h")
-		endif()
-
-		if(MSVC)
-			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o> ${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_v6.def)
-		else()
-			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o>)
-			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
-		endif()
-
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE libpmem-convert)
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_DL_LIBS})
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-		if(NOT MSVC)
-			# strip unneeded symbols, requires -fdata-sections -ffunction-sections
-			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--gc-sections)
-		endif()
-
-		set_target_properties(pmemobj_convert_v6_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v6)
-		# remove lib prefix from library name
-		set_target_properties(pmemobj_convert_v6_shared PROPERTIES PREFIX "")
-	endfunction(build_convert_v6)
-
-	build_convert_v6()
-
-	install(TARGETS pmemobj_convert_v6_shared
-		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
-
 	function(build_libpmemobj_18)
 		if(MSVC)
 			FILE(READ ${VER18}/src/libpmemobj/libpmemobj.def DEFFILE)
@@ -703,8 +911,9 @@ if(BUILD_CONVERT_V6)
 	endfunction(build_libpmemobj_18)
 
 	build_libpmemobj_18()
+endif()
 
-endif(BUILD_CONVERT_V6)
+###################################################### 1.8
 
 ###################################################### 1.7
 if(BUILD_17)
