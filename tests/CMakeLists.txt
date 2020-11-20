@@ -315,7 +315,6 @@ if(BUILD_CONVERT_V6)
 	set(COMMON_SOURCES
 		${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/badblocks.c
 		${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/badblocks_none.c
-		${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/region_namespace_none.c
 		${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/usc_none.c
 		${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/pmem2_utils.c
 		${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/source.c
@@ -351,6 +350,7 @@ if(BUILD_CONVERT_V6)
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/source_windows.c
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/persist_windows.c
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/pmem2_utils_other.c
+			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/region_namespace_none.c
 			)
 	else()
 		set(COMMON_SOURCES ${COMMON_SOURCES}
@@ -367,7 +367,8 @@ if(BUILD_CONVERT_V6)
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/source_posix.c
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/persist_posix.c
 			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/pmem2_utils_linux.c
-			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/pmem2_utils_none.c
+			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/pmem2_utils_ndctl.c
+			${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem2/region_namespace_ndctl.c
 			)
 	endif()
 

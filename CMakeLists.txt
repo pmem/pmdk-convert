@@ -52,6 +52,8 @@ include(CheckCCompilerFlag)
 include(GNUInstallDirs)
 if(NOT MSVC)
 	find_package(PkgConfig QUIET)
+	find_library(NDCTL_LIB ndctl)
+	find_library(DAXCTL_LIB daxctl)
 endif()
 
 set(CMAKE_C_STANDARD 99)
@@ -373,7 +375,6 @@ if(BUILD_CONVERT_V6)
 			${MAX_STABLE}/src/libpmem2/usc_none.c
 			${MAX_STABLE}/src/libpmem2/persist.c
 			${MAX_STABLE}/src/libpmem2/ravl_interval.c
-			${MAX_STABLE}/src/libpmem2/region_namespace_none.c
 			${MAX_STABLE}/src/libpmem2/map.c
 			)
 		if (CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64
@@ -399,6 +400,7 @@ if(BUILD_CONVERT_V6)
 				${MAX_STABLE}/src/libpmem2/source_windows.c
 				${MAX_STABLE}/src/libpmem2/persist_windows.c
 				${MAX_STABLE}/src/libpmem2/pmem2_utils_other.c
+				${MAX_STABLE}/src/libpmem2/region_namespace_none.c
 				${MAX_STABLE}/src/windows/win_mmap.c
 				${MAX_STABLE}/src/common/file_windows.c
 				${MAX_STABLE}/src/common/mmap_windows.c
@@ -413,8 +415,9 @@ if(BUILD_CONVERT_V6)
 				${MAX_STABLE}/src/libpmem/pmem_posix.c
 				${MAX_STABLE}/src/libpmem2/auto_flush_linux.c
 				${MAX_STABLE}/src/libpmem2/pmem2_utils_linux.c
-				${MAX_STABLE}/src/libpmem2/pmem2_utils_none.c
+				${MAX_STABLE}/src/libpmem2/pmem2_utils_ndctl.c
 				${MAX_STABLE}/src/libpmem2/persist_posix.c
+				${MAX_STABLE}/src/libpmem2/region_namespace_ndctl.c
 				${MAX_STABLE}/src/libpmem2/source_posix.c
 				${MAX_STABLE}/src/common/file_posix.c
 				${MAX_STABLE}/src/common/mmap_posix.c
@@ -438,6 +441,8 @@ if(BUILD_CONVERT_V6)
 			string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
 			FILE(WRITE ${MAX_STABLE}/src/libpmem/libpmem.link "${LINKFILE}")
 			target_link_libraries(libpmem-convert PRIVATE -Wl,--version-script=${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/libpmem/libpmem.link)
+			target_link_libraries(libpmem-convert PUBLIC ${NDCTL_LIB})
+			target_link_libraries(libpmem-convert PUBLIC ${DAXCTL_LIB})
 		endif()
 
 		# remove lib prefix from library name
@@ -505,7 +510,6 @@ if(BUILD_CONVERT_V6)
 			${MAX_STABLE}/src/common/set_badblocks.c
 			${MAX_STABLE}/src/common/shutdown_state.c
 			${MAX_STABLE}/src/common/uuid.c
-			${MAX_STABLE}/src/libpmem2/region_namespace_none.c
 			${MAX_STABLE}/src/libpmem2/usc_none.c
 			${MAX_STABLE}/src/libpmem2/badblocks_none.c
 			${MAX_STABLE}/src/libpmem2/badblocks.c
@@ -528,6 +532,7 @@ if(BUILD_CONVERT_V6)
 				${MAX_STABLE}/src/libpmem2/deep_flush_windows.c
 				${MAX_STABLE}/src/libpmem2/pmem2_utils_other.c
 				${MAX_STABLE}/src/libpmem2/persist_windows.c
+				${MAX_STABLE}/src/libpmem2/region_namespace_none.c
 				)
 		else()
 			set(LIBPMEMPOOL_SOURCES ${LIBPMEMPOOL_SOURCES}
@@ -543,8 +548,9 @@ if(BUILD_CONVERT_V6)
 				${MAX_STABLE}/src/libpmem2/source_posix.c
 				${MAX_STABLE}/src/libpmem2/deep_flush_linux.c
 				${MAX_STABLE}/src/libpmem2/pmem2_utils_linux.c
-				${MAX_STABLE}/src/libpmem2/pmem2_utils_none.c
+				${MAX_STABLE}/src/libpmem2/pmem2_utils_ndctl.c
 				${MAX_STABLE}/src/libpmem2/persist_posix.c
+				${MAX_STABLE}/src/libpmem2/region_namespace_ndctl.c
 				)
 		endif()
 
@@ -635,7 +641,6 @@ if(BUILD_CONVERT_V6)
 		${VER19}/src/libpmem2/pmem2_utils.c
 		${VER19}/src/libpmem2/persist.c
 		${VER19}/src/libpmem2/ravl_interval.c
-		${VER19}/src/libpmem2/region_namespace_none.c
 		${VER19}/src/libpmem2/source.c
 		${VER19}/src/libpmem2/usc_none.c
 		)
@@ -654,6 +659,7 @@ if(BUILD_CONVERT_V6)
 			${VER19}/src/libpmem2/persist_windows.c
 			${VER19}/src/libpmem2/pmem2_utils_other.c
 			${VER19}/src/libpmem2/source_windows.c
+			${VER19}/src/libpmem2/region_namespace_none.c
 			)
 	else()
 		set(SOURCES_19 ${SOURCES_19}
@@ -668,7 +674,8 @@ if(BUILD_CONVERT_V6)
 			${VER19}/src/libpmem2/extent_linux.c
 			${VER19}/src/libpmem2/persist_posix.c
 			${VER19}/src/libpmem2/pmem2_utils_linux.c
-			${VER19}/src/libpmem2/pmem2_utils_none.c
+			${VER19}/src/libpmem2/pmem2_utils_ndctl.c
+			${VER19}/src/libpmem2/region_namespace_ndctl.c
 			${VER19}/src/libpmem2/source_posix.c
 			)
 	endif()
