@@ -28,6 +28,8 @@ RUN apt-get update \
 	sudo \
 	wget \
 	whois \
+	libndctl-dev \
+	libdaxctl-dev \
  && rm -rf /var/lib/apt/lists/*
 
 # Install pmdk
