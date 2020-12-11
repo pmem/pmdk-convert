@@ -20,11 +20,11 @@ execute(2 ${EXE_DIR}/pmdk-convert --force-yes xxx) # UNKNOWN_FLAG
 execute(3 ${EXE_DIR}/pmdk-convert --unknown) # UNKNOWN_ARG
 execute(4 ${EXE_DIR}/pmdk-convert --from 1.0 --from-layout 1) # FROM_EXCLUSIVE
 execute(5 ${EXE_DIR}/pmdk-convert --to 1.1 --to-layout 2) # TO_EXCLUSIVE
-execute(6 ${EXE_DIR}/pmdk-convert --from 1.10) # FROM_INVALID
+execute(6 ${EXE_DIR}/pmdk-convert --from 1.100) # FROM_INVALID
 execute(6 ${EXE_DIR}/pmdk-convert --from 110) # FROM_INVALID
 execute(6 ${EXE_DIR}/pmdk-convert --from 1.a) # FROM_INVALID
 execute(6 ${EXE_DIR}/pmdk-convert --from a.0) # FROM_INVALID
-execute(7 ${EXE_DIR}/pmdk-convert --to 1.10) # TO_INVALID
+execute(7 ${EXE_DIR}/pmdk-convert --to 1.10.0) # TO_INVALID
 execute(8 ${EXE_DIR}/pmdk-convert --from-layout v10) # FROM_LAYOUT_INVALID
 execute(9 ${EXE_DIR}/pmdk-convert --to-layout v10) # TO_LAYOUT_INVALID
 execute(10 ${EXE_DIR}/pmdk-convert --from 1.0 --to 1.1) # NO_POOL
