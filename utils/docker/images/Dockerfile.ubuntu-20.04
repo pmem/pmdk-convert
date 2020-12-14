@@ -7,8 +7,10 @@
 #
 
 # Pull base image
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 MAINTAINER piotr.balcer@intel.com
+
+ENV DEBIAN_FRONTEND noninteractive
 
 # Update the Apt cache and install basic tools
 RUN apt-get update \
@@ -26,6 +28,7 @@ RUN apt-get update \
 	libtext-diff-perl \
 	pkg-config \
 	sudo \
+	tzdata \
 	wget \
 	whois \
 	libndctl-dev \
@@ -44,6 +47,6 @@ USER $USER
 
 # Set required environment variables
 ENV OS ubuntu
-ENV OS_VER 18.04
+ENV OS_VER 20.04
 ENV PACKAGE_MANAGER deb
 ENV NOTTY 1
