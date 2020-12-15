@@ -15,8 +15,8 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #endif
-#define MINVERSION ((MIN_VERSION_MAJOR) * 10 + (MIN_VERSION_MINOR))
-#define MAXVERSION ((MAX_VERSION_MAJOR) * 10 + (MAX_VERSION_MINOR))
+#define MINVERSION ((MIN_VERSION_MAJOR) * 100 + (MIN_VERSION_MINOR))
+#define MAXVERSION ((MAX_VERSION_MAJOR) * 100 + (MAX_VERSION_MINOR))
 
 #include "pmemobj_convert.h"
 
@@ -58,35 +58,38 @@ static const struct {
 	int pmdk_version;
 	int layout;
 } Layouts[] = {
-#if CHECK_VERSION(10)
-	{10, 1},
+#if CHECK_VERSION(100)
+	{100, 1},
 #endif
-#if CHECK_VERSION(11)
-	{11, 2},
+#if CHECK_VERSION(101)
+	{101, 2},
 #endif
-#if CHECK_VERSION(12)
-	{12, 3},
+#if CHECK_VERSION(102)
+	{102, 3},
 #endif
-#if CHECK_VERSION(13)
-	{13, 4},
+#if CHECK_VERSION(103)
+	{103, 4},
 #endif
-#if CHECK_VERSION(14)
-	{14, 4},
+#if CHECK_VERSION(104)
+	{104, 4},
 #endif
-#if CHECK_VERSION(15)
-	{15, 5},
+#if CHECK_VERSION(105)
+	{105, 5},
 #endif
-#if CHECK_VERSION(16)
-	{16, 5},
+#if CHECK_VERSION(106)
+	{106, 5},
 #endif
-#if CHECK_VERSION(17)
-	{17, 6},
+#if CHECK_VERSION(107)
+	{107, 6},
 #endif
-#if CHECK_VERSION(18)
-	{18, 6},
+#if CHECK_VERSION(108)
+	{108, 6},
 #endif
-#if CHECK_VERSION(19)
-	{19, 6},
+#if CHECK_VERSION(109)
+	{109, 6},
+#endif
+#if CHECK_VERSION(110)
+	{110, 6},
 #endif
 };
 
@@ -285,12 +288,12 @@ err:
 
 /*
  * conv_version -- converts version string from major.minor format to number
- * (major * 10 + minor)
+ * (major * 100 + minor)
  */
 static int
 conv_version(const char *strver)
 {
-	if (strlen(strver) != 3)
+	if (strlen(strver) > 4)
 		return -1;
 	if (strver[1] != '.')
 		return -1;
@@ -298,7 +301,14 @@ conv_version(const char *strver)
 		return -1;
 	if (!isdigit(strver[2]))
 		return -1;
-	return (strver[0] - '0') * 10 + strver[2] - '0';
+
+	if (strlen(strver) == 3)
+		return (strver[0] - '0') * 100 + strver[2] - '0';
+	else if (strlen(strver) == 4)
+		return (strver[0] - '0') * 100 + (strver[2] - '0') * 10 +
+			(strver[3] - '0');
+
+	return -1;
 }
 
 /*
@@ -381,8 +391,8 @@ create_pmdk_version_str(int layout_version, char *str, size_t len)
 		if (Layouts[i].layout != layout_version)
 			continue;
 
-		int major = Layouts[i].pmdk_version / 10;
-		int minor = Layouts[i].pmdk_version % 10;
+		int major = Layouts[i].pmdk_version / 100;
+		int minor = Layouts[i].pmdk_version % 100;
 		int ret = snprintf(str, len, "PMDK %d.%d, ", major, minor);
 
 		if (ret <= 0)

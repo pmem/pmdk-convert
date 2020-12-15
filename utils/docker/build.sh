@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 #
 # build.sh - runs a Docker container from a Docker image with environment
@@ -69,6 +69,7 @@ docker run --privileged=true --name=$containerName -ti \
 	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
 	--env TEST_BUILD=$TEST_BUILD \
+	--env TZ='Europe/Warsaw' \
 	--env CC=$CC \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
