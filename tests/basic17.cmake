@@ -1,22 +1,26 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 
 include(${SRC_DIR}/helpers.cmake)
 
 function(test)
-	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10")
+	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10 1.11")
 
 	# 1.7 -> 1.8
 	execute(0 ${EXE_DIR}/pmdk-convert --to=1.8 ${DIR}/pool17 -X fail-safety)
-	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10")
+	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10 1.11")
 
 	# 1.8 -> 1.9
 	execute(0 ${EXE_DIR}/pmdk-convert --to=1.9 ${DIR}/pool17 -X fail-safety)
-	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10")
+	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10 1.11")
 
 	# 1.9 -> 1.10
 	execute(0 ${EXE_DIR}/pmdk-convert --to=1.10 ${DIR}/pool17 -X fail-safety)
-	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10")
+	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10 1.11")
+
+	# 1.10 -> 1.11
+	execute(0 ${EXE_DIR}/pmdk-convert --to=1.11 ${DIR}/pool17 -X fail-safety)
+	check_open(${DIR}/pool17 "1.7 1.8 1.9 1.10 1.11")
 endfunction(test)
 
 # single file pool
