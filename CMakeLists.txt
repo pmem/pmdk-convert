@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
 
@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.3)
 project(pmdk-convert C CXX)
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 11)
+set(VERSION_MINOR 12)
 set(VERSION_PATCH 0)
 #set(VERSION_PRERELEASE rc2)
 
@@ -31,8 +31,8 @@ else()
 	set(MIN_VERSION 1.0 CACHE STRING "First supported version (major.minor)")
 endif()
 
-set(MAX_VERSION 1.11)
-set(MAX_STABLE 1.11)
+set(MAX_VERSION 1.12)
+set(MAX_STABLE 1.12)
 
 if(MIN_VERSION VERSION_GREATER_EQUAL MAX_VERSION)
 	message(FATAL_ERROR "ERROR: Minimum PMDK version cannot be greater than or equal to maximum PMDK version")
@@ -146,6 +146,7 @@ set(BUILD_17 0)
 set(BUILD_18 0)
 set(BUILD_19 0)
 set(BUILD_110 0)
+set(BUILD_111 0)
 
 if (${MIN_VERSION} EQUAL 1.0)
 	set(BUILD_CONVERT_V1 1)
@@ -160,6 +161,7 @@ if (${MIN_VERSION} EQUAL 1.0)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.1)
 	set(BUILD_CONVERT_V2 1)
 	set(BUILD_CONVERT_V3 1)
@@ -172,6 +174,7 @@ elseif (${MIN_VERSION} EQUAL 1.1)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.2)
 	set(BUILD_CONVERT_V3 1)
 	set(BUILD_13 1)
@@ -183,6 +186,7 @@ elseif (${MIN_VERSION} EQUAL 1.2)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.3)
 	set(BUILD_13 1)
 	set(BUILD_CONVERT_V4 1)
@@ -193,6 +197,7 @@ elseif (${MIN_VERSION} EQUAL 1.3)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.4)
 	set(BUILD_CONVERT_V4 1)
 	set(BUILD_CONVERT_V5 1)
@@ -202,6 +207,7 @@ elseif (${MIN_VERSION} EQUAL 1.4)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.5)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_15 1)
@@ -210,6 +216,7 @@ elseif (${MIN_VERSION} EQUAL 1.5)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.6)
 	set(BUILD_CONVERT_V5 1)
 	set(BUILD_CONVERT_V6 1)
@@ -217,25 +224,33 @@ elseif (${MIN_VERSION} EQUAL 1.6)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.7)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_17 1)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.8)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_18 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.9)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_19 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.10)
 	set(BUILD_CONVERT_V6 1)
 	set(BUILD_110 1)
+	set(BUILD_111 1)
 elseif (${MIN_VERSION} EQUAL 1.11)
+	set(BUILD_CONVERT_V6 1)
+	set(BUILD_111 1)
+elseif (${MIN_VERSION} EQUAL 1.12)
 	set(BUILD_CONVERT_V6 1)
 endif()
 
@@ -333,7 +348,7 @@ function(uncompress file)
 	endif()
 endfunction()
 
-function(get_pmdk ver hash dstdir)
+function(get_pmdk ver hash dstdir commit)
 	set(pkg ${CMAKE_SOURCE_DIR}/${ver}.tar.gz)
 
 	if (EXISTS ${pkg})
@@ -359,6 +374,9 @@ function(get_pmdk ver hash dstdir)
 		if (${ver} STREQUAL "1.0" OR ${ver} STREQUAL "1.1")
 			file(DOWNLOAD https://github.com/pmem/pmdk/archive/${ver}.tar.gz ${CMAKE_SOURCE_DIR}/${ver}.tar.gz
 				EXPECTED_HASH SHA256=${hash})
+		elseif(${ver} STREQUAL "1.4.3")
+			file(DOWNLOAD https://github.com/pmem/pmdk/archive/${commit}.tar.gz ${CMAKE_SOURCE_DIR}/${ver}.tar.gz
+				EXPECTED_HASH SHA256=${hash})
 		else()
 			file(DOWNLOAD https://github.com/pmem/pmdk/releases/download/${ver}/pmdk-${ver}.tar.gz ${CMAKE_SOURCE_DIR}/${ver}.tar.gz
 				EXPECTED_HASH SHA256=${hash})
@@ -371,21 +389,27 @@ function(get_pmdk ver hash dstdir)
 		uncompress(${ver}.tar.gz)
 		message(STATUS "Uncompressing ${ver}.tar.gz DONE")
 
-		file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${ver} ${CMAKE_SOURCE_DIR}/${dstdir})
+		if (${commit} EQUAL 0)
+			file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${ver} ${CMAKE_SOURCE_DIR}/${dstdir})
+		else()
+			file(RENAME ${CMAKE_SOURCE_DIR}/pmdk-${commit} ${CMAKE_SOURCE_DIR}/${dstdir})
+
+		endif()
 	endif()
 endfunction()
 
 
-# convert V6 and PMDK 1.11
+# convert V6 and PMDK 1.12
 if(BUILD_CONVERT_V6)
-	set(VER111 1.11)
-	set(D_VER111 1.11.0)
+	set(VER112 1.12)
+	set(D_VER112 1.12.0)
 
-	get_pmdk(${D_VER111} 2116f30b1fbb3ee11b208f21f6eb81e594649608d85f6741d597a7fbea36143b ${VER111})
+	get_pmdk(${D_VER112} 25bf417bd2ac92e716eee80d67abb54db429333026e68b10b9ef8100537529c2 ${VER112} 0)
 
 	function(build_libpmem_convert)
 		set(LIBPMEM_SOURCES
 			${MAX_STABLE}/src/core/alloc.c
+			${MAX_STABLE}/src/core/membuf.c
 			${MAX_STABLE}/src/core/out.c
 			${MAX_STABLE}/src/core/ravl.c
 			${MAX_STABLE}/src/core/ravl_interval.c
@@ -404,6 +428,7 @@ if(BUILD_CONVERT_V6)
 			${MAX_STABLE}/src/libpmem2/usc_none.c
 			${MAX_STABLE}/src/libpmem2/persist.c
 			${MAX_STABLE}/src/libpmem2/map.c
+			${MAX_STABLE}/src/libpmem2/mover.c
 			)
 		if (CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64
 			OR CMAKE_SYSTEM_PROCESSOR STREQUAL amd64
@@ -481,8 +506,13 @@ if(BUILD_CONVERT_V6)
 		target_compile_definitions(libpmem-convert PRIVATE SSE2_AVAILABLE=0)
 		target_compile_definitions(libpmem-convert PRIVATE AVX_AVAILABLE=0)
 		target_compile_definitions(libpmem-convert PRIVATE AVX512F_AVAILABLE=0)
+		target_compile_definitions(libpmem-convert PRIVATE MOVDIR64B_AVAILABLE=0)
+		target_compile_definitions(libpmem-convert PRIVATE PMEM2_USE_MINIASYNC=1)
 
+		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/deps/miniasync/src/include)
+		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/deps/miniasync/src/include/libminiasync)
 		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/include)
+		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/include/libpmem2)
 		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/common)
 		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/core)
 		target_include_directories(libpmem-convert PRIVATE ${MAX_STABLE}/src/libpmem)
@@ -528,6 +558,7 @@ if(BUILD_CONVERT_V6)
 			${MAX_STABLE}/src/libpmemblk/btt.c
 
 			${MAX_STABLE}/src/core/alloc.c
+			${MAX_STABLE}/src/core/membuf.c
 			${MAX_STABLE}/src/core/out.c
 			${MAX_STABLE}/src/core/util.c
 			${MAX_STABLE}/src/common/bad_blocks.c
@@ -607,6 +638,7 @@ if(BUILD_CONVERT_V6)
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/libpmemblk)
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/libpmemlog)
 		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/libpmemobj)
+		target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/deps/miniasync/src/include)
 
 		if(MSVC)
 			target_include_directories(libpmempool-convert PRIVATE ${MAX_STABLE}/src/windows/include/)
@@ -621,6 +653,234 @@ if(BUILD_CONVERT_V6)
 
 	set(LIBPMEMPOOL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/${MAX_STABLE}/src/include)
 	set(LIBPMEMPOOL_LIBRARIES libpmempool-convert)
+
+	set(SOURCES_112
+		${VER112}/src/libpmemobj/alloc_class.c
+		${VER112}/src/libpmemobj/bucket.c
+		${VER112}/src/libpmemobj/container_ravl.c
+		${VER112}/src/libpmemobj/container_seglists.c
+		${VER112}/src/libpmemobj/critnib.c
+		${VER112}/src/libpmemobj/ctl_debug.c
+		${VER112}/src/libpmemobj/heap.c
+		${VER112}/src/libpmemobj/lane.c
+		${VER112}/src/libpmemobj/libpmemobj.c
+		${VER112}/src/libpmemobj/list.c
+		${VER112}/src/libpmemobj/memblock.c
+		${VER112}/src/libpmemobj/memops.c
+		${VER112}/src/libpmemobj/obj.c
+		${VER112}/src/libpmemobj/palloc.c
+		${VER112}/src/libpmemobj/pmalloc.c
+		${VER112}/src/libpmemobj/recycler.c
+		${VER112}/src/libpmemobj/stats.c
+		${VER112}/src/libpmemobj/sync.c
+		${VER112}/src/libpmemobj/tx.c
+		${VER112}/src/libpmemobj/ulog.c
+
+		${VER112}/src/common/bad_blocks.c
+		${VER112}/src/common/ctl.c
+		${VER112}/src/common/ctl_cow.c
+		${VER112}/src/common/ctl_fallocate.c
+		${VER112}/src/common/ctl_prefault.c
+		${VER112}/src/common/ctl_sds.c
+		${VER112}/src/common/file.c
+		${VER112}/src/common/mmap.c
+		${VER112}/src/common/pool_hdr.c
+		${VER112}/src/common/set.c
+		${VER112}/src/common/set_badblocks.c
+		${VER112}/src/common/shutdown_state.c
+		${VER112}/src/common/uuid.c
+		${VER112}/src/core/alloc.c
+		${VER112}/src/core/membuf.c
+		${VER112}/src/core/out.c
+		${VER112}/src/core/ravl.c
+		${VER112}/src/core/ravl_interval.c
+		${VER112}/src/core/util.c
+		${VER112}/src/libpmem2/badblocks.c
+		${VER112}/src/libpmem2/badblocks_none.c
+		${VER112}/src/libpmem2/deep_flush_other.c
+		${VER112}/src/libpmem2/map.c
+		${VER112}/src/libpmem2/memops_generic.c
+		${VER112}/src/libpmem2/mover.c
+		${VER112}/src/libpmem2/pmem2_utils.c
+		${VER112}/src/libpmem2/persist.c
+		${VER112}/src/libpmem2/source.c
+		${VER112}/src/libpmem2/usc_none.c
+		)
+
+	if(WIN32)
+		set(SOURCES_112 ${SOURCES_112}
+			${VER112}/src/libpmemobj/libpmemobj_main.c
+			${VER112}/src/common/file_windows.c
+			${VER112}/src/common/mmap_windows.c
+			${VER112}/src/common/os_deep_windows.c
+			${VER112}/src/common/uuid_windows.c
+			${VER112}/src/core/fs_windows.c
+			${VER112}/src/core/os_windows.c
+			${VER112}/src/core/os_thread_windows.c
+			${VER112}/src/core/util_windows.c
+			${VER112}/src/libpmem2/persist_windows.c
+			${VER112}/src/libpmem2/pmem2_utils_other.c
+			${VER112}/src/libpmem2/source_windows.c
+			${VER112}/src/libpmem2/region_namespace_none.c
+			)
+	else()
+		set(SOURCES_112 ${SOURCES_112}
+			${VER112}/src/common/file_posix.c
+			${VER112}/src/common/mmap_posix.c
+			${VER112}/src/common/os_deep_linux.c
+			${VER112}/src/common/uuid_linux.c
+			${VER112}/src/core/fs_posix.c
+			${VER112}/src/core/os_posix.c
+			${VER112}/src/core/os_thread_posix.c
+			${VER112}/src/core/util_posix.c
+			${VER112}/src/libpmem2/extent_linux.c
+			${VER112}/src/libpmem2/persist_posix.c
+			${VER112}/src/libpmem2/pmem2_utils_linux.c
+			${VER112}/src/libpmem2/pmem2_utils_ndctl.c
+			${VER112}/src/libpmem2/region_namespace_ndctl.c
+			${VER112}/src/libpmem2/source_posix.c
+			)
+	endif()
+	if (CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64
+		OR CMAKE_SYSTEM_PROCESSOR STREQUAL amd64
+		OR CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64)
+		set(SOURCES_112 ${SOURCES_112}
+			${VER112}/src/libpmem2/x86_64/init.c
+			${VER112}/src/libpmem2/x86_64/cpu.c
+			)
+	elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
+		set(SOURCES_112 ${SOURCES_112}
+			${VER112}/src/libpmem2/aarch64/init.c
+			)
+	else()
+		message(FATAL_ERROR "Unknown architecture ${CMAKE_SYSTEM_PROCESSOR}")
+	endif()
+
+	function(build_convert_v6)
+		if(WIN32)
+			set(CONVERT_V6_SOURCES ${VER112}/src/windows/getopt/getopt.c)
+		endif()
+
+		add_library(pmemobj_convert_v6_o OBJECT ${SOURCES_112} ${CONVERT_V6_SOURCES}
+			pmemobj_convert_v6.c
+			${VER112}/src/libpmemblk/btt.c
+			${VER112}/src/tools/pmempool/common.c
+			${VER112}/src/tools/pmempool/output.c)
+
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SRCVERSION="${VER112}")
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE _PMEMOBJ_INTRNL)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SSE2_AVAILABLE=0)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE AVX_AVAILABLE=0)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE AVX512F_AVAILABLE=0)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE MOVDIR64B_AVAILABLE=0)
+		target_compile_definitions(pmemobj_convert_v6_o PRIVATE PMEM2_USE_MINIASYNC=1)
+
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/core)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/common)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/include)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/libpmem2)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/libpmemblk)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/libpmemlog)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/libpmemobj)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/deps/miniasync/src/include)
+		target_include_directories(pmemobj_convert_v6_o PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(MSVC)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/windows/include/)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER112}/src/windows/getopt/)
+			target_include_directories(pmemobj_convert_v6_o PRIVATE include/)
+			target_compile_options(pmemobj_convert_v6_o PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER112}/src/windows/include/platform.h")
+		endif()
+
+		if(MSVC)
+			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o> ${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_v6.def)
+		else()
+			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o>)
+			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
+		endif()
+
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+		if(NOT MSVC)
+			# strip unneeded symbols, requires -fdata-sections -ffunction-sections
+			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--gc-sections)
+		endif()
+
+		set_target_properties(pmemobj_convert_v6_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v6)
+		# remove lib prefix from library name
+		set_target_properties(pmemobj_convert_v6_shared PROPERTIES PREFIX "")
+	endfunction(build_convert_v6)
+
+	build_convert_v6()
+
+	install(TARGETS pmemobj_convert_v6_shared
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
+
+	function(build_libpmemobj_112)
+		if(MSVC)
+			FILE(READ ${VER112}/src/libpmemobj/libpmemobj.def DEFFILE)
+			string(REPLACE "libpmemobj" "pmemobj_112" DEFFILE "${DEFFILE}")
+			FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_112.def "${DEFFILE}")
+			add_library(pmemobj_112 SHARED ${SOURCES_112} ${CMAKE_CURRENT_BINARY_DIR}/pmemobj_112.def)
+			target_compile_options(pmemobj_112 PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER112}/src/windows/include/platform.h")
+		else()
+			add_library(pmemobj_112 SHARED ${SOURCES_112})
+			disable_optimization(pmemobj_112)
+		endif()
+
+		target_compile_definitions(pmemobj_112 PRIVATE SRCVERSION="${VER112}")
+		target_compile_definitions(pmemobj_112 PRIVATE PMDK_UTF8_API)
+		target_compile_definitions(pmemobj_112 PRIVATE _PMEMOBJ_INTRNL)
+
+		target_include_directories(pmemobj_112 PRIVATE ${VER112}/src/common)
+		target_include_directories(pmemobj_112 PRIVATE ${VER112}/src/core)
+		target_include_directories(pmemobj_112 PRIVATE ${VER112}/src/include)
+		target_include_directories(pmemobj_112 PRIVATE ${VER112}/src/libpmem2)
+		target_include_directories(pmemobj_112 PRIVATE ${VER112}/src/libpmemobj)
+		target_include_directories(pmemobj_112 PRIVATE ${VER112}/src/deps/miniasync/src/include)
+
+		target_include_directories(pmemobj_112 PRIVATE ${PMEM_INCLUDE_DIRS})
+
+		if(WIN32)
+			target_include_directories(pmemobj_112 PRIVATE ${VER112}/src/windows/include/)
+			target_include_directories(pmemobj_112 PRIVATE include/)
+		endif()
+
+		target_link_libraries(pmemobj_112 PRIVATE libpmem-convert)
+		target_link_libraries(pmemobj_112 PRIVATE ${CMAKE_DL_LIBS})
+		target_link_libraries(pmemobj_112 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+		target_compile_definitions(pmemobj_112 PRIVATE SSE2_AVAILABLE=0)
+		target_compile_definitions(pmemobj_112 PRIVATE AVX_AVAILABLE=0)
+		target_compile_definitions(pmemobj_112 PRIVATE AVX512F_AVAILABLE=0)
+		target_compile_definitions(pmemobj_112 PRIVATE MOVDIR64B_AVAILABLE=0)
+		target_compile_definitions(pmemobj_112 PRIVATE PMEM2_USE_MINIASYNC=1)
+
+		if(NOT MSVC)
+			FILE(READ ${VER112}/src/libpmemobj/libpmemobj.link.in LINKFILE)
+			string(REPLACE "fault_injection;" "" LINKFILE "${LINKFILE}")
+			FILE(WRITE ${VER112}/src/libpmemobj/libpmemobj.link "${LINKFILE}")
+			target_link_libraries(pmemobj_112 PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/${VER112}/src/libpmemobj/libpmemobj.link)
+		endif()
+
+		target_compile_definitions(libpmem-convert PRIVATE SSE2_AVAILABLE=0)
+		target_compile_definitions(libpmem-convert PRIVATE AVX_AVAILABLE=0)
+		target_compile_definitions(libpmem-convert PRIVATE AVX512F_AVAILABLE=0)
+		target_compile_definitions(libpmem-convert PRIVATE MOVDIR64B_AVAILABLE=0)
+	endfunction(build_libpmemobj_112)
+
+	build_libpmemobj_112()
+
+endif(BUILD_CONVERT_V6)
+
+
+###################################################### 1.11
+if(BUILD_111)
+	set(VER111 1.11)
+	set(D_VER111 1.11.0)
+
+	get_pmdk(${D_VER111} 2116f30b1fbb3ee11b208f21f6eb81e594649608d85f6741d597a7fbea36143b ${VER111} 0)
 
 	set(SOURCES_111
 		${VER111}/src/libpmemobj/alloc_class.c
@@ -722,65 +982,6 @@ if(BUILD_CONVERT_V6)
 		message(FATAL_ERROR "Unknown architecture ${CMAKE_SYSTEM_PROCESSOR}")
 	endif()
 
-	function(build_convert_v6)
-		if(WIN32)
-			set(CONVERT_V6_SOURCES ${VER111}/src/windows/getopt/getopt.c)
-		endif()
-
-		add_library(pmemobj_convert_v6_o OBJECT ${SOURCES_111} ${CONVERT_V6_SOURCES}
-			pmemobj_convert_v6.c
-			${VER111}/src/libpmemblk/btt.c
-			${VER111}/src/tools/pmempool/common.c
-			${VER111}/src/tools/pmempool/output.c)
-
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SRCVERSION="${VER111}")
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE PMDK_UTF8_API)
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE _PMEMOBJ_INTRNL)
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE SSE2_AVAILABLE=0)
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE AVX_AVAILABLE=0)
-		target_compile_definitions(pmemobj_convert_v6_o PRIVATE AVX512F_AVAILABLE=0)
-
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/common)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/core)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/include)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/libpmem2)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/libpmemblk)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/libpmemlog)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/libpmemobj)
-		target_include_directories(pmemobj_convert_v6_o PRIVATE ${PMEM_INCLUDE_DIRS})
-
-		if(MSVC)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/windows/include/)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE ${VER111}/src/windows/getopt/)
-			target_include_directories(pmemobj_convert_v6_o PRIVATE include/)
-			target_compile_options(pmemobj_convert_v6_o PRIVATE /FI"${CMAKE_SOURCE_DIR}/${VER111}/src/windows/include/platform.h")
-		endif()
-
-		if(MSVC)
-			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o> ${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert_v6.def)
-		else()
-			add_library(pmemobj_convert_v6_shared SHARED $<TARGET_OBJECTS:pmemobj_convert_v6_o>)
-			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/pmemobj_convert.map)
-		endif()
-
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE libpmem-convert)
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_DL_LIBS})
-		target_link_libraries(pmemobj_convert_v6_shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-		if(NOT MSVC)
-			# strip unneeded symbols, requires -fdata-sections -ffunction-sections
-			target_link_libraries(pmemobj_convert_v6_shared PRIVATE -Wl,--gc-sections)
-		endif()
-
-		set_target_properties(pmemobj_convert_v6_shared PROPERTIES OUTPUT_NAME pmemobj_convert_v6)
-		# remove lib prefix from library name
-		set_target_properties(pmemobj_convert_v6_shared PROPERTIES PREFIX "")
-	endfunction(build_convert_v6)
-
-	build_convert_v6()
-
-	install(TARGETS pmemobj_convert_v6_shared
-		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pmdk-convert/)
-
 	function(build_libpmemobj_111)
 		if(MSVC)
 			FILE(READ ${VER111}/src/libpmemobj/libpmemobj.def DEFFILE)
@@ -831,13 +1032,13 @@ if(BUILD_CONVERT_V6)
 
 	build_libpmemobj_111()
 
-endif(BUILD_CONVERT_V6)
+endif()
 
 ###################################################### 1.10
 if(BUILD_110)
 	set(VER110 1.10)
 
-	get_pmdk(${VER110} 08dafcf94db5ac13fac9139c92225d9aa5f3724ea74beee4e6ca19a01a2eb20c ${VER110})
+	get_pmdk(${VER110} 08dafcf94db5ac13fac9139c92225d9aa5f3724ea74beee4e6ca19a01a2eb20c ${VER110} 0)
 
 	set(SOURCES_110
 		${VER110}/src/libpmemobj/alloc_class.c
@@ -994,7 +1195,7 @@ endif()
 if(BUILD_19)
 	set(VER19 1.9)
 
-	get_pmdk(${VER19} 956186faa3feb0156f58da5578143cce22501b9b4a00133a490f997594cb466f ${VER19})
+	get_pmdk(${VER19} 956186faa3feb0156f58da5578143cce22501b9b4a00133a490f997594cb466f ${VER19} 0)
 
 	set(SOURCES_19
 		${VER19}/src/libpmemobj/alloc_class.c
@@ -1151,7 +1352,7 @@ endif()
 if(BUILD_18)
 	set(VER18 1.8)
 
-	get_pmdk(${VER18} afa8d3dd94e704637681331a8c06e31e02f96cfd8bcad82a9d6a9ec7f7775bf8 ${VER18})
+	get_pmdk(${VER18} afa8d3dd94e704637681331a8c06e31e02f96cfd8bcad82a9d6a9ec7f7775bf8 ${VER18} 0)
 
 	set(SOURCES_18
 		${VER18}/src/libpmemobj/alloc_class.c
@@ -1269,7 +1470,7 @@ endif()
 if(BUILD_17)
 	set(VER17 1.7)
 
-	get_pmdk(${VER17} 865ce1b422bc83109cb4a63dcff8fd1077eea3617e668faf6a043208d8be03ca ${VER17})
+	get_pmdk(${VER17} 865ce1b422bc83109cb4a63dcff8fd1077eea3617e668faf6a043208d8be03ca ${VER17} 0)
 
 	set(SOURCES_17
 		${VER17}/src/libpmemobj/alloc_class.c
@@ -1387,7 +1588,7 @@ endif()
 if(BUILD_CONVERT_V5)
 	set(VER16 1.6.1)
 
-	get_pmdk(${VER16} f263c8301f86ddf8bc5e020909ac52350baedba5c169a1a3a7786df64f129446 ${VER16})
+	get_pmdk(${VER16} f263c8301f86ddf8bc5e020909ac52350baedba5c169a1a3a7786df64f129446 ${VER16} 0)
 
 	set(SOURCES_16
 		${VER16}/src/libpmemobj/alloc_class.c
@@ -1558,7 +1759,7 @@ endif(BUILD_CONVERT_V5)
 if(BUILD_15)
 	set(VER15 1.5.2)
 
-	get_pmdk(${VER15} a72691971a98b8472b26271f19d69e6c9b849c1ca42124ea2e2bd8c3fcdff1b1 ${VER15})
+	get_pmdk(${VER15} a72691971a98b8472b26271f19d69e6c9b849c1ca42124ea2e2bd8c3fcdff1b1 ${VER15} 0)
 
 	set(SOURCES_15
 		${VER15}/src/libpmemobj/alloc_class.c
@@ -1669,7 +1870,7 @@ if(BUILD_CONVERT_V4)
 
 	set(VER14 1.4.3)
 
-	get_pmdk(${VER14} 93a8ba7383fa02dfd176d50aff56ace6bbac86bbaf26b8b1949ee703a4ec3a31 ${VER14})
+	get_pmdk(${VER14} db2f228dbba0f1869064b0c91b043e904eeb18c75875114e17e24dcaa3b6f003 ${VER14} 69d1add238ce5511f5902244896eacf83c3f4737)
 
 	set(SOURCES_14
 		${VER14}/src/libpmemobj/alloc_class.c
@@ -1805,6 +2006,7 @@ if(BUILD_CONVERT_V4)
 		target_compile_definitions(pmemobj_14 PRIVATE SRCVERSION="${VER14}")
 		target_compile_definitions(pmemobj_14 PRIVATE PMDK_UTF8_API)
 		target_compile_definitions(pmemobj_14 PRIVATE _PMEMOBJ_INTRNL)
+		target_compile_definitions(pmemobj_14 PRIVATE PMEMOBJ_OFFSETOF_WA)
 
 		target_include_directories(pmemobj_14 PRIVATE ${VER14}/src/include)
 		target_include_directories(pmemobj_14 PRIVATE ${VER14}/src/libpmemobj)
@@ -1833,7 +2035,7 @@ if(BUILD_13)
 
 	set(VER13 1.3.3)
 
-	get_pmdk(${VER13} 5d46497bb151e6a36e801aed45bfef0d068c55cb2267329053e7489e01742f47 ${VER13})
+	get_pmdk(${VER13} 5d46497bb151e6a36e801aed45bfef0d068c55cb2267329053e7489e01742f47 ${VER13} 0)
 
 	set(SOURCES_13
 		${VER13}/src/libpmemobj/alloc_class.c
@@ -1936,7 +2138,7 @@ if(BUILD_CONVERT_V3)
 
 	set(VER12 1.2.4)
 
-	get_pmdk(${VER12} aa57b4d969a7582ad5897b5e979b3f2a4015ace7777388227826a65dbf626edd ${VER12})
+	get_pmdk(${VER12} aa57b4d969a7582ad5897b5e979b3f2a4015ace7777388227826a65dbf626edd ${VER12} 0)
 
 	set(SOURCES_12
 		${VER12}/src/libpmemobj/bucket.c
@@ -2029,7 +2231,7 @@ if(BUILD_CONVERT_V2)
 
 	set(VER11 1.1)
 
-	get_pmdk(${VER11} 2d51a356bf0bd61b0259844894223305d5d825af68d51a07aa1d2bc926b65c43 ${VER11})
+	get_pmdk(${VER11} 2d51a356bf0bd61b0259844894223305d5d825af68d51a07aa1d2bc926b65c43 ${VER11} 0)
 
 	set(SOURCES_11
 		${VER11}/src/libpmemobj/bucket.c
@@ -2116,7 +2318,7 @@ if(BUILD_CONVERT_V1)
 
 	set(VER10 1.0)
 
-	get_pmdk(${VER10} e9c9ed72168047f65fae72808933bfeafd965ed3237ab3fbfb199c362bf5b773 ${VER10})
+	get_pmdk(${VER10} e9c9ed72168047f65fae72808933bfeafd965ed3237ab3fbfb199c362bf5b773 ${VER10} 0)
 
 	set(SOURCES_10
 		${VER10}/src/libpmemobj/bucket.c

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # run-build.sh - is called inside a Docker container; prepares the environment
@@ -10,12 +10,12 @@
 set -e
 set -x
 
+./prepare-for-build.sh
+
 cd $WORKDIR
 INSTALL_DIR=/tmp/pmdk-convert
 
 mkdir $INSTALL_DIR
-
-cp /opt/pmdk/*.tar.gz .
 
 if [ -n "$CC" ]
 then
@@ -47,8 +47,8 @@ fi
 # -----------------------------------------
 # base build
 
-mkdir build
-cd build
+mkdir $WORKDIR/build
+cd $WORKDIR/build
 
 CC=$CC \
 cmake .. -DCMAKE_BUILD_TYPE=$TEST_BUILD \
@@ -64,13 +64,13 @@ make install
 make uninstall
 
 cd ..
-rm -r build
+rm -r $WORKDIR/build
 
 # -----------------------------------------
 # different MINVERSION
 
-mkdir build
-cd build
+mkdir $WORKDIR/build
+cd $WORKDIR/build
 
 CC=$CC \
 cmake .. -DCMAKE_BUILD_TYPE=$TEST_BUILD \
@@ -84,13 +84,13 @@ make -j2
 ctest --output-on-failure
 
 cd ..
-rm -r build
+rm -r $WORKDIR/build
 
 # -----------------------------------------
 # deb & rpm
 
-mkdir build
-cd build
+mkdir $WORKDIR/build
+cd $WORKDIR/build
 
 CC=$CC \
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
@@ -117,7 +117,7 @@ cp ./libpmemobj_10.so /tmp
 cp ./libpmemobj_17.so /tmp
 
 cd ..
-rm -rf build
+rm -rf $WORKDIR/build
 
 # Verify installed package
 # pmdk-convert ...

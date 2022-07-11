@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 # File contains test which verifies converting the pool with major header
 # field changed to 0 and (expected_major + 1) for every available version
@@ -15,7 +15,6 @@ string(REPLACE "." "" last_bin_version ${newest_version})
 
 # first PMDK version with the newest layout
 set(BEGIN_LATEST_LAYOUT 1.7)
-
 execute(0 ${TEST_DIR}/create_${last_bin_version} ${DIR}/poolTest${last_bin_version} 16)
 execute_process(COMMAND ${TEST_DIR}/pmempool-convert info ${DIR}/poolTest${last_bin_version}
 	OUTPUT_VARIABLE out RESULT_VARIABLE ret ERROR_VARIABLE err_msg)
