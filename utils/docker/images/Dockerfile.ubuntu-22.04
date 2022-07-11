@@ -1,22 +1,27 @@
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
+#
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
-#              environment prepared for running pmdk-convert tests.
+#              environment prepared for running tests of pmdk-convert.
 #
 
 # Pull base image
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 MAINTAINER piotr.balcer@intel.com
 
 ENV DEBIAN_FRONTEND noninteractive
 
+# Additional parameters to build docker without building components
 ARG SKIP_SCRIPTS_DOWNLOAD
 
 # Update the Apt cache and install basic tools
-RUN apt-get update \
- && apt-get install -y software-properties-common \
+RUN apt-get update && apt-get dist-upgrade -y
+
+# base deps
+ENV BASE_DEPS "\
 	autoconf \
 	clang \
 	cmake \
@@ -34,21 +39,21 @@ RUN apt-get update \
 	wget \
 	whois \
 	libndctl-dev \
-	libdaxctl-dev \
- && rm -rf /var/lib/apt/lists/*
+	libdaxctl-dev"
 
-# Install pmdk
-COPY download-pmdk.sh download-pmdk.sh
-RUN ./download-pmdk.sh deb
+# Install all required packages
+RUN apt-get install -y --no-install-recommends \
+	$BASE_DEPS \
+&& rm -rf /var/lib/apt/lists/*
 
 # Add user
 ENV USER user
-ENV USERPASS pass
+ENV USERPASS p1a2s3s4
 RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
 USER $USER
 
 # Set required environment variables
 ENV OS ubuntu
-ENV OS_VER 20.04
+ENV OS_VER 22.04
 ENV PACKAGE_MANAGER deb
 ENV NOTTY 1

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2021, Intel Corporation */
+/* Copyright 2018-2022, Intel Corporation */
 
 #include <ctype.h>
 #include <errno.h>
@@ -93,6 +93,9 @@ static const struct {
 #endif
 #if CHECK_VERSION(111)
 	{111, 6},
+#endif
+#if CHECK_VERSION(112)
+	{112, 6},
 #endif
 };
 
