@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2022, Intel Corporation
+# Copyright 2018-2023, Intel Corporation
 
 include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
 
@@ -1870,7 +1870,7 @@ if(BUILD_CONVERT_V4)
 
 	set(VER14 1.4.3)
 
-	get_pmdk(${VER14} db2f228dbba0f1869064b0c91b043e904eeb18c75875114e17e24dcaa3b6f003 ${VER14} 69d1add238ce5511f5902244896eacf83c3f4737)
+	get_pmdk(${VER14} 7c01fcdb1ea020a0d3357bd6a12d84440d977d85aaa899c91801d32afba20e6e ${VER14} 69d1add238ce5511f5902244896eacf83c3f4737)
 
 	set(SOURCES_14
 		${VER14}/src/libpmemobj/alloc_class.c

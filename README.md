@@ -1,7 +1,7 @@
 pmdk-convert: PMDK pool conversion tool
 =======================================
 
-[![Build Status](https://travis-ci.org/pmem/pmdk-convert.svg?branch=master)](https://travis-ci.org/pmem/pmdk-convert)
+[![Build status](https://github.com/pmem/pmdk-convert/actions/workflows/on_pull_request.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk-convert/actions/workflows/on_pull_request.yml)
 [![Build status](https://ci.appveyor.com/api/projects/status/github/pmem/pmdk-convert?branch/master?svg=true&pr=false)](https://ci.appveyor.com/project/pmem/pmdk-convert/branch/master)
 [![Coverage Status](https://codecov.io/github/pmem/pmdk-convert/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk-convert/branch/master)
 
